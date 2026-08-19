@@ -1,12 +1,43 @@
 #include "gfx_context_impl_vulkan.hpp"
 
+#include "gfx_context_spec_vulkan.hpp"
+
 namespace app::gfx {
 
-VulkanGraphicsContext::VulkanGraphicsContext()
-    : IGraphicsContext(kBackend) {}
+// -----------------------------------------------------------------------------
+
+struct VulkanGraphicsContext::Impl {
+    explicit Impl(const VulkanGraphicsContextSpec &spec)
+        : spec(spec) {}
+
+    static constexpr UINT kFrameCount = 3;
+
+    VulkanGraphicsContextSpec spec;
+
+    vk::UniqueInstance instance;
+    vk::UniqueDevice device;
+    vk::PhysicalDevice physical_device;
+
+    util::VoidResult<> Init() {
+        if (spec.window == nullptr) {
+            return util::ErrorMessage{"No window provided to Vulkan specification"};
+        }
+
+
+
+    }
+};
+
+// -----------------------------------------------------------------------------
+
+VulkanGraphicsContext::VulkanGraphicsContext(const VulkanGraphicsContextSpec &spec)
+    : IGraphicsContext(kBackend)
+    , m_impl(std::make_unique<Impl>(spec)) {}
+
+VulkanGraphicsContext::~VulkanGraphicsContext() {}
 
 util::ObjectResult<VulkanGraphicsContext> VulkanGraphicsContext::Create(const VulkanGraphicsContextSpec &spec) {
-    auto context = std::make_unique<VulkanGraphicsContext>();
+    auto context = std::make_unique<VulkanGraphicsContext>(spec);
     auto result = context->Initialize();
     if (!result) {
         return result.Error();
