@@ -33,6 +33,20 @@ struct VulkanGraphicsContext::Impl {
 
     vk::UniqueDescriptorPool descriptor_pool;
 
+    PresentMode presentMode = PresentMode::VSync;
+
+    struct TextureInstance {
+        Texture2DSpec spec;
+        vk::UniqueImage image;
+    };
+
+    struct TextureToDelete {
+        vk::UniqueImage texture;
+    };
+
+    std::unordered_map<TextureID, TextureInstance> textures;
+    std::deque<TextureToDelete> texturesToDelete;
+
     util::VoidResult<> Init() {
         if (spec.window == nullptr) {
             return util::ErrorMessage{"No window provided to Vulkan specification"};
@@ -137,6 +151,61 @@ struct VulkanGraphicsContext::Impl {
     util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {}
 
     util::VoidResult<> BeginFrame() {}
+
+    util::VoidResult<> EndFrame() {
+        return {};
+    }
+
+    util::ValueResult<PresentResult> Present() {}
+
+    util::ValueResult<TextureInstance> CreateTexture(const Texture2DSpec &spec) {
+        const bool isRenderTarget = spec.access == TextureAccess::RenderTarget;
+
+        return TextureInstance{};
+    }
+
+    util::VoidResult<> ResizeTexture(TextureID id, uint32 width, uint32 height) {
+        auto it = textures.find(id);
+        if (it == textures.end()) {
+            return util::ErrorMessage{"Texture does not exist"};
+        }
+        TextureInstance &texture = it->second;
+
+        // First, try creating new texture using the existing texture's specifications
+        Texture2DSpec newSpec = texture.spec;
+        newSpec.width = width;
+        newSpec.height = height;
+        auto createResult = CreateTexture(newSpec);
+        if (!createResult) {
+            return createResult.Error();
+        }
+
+        // Now that we've succeeded, mark the previous texture for deletion and replace it
+        SubmitTextureForDeletion(texture);
+        texture = createResult.Value();
+
+        return {};
+    }
+
+    void DestroyTexture(TextureID id) {}
+
+    void SubmitTextureForDeletion(TextureInstance &texture) {}
+
+    void DeletePendingTextures(bool force) {}
+
+    bool IsTextureValid(TextureID id) {}
+
+    TextureInstance *GetTexture(TextureID id) {}
+
+    util::VoidResult<> UpdateTexture(TextureID id, const IRect *rect,
+                                     const std::function<void(void *data, size_t pitch)> &fnUpdate) {
+        return {};
+    }
+
+    util::VoidResult<> RenderToTexture(TextureID src, TextureID dst, const FRect &srcRect, const FRect &dstRect) {}
+
+    util::VoidResult<> DrawTextureRotated(TextureID id, const FRect &srcRect, const FRect &dstRect, double rotAngle,
+                                          const FPoint2D *rotPivot) {}
 };
 
 // -----------------------------------------------------------------------------
@@ -228,56 +297,48 @@ void VulkanGraphicsContext::ImGuiRenderFrame() {
 }
 
 util::ValueResult<TextureID> VulkanGraphicsContext::CreateTexture(const Texture2DSpec &spec) {
-    // TODO: create and store texture object in a hash map
-    // The texture ID will be the hash map key, not the native object pointer, because resizing the texture requires
-    // creating a new object and these IDs must be immutable for the lifetime of the logical texture.
-    return {0};
-    return util::ErrorMessage{"Unimplemented"};
+    auto result = m_impl->CreateTexture(spec);
+    if (!result) {
+        return result.Error();
+    }
+
+    const TextureID id = GetNextTextureID();
+    m_impl->textures[id] = std::move(result.Value());
+
+    return id;
 }
 
 void VulkanGraphicsContext::DestroyTexture(TextureID id) {
-    // TODO: delete texture
+    m_impl->DestroyTexture(id);
 }
 
 bool VulkanGraphicsContext::IsTextureValid(TextureID id) const {
-    // TODO: check if the texture is still live
-    return true;
+    return m_impl->IsTextureValid(id);
 }
 
 ImTextureID VulkanGraphicsContext::GetImGuiTextureID(TextureID id) const {
-    // TODO: get and return texture ID
-    return 0;
+    // ImTextureIDs for Vulkan are the VkImage handles
+    Impl::TextureInstance *instance = m_impl->GetTexture(id);
+    return (instance != nullptr) ? reinterpret_cast<ImTextureID>((VkImage)instance->image.get()) : 0;
 }
 
 util::VoidResult<> VulkanGraphicsContext::ResizeTexture(TextureID id, uint32 width, uint32 height) {
-    // TODO: destroy and recreate texture with new dimensions
-    return {};
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->ResizeTexture(id, width, height);
 }
 
 util::VoidResult<> VulkanGraphicsContext::UpdateTexture(TextureID id, const IRect *rect,
                                                         const std::function<void(void *data, size_t pitch)> &fnUpdate) {
-    // TODO: map texture, invoke fnUpdate with contents, unmap texture; handle errors
-    return {};
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->UpdateTexture(id, rect, fnUpdate);
 }
 
 util::VoidResult<> VulkanGraphicsContext::RenderToTexture(TextureID src, TextureID dst, const FRect &srcRect,
                                                           const FRect &dstRect) {
-    // TODO: set render target to dst texture, draw texture, restore render target
-    return {};
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->RenderToTexture(src, dst, srcRect, dstRect);
 }
 
 util::VoidResult<> VulkanGraphicsContext::DrawTextureRotated(TextureID id, const FRect &srcRect, const FRect &dstRect,
                                                              double rotAngle, const FPoint2D *anchorPoint) {
-    // TODO: imitate SDL_RenderTextureRotated:
-    // - srcRect specifies the source texture region to copy from (in texels)
-    // - dstRect specifies the destination texture region to copy to (in texels)
-    // - rotAngle is the clockwise rotation angle (in degrees)
-    // - anchorPoint is the rotation anchor point. If null, use the center of the destination rectangle
-    return {};
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->DrawTextureRotated(id, srcRect, dstRect, rotAngle, anchorPoint);
 }
 
 std::optional<DisplayTextureSpec> VulkanGraphicsContext::AcquireCurrentDisplayOutputTexture() {
@@ -302,15 +363,12 @@ util::ValueResult<size_t> VulkanGraphicsContext::DownloadDisplayOutputTexture(vo
 }
 
 util::VoidResult<> VulkanGraphicsContext::SetPresentMode(PresentMode mode) {
-    // TODO: set presentation mode
+    m_impl->presentMode = mode;
     return {};
-    return util::ErrorMessage{"Unimplemented"};
 }
 
 util::ValueResult<PresentResult> VulkanGraphicsContext::Present() {
-    // TODO: present next frame and wait for vertical retrace if enabled
-    return {PresentResult::Ok};
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->Present();
 }
 
 } // namespace app::gfx

@@ -12,7 +12,7 @@ class VulkanGraphicsContext final : public IGraphicsContext {
 public:
     static constexpr Backend kBackend = Backend::Vulkan;
 
-    VulkanGraphicsContext(const VulkanGraphicsContextSpec& spec);
+    VulkanGraphicsContext(const VulkanGraphicsContextSpec &spec);
     ~VulkanGraphicsContext();
 
     /// @brief Creates a Vulkan graphics context.
