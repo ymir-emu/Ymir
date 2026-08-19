@@ -3,6 +3,7 @@
 
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
+#include <ymir/gpu/vulkan/vulkan_swap_chain.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
@@ -35,6 +36,7 @@ struct VulkanGraphicsContext::Impl {
     vk::Queue queue;
 
     vk::UniqueDescriptorPool descriptorPool;
+    std::unique_ptr<VulkanSwapchain> swapchain;
 
     PresentMode presentMode = PresentMode::VSync;
 
@@ -145,6 +147,15 @@ struct VulkanGraphicsContext::Impl {
             return util::ErrorMessage{"Error creating descriptor pool:" + vk::to_string(createResult.result)};
         }
         SetObjectName(device.get(), descriptorPool.get(), "[Ymir-GCtx] Descriptor Pool");
+
+        // Swapchain
+        if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, queue, surface, kFrameCount,
+                                                        presentMode == PresentMode::VSync);
+            createResult.HasValue()) {
+            swapchain = std::make_unique<VulkanSwapchain>(std::move(createResult.Value()));
+        } else {
+            return createResult.Error();
+        }
 
         return {};
     }

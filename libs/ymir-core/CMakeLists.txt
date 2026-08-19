@@ -405,10 +405,12 @@ if (Vulkan_FOUND)
         PUBLIC
             include/ymir/gpu/vulkan/vulkan_api.hpp
             include/ymir/gpu/vulkan/vulkan_debug.hpp
+            include/ymir/gpu/vulkan/vulkan_swap_chain.hpp
 			
-		PRIVATE
+			PRIVATE
             src/ymir/gpu/vulkan/vulkan_api.cpp
             src/ymir/gpu/vulkan/vulkan_debug.cpp
+            src/ymir/gpu/vulkan/vulkan_swap_chain.cpp
     )
 endif ()
 

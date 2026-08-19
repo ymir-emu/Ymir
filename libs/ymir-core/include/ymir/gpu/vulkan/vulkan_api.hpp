@@ -17,6 +17,8 @@
 #include <vulkan/vulkan_format_traits.hpp>
 #include <vulkan/vulkan_hash.hpp>
 
+#include <ymir/core/types.hpp>
+
 #include <span>
 
 namespace ymir::gpu::vulkan {
