@@ -404,9 +404,11 @@ if (Vulkan_FOUND)
     target_sources(ymir-core
         PUBLIC
             include/ymir/gpu/vulkan/vulkan_api.hpp
-
-        PRIVATE
+            include/ymir/gpu/vulkan/vulkan_debug.hpp
+			
+		PRIVATE
             src/ymir/gpu/vulkan/vulkan_api.cpp
+            src/ymir/gpu/vulkan/vulkan_debug.cpp
     )
 endif ()
 

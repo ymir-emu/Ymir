@@ -2,6 +2,7 @@
 #include "gfx_context_spec_vulkan.hpp"
 
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
+#include <ymir/gpu/vulkan/vulkan_debug.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
@@ -23,6 +24,7 @@ struct VulkanGraphicsContext::Impl {
     VulkanGraphicsContextSpec spec;
 
     vk::UniqueInstance instance;
+    vk::UniqueDebugUtilsMessengerEXT debug_messenger;
     vk::UniqueDevice device;
     vk::PhysicalDevice physical_device;
 
@@ -59,6 +61,9 @@ struct VulkanGraphicsContext::Impl {
         } else {
             return util::ErrorMessage{"Error creating Vulkan instance"};
         }
+
+        // Register debug messenger
+        debug_messenger = ymir::gpu::vulkan::CreateDebugMessenger(instance.get());
 
         // Determine physical device
 
