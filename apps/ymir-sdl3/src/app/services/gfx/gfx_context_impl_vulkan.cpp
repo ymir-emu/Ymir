@@ -1,6 +1,16 @@
 #include "gfx_context_impl_vulkan.hpp"
-
 #include "gfx_context_spec_vulkan.hpp"
+
+#define VULKAN_HPP_NO_EXCEPTIONS
+// Used to allow aggregate initialization for structs
+#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+#include <vulkan/vulkan.hpp>
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
+
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_vulkan.h>
 
 namespace app::gfx {
 
@@ -10,7 +20,8 @@ struct VulkanGraphicsContext::Impl {
     explicit Impl(const VulkanGraphicsContextSpec &spec)
         : spec(spec) {}
 
-    static constexpr UINT kFrameCount = 3;
+    static constexpr uint8 kFrameCount = 3;
+    static constexpr uint32 kDescriptorCount = 256;
 
     VulkanGraphicsContextSpec spec;
 
@@ -18,14 +29,129 @@ struct VulkanGraphicsContext::Impl {
     vk::UniqueDevice device;
     vk::PhysicalDevice physical_device;
 
+    vk::SurfaceKHR surface;
+    vk::Queue queue;
+
+    vk::UniqueDescriptorPool descriptor_pool;
+
     util::VoidResult<> Init() {
         if (spec.window == nullptr) {
             return util::ErrorMessage{"No window provided to Vulkan specification"};
         }
 
+        // Create a minimal instance to enumerate physical devices
+        static const vk::ApplicationInfo application_info = {
+            .pApplicationName = "ymir",
+            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+            .pEngineName = "ymir",
+            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+            .apiVersion = VK_API_VERSION_1_1,
+        };
 
+        uint32_t instance_extension_count;
+        const char *const *instance_extensions = SDL_Vulkan_GetInstanceExtensions(&instance_extension_count);
 
+        const vk::InstanceCreateInfo instance_info = {
+            .pApplicationInfo = &application_info,
+            .enabledExtensionCount = instance_extension_count,
+            .ppEnabledExtensionNames = instance_extensions,
+        };
+
+        if (auto CreateResult = vk::createInstanceUnique(instance_info); CreateResult.result == vk::Result::eSuccess) {
+            instance = std::move(CreateResult.value);
+        } else {
+            return util::ErrorMessage{"Error creating Vulkan instance"};
+        }
+
+        // Determine physical device
+
+        if (spec.device) {
+            physical_device = (VkPhysicalDevice)spec.device;
+        } else {
+            if (const auto enumerate_result = instance->enumeratePhysicalDevices(); enumerate_result.has_value()) {
+                // No device specified, select the first device
+                physical_device = enumerate_result.value[0];
+            }
+        }
+
+        SDL_Vulkan_CreateSurface(spec.window, instance.get(), nullptr, (VkSurfaceKHR *)&surface);
+
+        // Create Device
+        vk::DeviceCreateInfo device_info = {};
+
+        static const char *device_extensions[] = {
+#if defined(__APPLE__)
+            "VK_KHR_portability_subset",
+#endif
+            VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+        };
+        device_info.ppEnabledExtensionNames = device_extensions;
+        device_info.enabledExtensionCount = std::size(device_extensions);
+
+        vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceTimelineSemaphoreFeatures>
+            device_feature_chain = {};
+
+        auto &device_features = device_feature_chain.get<vk::PhysicalDeviceFeatures2>().features;
+
+        // Enable timeline semaphores
+        auto &device_timeline_features = device_feature_chain.get<vk::PhysicalDeviceTimelineSemaphoreFeatures>();
+        device_timeline_features.timelineSemaphore = VK_TRUE;
+
+        device_info.pNext = &device_feature_chain.get();
+
+        static const float queue_priority = 1.0f;
+
+        static const vk::DeviceQueueCreateInfo queue_info = {
+            .queueFamilyIndex = 0,
+            .queueCount = 1,
+            .pQueuePriorities = &queue_priority,
+        };
+
+        device_info.queueCreateInfoCount = 1;
+        device_info.pQueueCreateInfos = &queue_info;
+
+        if (auto create_result = physical_device.createDeviceUnique(device_info);
+            create_result.result == vk::Result::eSuccess) {
+            device = std::move(create_result.value);
+        } else {
+            return util::ErrorMessage{"Error creating logical device:" + vk::to_string(create_result.result)};
+        }
+
+        queue = device->getQueue(0, 0);
+
+        // Descriptor Pool
+        // ImGui wants VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT enabled and requires some
+        // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptors
+        std::vector<vk::DescriptorPoolSize> PoolSizes;
+        PoolSizes.emplace_back(vk::DescriptorPoolSize{
+            .type = vk::DescriptorType::eCombinedImageSampler,
+            .descriptorCount = kDescriptorCount,
+        });
+
+        const vk::DescriptorPoolCreateInfo descriptor_pool_info{
+            .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+            .maxSets = kDescriptorCount,
+            .poolSizeCount = static_cast<std::uint32_t>(PoolSizes.size()),
+            .pPoolSizes = PoolSizes.data(),
+        };
+
+        if (auto create_result = device->createDescriptorPoolUnique(descriptor_pool_info);
+            create_result.result == vk::Result::eSuccess) {
+            descriptor_pool = std::move(create_result.value);
+        } else {
+            return util::ErrorMessage{"Error creating descriptor pool:" + vk::to_string(create_result.result)};
+        }
+
+        return {};
     }
+
+    bool IsInitialized() const {
+        return device.get() != nullptr;
+    }
+
+    util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {}
+
+    util::VoidResult<> BeginFrame() {}
 };
 
 // -----------------------------------------------------------------------------
@@ -46,17 +172,18 @@ util::ObjectResult<VulkanGraphicsContext> VulkanGraphicsContext::Create(const Vu
 }
 
 util::VoidResult<> VulkanGraphicsContext::Initialize() {
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->Init();
 }
 
 void VulkanGraphicsContext::Shutdown() {}
 
 bool VulkanGraphicsContext::IsInitialized() const {
-    return false;
+    return m_impl->IsInitialized();
 }
 
 util::VoidResult<> VulkanGraphicsContext::ResizeFramebuffer(uint32 width, uint32 height) {
     // TODO: destroy and recreate swap chain resources
+    return {};
     return util::ErrorMessage{"Unimplemented"};
 }
 
@@ -65,26 +192,61 @@ void VulkanGraphicsContext::ClearScreen(gfx::ColorRGBA color) {
 }
 
 bool VulkanGraphicsContext::ImGuiInit() {
-    // TODO: invoke the appropriate ImGui_Impl*_Init* functions
-    return false;
+
+    const ImGui_ImplVulkan_PipelineInfo pipeline_info_main{
+        .RenderPass = nullptr,
+        .Subpass = 0,
+    };
+
+    ImGui_ImplVulkan_InitInfo init_info = {
+        .ApiVersion = m_impl->spec.api_level,
+        .Instance = m_impl->instance.get(),
+        .PhysicalDevice = m_impl->physical_device,
+        .Device = m_impl->device.get(),
+        .QueueFamily = 0,
+        .Queue = m_impl->queue,
+        .DescriptorPool = m_impl->descriptor_pool.get(),
+        .DescriptorPoolSize = 0,
+        .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,
+        .PipelineCache = nullptr,
+        .PipelineInfoMain = pipeline_info_main,
+    };
+
+    m_imguiInitialized =                                     //
+        ImGui_ImplSDL3_InitForVulkan(m_impl->spec.window) && //
+        ImGui_ImplVulkan_Init(&init_info);
+
+    return m_imguiInitialized;
 }
 
 void VulkanGraphicsContext::ImGuiShutdown() {
-    // TODO: invoke the appropriate ImGui_Impl*_Shutdown* functions
+    if (m_imguiInitialized) {
+        ImGui_ImplSDL3_Shutdown();
+        ImGui_ImplVulkan_Shutdown();
+        m_imguiInitialized = false;
+    }
 }
 
 void VulkanGraphicsContext::ImGuiNewFrame() {
-    // TODO: invoke the appropriate ImGui_Impl*_NewFrame functions
+    if (m_imguiInitialized) {
+        m_impl->BeginFrame();
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+    }
 }
 
 void VulkanGraphicsContext::ImGuiRenderFrame() {
-    // TODO: invoke the appropriate ImGui_Impl*_RenderDrawData function
+    if (m_imguiInitialized) {
+        ImDrawData *drawData = ImGui::GetDrawData();
+        ImGui_ImplVulkan_RenderDrawData(drawData, (VkCommandBuffer) nullptr, nullptr);
+    }
 }
 
 util::ValueResult<TextureID> VulkanGraphicsContext::CreateTexture(const Texture2DSpec &spec) {
     // TODO: create and store texture object in a hash map
     // The texture ID will be the hash map key, not the native object pointer, because resizing the texture requires
     // creating a new object and these IDs must be immutable for the lifetime of the logical texture.
+    return {0};
     return util::ErrorMessage{"Unimplemented"};
 }
 
@@ -104,18 +266,21 @@ ImTextureID VulkanGraphicsContext::GetImGuiTextureID(TextureID id) const {
 
 util::VoidResult<> VulkanGraphicsContext::ResizeTexture(TextureID id, uint32 width, uint32 height) {
     // TODO: destroy and recreate texture with new dimensions
+    return {};
     return util::ErrorMessage{"Unimplemented"};
 }
 
 util::VoidResult<> VulkanGraphicsContext::UpdateTexture(TextureID id, const IRect *rect,
                                                         const std::function<void(void *data, size_t pitch)> &fnUpdate) {
     // TODO: map texture, invoke fnUpdate with contents, unmap texture; handle errors
+    return {};
     return util::ErrorMessage{"Unimplemented"};
 }
 
 util::VoidResult<> VulkanGraphicsContext::RenderToTexture(TextureID src, TextureID dst, const FRect &srcRect,
                                                           const FRect &dstRect) {
     // TODO: set render target to dst texture, draw texture, restore render target
+    return {};
     return util::ErrorMessage{"Unimplemented"};
 }
 
@@ -126,6 +291,7 @@ util::VoidResult<> VulkanGraphicsContext::DrawTextureRotated(TextureID id, const
     // - dstRect specifies the destination texture region to copy to (in texels)
     // - rotAngle is the clockwise rotation angle (in degrees)
     // - anchorPoint is the rotation anchor point. If null, use the center of the destination rectangle
+    return {};
     return util::ErrorMessage{"Unimplemented"};
 }
 
@@ -152,11 +318,13 @@ util::ValueResult<size_t> VulkanGraphicsContext::DownloadDisplayOutputTexture(vo
 
 util::VoidResult<> VulkanGraphicsContext::SetPresentMode(PresentMode mode) {
     // TODO: set presentation mode
+    return {};
     return util::ErrorMessage{"Unimplemented"};
 }
 
 util::ValueResult<PresentResult> VulkanGraphicsContext::Present() {
     // TODO: present next frame and wait for vertical retrace if enabled
+    return {PresentResult::Ok};
     return util::ErrorMessage{"Unimplemented"};
 }
 
