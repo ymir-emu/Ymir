@@ -4,6 +4,7 @@
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
 #include <ymir/gpu/vulkan/vulkan_swap_chain.hpp>
+#include <ymir/gpu/vulkan/vulkan_synchronization.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
@@ -33,7 +34,9 @@ struct VulkanGraphicsContext::Impl {
     vk::PhysicalDevice physicalDevice;
 
     vk::SurfaceKHR surface;
-    vk::Queue queue;
+    vk::Queue presentQueue;
+    vk::Queue renderQueue;
+    vk::Queue transferQueue;
 
     vk::UniqueDescriptorPool descriptorPool;
     std::unique_ptr<VulkanSwapchain> swapchain;
@@ -103,16 +106,26 @@ struct VulkanGraphicsContext::Impl {
 
         deviceInfo.pNext = &deviceFeatureChain.get();
 
+        // Determine which queue families to use
+        std::optional<uint32> presentQueueFamilyIndex;
+        std::optional<uint32> renderQueueFamilyIndex;
+        std::optional<uint32> transferQueueFamilyIndex;
+        FindQueueFamilyIndices(physicalDevice, surface, presentQueueFamilyIndex, renderQueueFamilyIndex,
+                               transferQueueFamilyIndex);
+
+        // In the case that queues families are re-used, these are indices for the
+        // particular queue to be allocated
+        uint32 presentQueueIndex = 0u;
+        uint32 renderQueueIndex = 0u;
+        uint32 transferQueueIndex = 0u;
+        const std::vector<vk::DeviceQueueCreateInfo> queueInfo =
+            DetermineQueueIndexAllocation(presentQueueFamilyIndex, renderQueueFamilyIndex, transferQueueFamilyIndex,
+                                          presentQueueIndex, renderQueueIndex, transferQueueIndex);
+
         static const float queuePriority = 1.0f;
 
-        static const vk::DeviceQueueCreateInfo queueInfo = {
-            .queueFamilyIndex = 0,
-            .queueCount = 1,
-            .pQueuePriorities = &queuePriority,
-        };
-
-        deviceInfo.queueCreateInfoCount = 1;
-        deviceInfo.pQueueCreateInfos = &queueInfo;
+        deviceInfo.queueCreateInfoCount = static_cast<uint32>(queueInfo.size());
+        deviceInfo.pQueueCreateInfos = queueInfo.data();
 
         if (auto createResult = physicalDevice.createDeviceUnique(deviceInfo);
             createResult.result == vk::Result::eSuccess) {
@@ -122,7 +135,19 @@ struct VulkanGraphicsContext::Impl {
         }
         SetObjectName(device.get(), device.get(), "[Ymir-GCtx] Vulkan device");
 
-        queue = device->getQueue(0, 0);
+        // Initialize device function pointers
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
+
+        // Main queues
+        presentQueue = presentQueueFamilyIndex.has_value()
+                           ? device->getQueue(presentQueueFamilyIndex.value(), presentQueueIndex)
+                           : vk::Queue{};
+        renderQueue = renderQueueFamilyIndex.has_value()
+                          ? device->getQueue(renderQueueFamilyIndex.value(), renderQueueIndex)
+                          : vk::Queue{};
+        transferQueue = transferQueueFamilyIndex.has_value()
+                            ? device->getQueue(transferQueueFamilyIndex.value(), transferQueueIndex)
+                            : vk::Queue{};
 
         // Descriptor Pool
         // ImGui wants VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT enabled and requires some
@@ -136,7 +161,7 @@ struct VulkanGraphicsContext::Impl {
         const vk::DescriptorPoolCreateInfo descriptorPoolInfo{
             .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
             .maxSets = kDescriptorCount,
-            .poolSizeCount = static_cast<std::uint32_t>(poolSizes.size()),
+            .poolSizeCount = static_cast<uint32>(poolSizes.size()),
             .pPoolSizes = poolSizes.data(),
         };
 
@@ -149,8 +174,8 @@ struct VulkanGraphicsContext::Impl {
         SetObjectName(device.get(), descriptorPool.get(), "[Ymir-GCtx] Descriptor Pool");
 
         // Swapchain
-        if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, queue, surface, kFrameCount,
-                                                        presentMode == PresentMode::VSync);
+        if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, presentQueue, surface,
+                                                        kFrameCount, presentMode == PresentMode::VSync);
             createResult.HasValue()) {
             swapchain = std::make_unique<VulkanSwapchain>(std::move(createResult.Value()));
         } else {
@@ -166,13 +191,25 @@ struct VulkanGraphicsContext::Impl {
 
     util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {}
 
-    util::VoidResult<> BeginFrame() {}
+    util::VoidResult<> BeginFrame() {
+        return {};
+    }
 
     util::VoidResult<> EndFrame() {
         return {};
     }
 
-    util::ValueResult<PresentResult> Present() {}
+    util::ValueResult<PresentResult> Present() {
+        if (auto result = EndFrame(); !result) {
+            return util::ErrorMessage{fmt::format("Could not end frame: {}", result.Error().message)};
+        }
+
+        if (swapchain->Present()) {
+            return PresentResult::Ok;
+        }
+
+        return util::ErrorMessage{"Error presenting frame"};
+    }
 
     util::ValueResult<TextureInstance> CreateTexture(const Texture2DSpec &spec) {
         const bool isRenderTarget = spec.access == TextureAccess::RenderTarget;
@@ -274,7 +311,7 @@ bool VulkanGraphicsContext::ImGuiInit() {
         .PhysicalDevice = m_impl->physicalDevice,
         .Device = m_impl->device.get(),
         .QueueFamily = 0,
-        .Queue = m_impl->queue,
+        .Queue = m_impl->renderQueue,
         .DescriptorPool = m_impl->descriptorPool.get(),
         .DescriptorPoolSize = 0,
         .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,

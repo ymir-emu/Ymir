@@ -107,10 +107,10 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
     // Clamp the requested swapchain size between the supported min/max
     // `maxImageCount` may be `0`, indicating there is no limit
     if (surfaceCapabilities.maxImageCount != 0u) {
-        m_swapImageCount = std::clamp<std::uint32_t>(m_swapImageCount, surfaceCapabilities.minImageCount,
-                                                     surfaceCapabilities.maxImageCount);
+        m_swapImageCount =
+            std::clamp<uint32>(m_swapImageCount, surfaceCapabilities.minImageCount, surfaceCapabilities.maxImageCount);
     } else {
-        m_swapImageCount = std::max<std::uint32_t>(m_swapImageCount, surfaceCapabilities.minImageCount);
+        m_swapImageCount = std::max<uint32>(m_swapImageCount, surfaceCapabilities.minImageCount);
     }
 
     /// Swapchain image extents
@@ -202,7 +202,7 @@ vk::Semaphore VulkanSwapchain::AcquireNextImage() {
     const vk::Semaphore semaphoreImageAcquired = m_swapSemaphoreImageAcquired[m_curImageAcquireSemaphoreIndex].get();
 
     // Get the next swapchain image to render into
-    constexpr std::uint64_t timeout = std::numeric_limits<std::uint64_t>::max();
+    constexpr uint64 timeout = std::numeric_limits<uint64>::max();
 
     // Bypass the default vulkan-hpp implementation which asserts upon results
     // such as `eErrorSurfaceLostKHR` and `eErrorOutOfDateKHR`
@@ -215,7 +215,7 @@ vk::Semaphore VulkanSwapchain::AcquireNextImage() {
         VULKAN_HPP_ASSERT(d.vkAcquireNextImageKHR && "Function <vkAcquireNextImageKHR> requires <VK_KHR_swapchain>");
 #endif
 
-        std::uint32_t imageIndex;
+        uint32 imageIndex;
         vk::Result result = static_cast<vk::Result>(
             d.vkAcquireNextImageKHR(m_device, static_cast<VkSwapchainKHR>(swapchain), timeout,
                                     static_cast<VkSemaphore>(semaphore), static_cast<VkFence>(fence), &imageIndex));
@@ -223,12 +223,12 @@ vk::Semaphore VulkanSwapchain::AcquireNextImage() {
         return vk::ResultValue<uint32_t>(result, imageIndex);
     };
 
-    // const vk::ResultValue<std::uint32_t> AcquireResult
+    // const vk::ResultValue<uint32> AcquireResult
     //	= m_device.acquireNextImageKHR(
     //		SwapchainInstance.get(), Timeout, SemaphoreImageAcquired,
     //		vk::Fence{}
     //	);
-    const vk::ResultValue<std::uint32_t> acquireResult =
+    const vk::ResultValue<uint32> acquireResult =
         unwrappedAcquireNextImageKHR(m_device, m_swapchainInstance.get(), timeout, semaphoreImageAcquired, vk::Fence{});
 
     switch (acquireResult.result) {
@@ -262,7 +262,7 @@ bool VulkanSwapchain::Present() {
     const vk::SwapchainKHR &Swapchain = m_swapchainInstance.get();
     PresentInfo.setSwapchains(Swapchain);
 
-    const std::uint32_t NextImageIndex = m_nextSwapImageIndex;
+    const uint32 NextImageIndex = m_nextSwapImageIndex;
     PresentInfo.setImageIndices(NextImageIndex);
 
     // Wait for the image to be ready to be presented into
@@ -327,7 +327,7 @@ util::ValueResult<VulkanSwapchain> VulkanSwapchain::Create(vk::Device device, vk
 
     /// Swapchain synchronization primitives
     const vk::SemaphoreCreateInfo SemaphoreInfo{};
-    for (std::uint8_t swapIndex = 0; swapIndex < newSwapchain.m_swapImageCount; ++swapIndex) {
+    for (uint8 swapIndex = 0; swapIndex < newSwapchain.m_swapImageCount; ++swapIndex) {
         SetObjectName(device, newSwapchain.m_swapImages[swapIndex], "Swapchain: Image #{}", swapIndex);
 
         if (auto createResult = device.createSemaphoreUnique(SemaphoreInfo);

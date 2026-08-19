@@ -1,9 +1,11 @@
-#include <ymir/gpu/vulkan/vulkan_api.hpp>
+#pragma once
 
 /**
 @file
 @brief Defines Vulkan debug helpers.
 */
+
+#include <ymir/gpu/vulkan/vulkan_api.hpp>
 
 namespace ymir::gpu::vulkan {
 

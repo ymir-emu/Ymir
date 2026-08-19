@@ -1,11 +1,13 @@
-#include <ymir/gpu/vulkan/vulkan_api.hpp>
-
-#include <ymir/util/result.hpp>
+#pragma once
 
 /**
 @file
 @brief Defines `VulkanSwapChain`, a wrapper for `vk::SwapchainKHR`
 */
+
+#include <ymir/gpu/vulkan/vulkan_api.hpp>
+
+#include <ymir/util/result.hpp>
 
 namespace ymir::gpu::vulkan {
 
@@ -27,7 +29,7 @@ private:
 
     bool m_vsync;
 
-    std::uint8_t m_swapImageCount = 0u;
+    uint8_t m_swapImageCount = 0u;
     vk::Extent2D m_swapImageExtents;
 
     std::vector<vk::Image> m_swapImages;
@@ -35,12 +37,12 @@ private:
     // Semaphores that `vkAcquireNextImageKHR` will signal for then the
     // swapchain image is ready to be rendered into. A new frame should wait on
     // this semaphore.
-    std::uint8_t m_curImageAcquireSemaphoreIndex = 0u;
+    uint8_t m_curImageAcquireSemaphoreIndex = 0u;
     std::vector<vk::UniqueSemaphore> m_swapSemaphoreImageAcquired;
 
     // Current swap-image to render into. This is the result of
     // `vkAcquireNextImageKHR`
-    std::uint8_t m_nextSwapImageIndex = 0u;
+    uint8_t m_nextSwapImageIndex = 0u;
 
     // Semaphores that render-frames should signal to indicate that they are
     // ready to be presented. Calls to `vkPresentKHR` will wait on this
@@ -59,7 +61,7 @@ public:
         return GetSurfaceFormat().format;
     }
 
-    [[nodiscard]] std::uint8_t GetSwapchainCount() const {
+    [[nodiscard]] uint8_t GetSwapchainCount() const {
         return m_swapImageCount;
     }
 
@@ -67,15 +69,15 @@ public:
         return m_swapImageExtents;
     }
 
-    [[nodiscard]] std::uint32_t GetWidth() const {
+    [[nodiscard]] uint32 GetWidth() const {
         return GetSwapchainExtents().width;
     }
 
-    [[nodiscard]] std::uint32_t GetHeight() const {
+    [[nodiscard]] uint32 GetHeight() const {
         return GetSwapchainExtents().height;
     }
 
-    [[nodiscard]] const vk::Image &GetSwapImage(std::uint8_t swapIndex) const {
+    [[nodiscard]] const vk::Image &GetSwapImage(uint8_t swapIndex) const {
         return m_swapImages.at(swapIndex);
     }
 
@@ -83,7 +85,7 @@ public:
         return m_swapImages.at(m_nextSwapImageIndex);
     }
 
-    [[nodiscard]] const vk::Semaphore &GetImageAcquiredSemaphore(std::uint8_t swapIndex) const {
+    [[nodiscard]] const vk::Semaphore &GetImageAcquiredSemaphore(uint8_t swapIndex) const {
         return m_swapSemaphoreImageAcquired.at(swapIndex).get();
     }
 
@@ -91,7 +93,7 @@ public:
         return GetImageAcquiredSemaphore(m_curImageAcquireSemaphoreIndex);
     }
 
-    [[nodiscard]] const vk::Semaphore &GetImagePresentReadySemaphore(std::uint8_t swapIndex) const {
+    [[nodiscard]] const vk::Semaphore &GetImagePresentReadySemaphore(uint8_t swapIndex) const {
         return m_swapSemaphorePresentReady.at(swapIndex).get();
     }
 
