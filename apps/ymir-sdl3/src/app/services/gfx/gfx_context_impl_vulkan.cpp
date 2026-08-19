@@ -38,29 +38,12 @@ struct VulkanGraphicsContext::Impl {
             return util::ErrorMessage{"No window provided to Vulkan specification"};
         }
 
-        // Create a minimal instance to enumerate physical devices
-        static const vk::ApplicationInfo application_info = {
-            .pApplicationName = "ymir",
-            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-            .pEngineName = "ymir",
-            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-            .apiVersion = VK_API_VERSION_1_1,
-        };
-
+        // Create instance
         uint32_t instance_extension_count;
         const char *const *instance_extensions = SDL_Vulkan_GetInstanceExtensions(&instance_extension_count);
 
-        const vk::InstanceCreateInfo instance_info = {
-            .pApplicationInfo = &application_info,
-            .enabledExtensionCount = instance_extension_count,
-            .ppEnabledExtensionNames = instance_extensions,
-        };
-
-        if (auto CreateResult = vk::createInstanceUnique(instance_info); CreateResult.result == vk::Result::eSuccess) {
-            instance = std::move(CreateResult.value);
-        } else {
-            return util::ErrorMessage{"Error creating Vulkan instance"};
-        }
+        instance = ymir::gpu::vulkan::CreateInstance(
+            std::span<const char *const>(instance_extensions, instance_extension_count));
 
         // Register debug messenger
         debug_messenger = ymir::gpu::vulkan::CreateDebugMessenger(instance.get());

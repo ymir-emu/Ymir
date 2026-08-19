@@ -8,35 +8,9 @@ static std::vector<VulkanGraphicsAdapter> g_VulkanAdapters;
 
 void EnumerateVulkanGraphicsAdapters() {
 
-    // Create a minimal instance to enumerate physical devices
-    static const vk::ApplicationInfo application_info = {
-        .pApplicationName = "ymir",
-        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-        .pEngineName = "ymir",
-        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-        .apiVersion = VK_API_VERSION_1_1,
-    };
+    const vk::UniqueInstance instance = ymir::gpu::vulkan::CreateInstance({});
 
-    static const std::array instance_extensions = std::to_array({
-#if defined(__APPLE__)
-        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-#endif
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
-
-    const vk::InstanceCreateInfo instance_info = {
-#if defined(__APPLE__)
-        .flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
-#endif
-        .pApplicationInfo = &application_info,
-        .enabledExtensionCount = instance_extensions.size(),
-        .ppEnabledExtensionNames = instance_extensions.data(),
-    };
-
-    vk::UniqueInstance instance = {};
-
-    if (auto CreateResult = vk::createInstanceUnique(instance_info); CreateResult.result == vk::Result::eSuccess) {
-        instance = std::move(CreateResult.value);
-    } else {
+    if (!instance) {
         return;
     }
 

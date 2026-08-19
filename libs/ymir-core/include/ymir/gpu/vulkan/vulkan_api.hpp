@@ -17,4 +17,10 @@
 #include <vulkan/vulkan_format_traits.hpp>
 #include <vulkan/vulkan_hash.hpp>
 
-namespace ymir::gpu::vulkan {}
+#include <span>
+
+namespace ymir::gpu::vulkan {
+
+vk::UniqueInstance CreateInstance(std::span<const char *const> instance_extensions);
+
+}
