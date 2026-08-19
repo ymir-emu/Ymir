@@ -19,7 +19,7 @@ struct VulkanGraphicsContextSpec {
     }
 
     /// @brief (Required) Target feature level.
-    uint32 api_level = MakeApiVersion(1, 1, 0, 0);
+    uint32 apiLevel = MakeApiVersion(1, 1, 0, 0);
 
     /// @brief (Required) Pointer to SDL3 window
     SDL_Window *window = nullptr;

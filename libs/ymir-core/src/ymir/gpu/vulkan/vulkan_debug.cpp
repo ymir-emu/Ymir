@@ -4,10 +4,10 @@ namespace {
 
 VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugMessengerCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity,
                                                         vk::DebugUtilsMessageTypeFlagsEXT type,
-                                                        const vk::DebugUtilsMessengerCallbackDataEXT *callback_data,
-                                                        [[maybe_unused]] void *user_data) {
-    if (callback_data->pMessage != nullptr) {
-        fmt::println("{}({}): {}", vk::to_string(severity), vk::to_string(type), callback_data->pMessage);
+                                                        const vk::DebugUtilsMessengerCallbackDataEXT *callbackData,
+                                                        [[maybe_unused]] void *userData) {
+    if (callbackData->pMessage != nullptr) {
+        fmt::println("{}({}): {}", vk::to_string(severity), vk::to_string(type), callbackData->pMessage);
     }
 
     switch (severity) {
@@ -22,11 +22,11 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugMessengerCallback(vk::DebugUtilsMessageSev
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                                                       VkDebugUtilsMessageTypeFlagsEXT type,
-                                                      const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
-                                                      void *user_data) {
+                                                      const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+                                                      void *userData) {
     return DebugMessengerCallback(
         vk::DebugUtilsMessageSeverityFlagBitsEXT(severity), vk::DebugUtilsMessageTypeFlagsEXT(type),
-        reinterpret_cast<const vk::DebugUtilsMessengerCallbackDataEXT *>(callback_data), user_data);
+        reinterpret_cast<const vk::DebugUtilsMessengerCallbackDataEXT *>(callbackData), userData);
 }
 
 } // namespace
@@ -34,23 +34,23 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessengerCallback(VkDebugUtilsMessageSeverit
 namespace ymir::gpu::vulkan {
 
 vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
-    std::vector<vk::ExtensionProperties> instance_extension_properties;
+    std::vector<vk::ExtensionProperties> instanceExtensionProperties;
 
-    if (const auto enumerate_result = vk::enumerateInstanceExtensionProperties();
-        enumerate_result.result == vk::Result::eSuccess) {
-        instance_extension_properties = enumerate_result.value;
+    if (const auto enumerateResult = vk::enumerateInstanceExtensionProperties();
+        enumerateResult.result == vk::Result::eSuccess) {
+        instanceExtensionProperties = enumerateResult.value;
     } else {
         // Error enumerating instance extensions
         return {};
     }
 
     const auto it =
-        std::find_if(instance_extension_properties.begin(), instance_extension_properties.end(),
+        std::find_if(instanceExtensionProperties.begin(), instanceExtensionProperties.end(),
                      [](const vk::ExtensionProperties &properties) {
                          return std::strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, properties.extensionName) == 0;
                      });
 
-    if (it == instance_extension_properties.end()) {
+    if (it == instanceExtensionProperties.end()) {
         // Does not support VK_EXT_DEBUG_UTILS
         return {};
     }
@@ -58,7 +58,7 @@ vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
 
     // Create debug messenger
 
-    const vk::DebugUtilsMessengerCreateInfoEXT debug_messenger_info = {
+    const vk::DebugUtilsMessengerCreateInfoEXT debugMessengerInfo = {
         .messageSeverity =
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose,
@@ -69,66 +69,65 @@ vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
         .pfnUserCallback = DebugMessengerCallback,
     };
 
-    if (auto create_result = instance.createDebugUtilsMessengerEXTUnique(debug_messenger_info);
-        create_result.result == vk::Result::eSuccess) {
-        return std::move(create_result.value);
+    if (auto createResult = instance.createDebugUtilsMessengerEXTUnique(debugMessengerInfo);
+        createResult.result == vk::Result::eSuccess) {
+        return std::move(createResult.value);
     }
     // Error creating debug utils messenger
     return {};
 }
 
-void SetObjectName(vk::Device device, vk::ObjectType object_type, const void *object_handle,
-                   std::string_view object_name) {
-    const vk::DebugUtilsObjectNameInfoEXT name_info = {
-        .objectType = object_type,
-        .objectHandle = reinterpret_cast<std::uintptr_t>(object_handle),
-        .pObjectName = object_name.data(),
+void SetObjectName(vk::Device device, vk::ObjectType objectType, const void *objectHandle,
+                   std::string_view objectName) {
+    const vk::DebugUtilsObjectNameInfoEXT nameInfo = {
+        .objectType = objectType,
+        .objectHandle = reinterpret_cast<std::uintptr_t>(objectHandle),
+        .pObjectName = objectName.data(),
     };
 
-    if (device.setDebugUtilsObjectNameEXT(name_info) != vk::Result::eSuccess) {
+    if (device.setDebugUtilsObjectNameEXT(nameInfo) != vk::Result::eSuccess) {
         // Failed to set object name
     }
 }
 
-void BeginDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color, std::string_view label_name) {
-    const vk::DebugUtilsLabelEXT label_info = {
-        .pLabelName = label_name.data(),
+void BeginDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color, std::string_view labelName) {
+    const vk::DebugUtilsLabelEXT labelInfo = {
+        .pLabelName = labelName.data(),
         .color = color,
     };
 
-    command_buffer.beginDebugUtilsLabelEXT(label_info);
+    command_buffer.beginDebugUtilsLabelEXT(labelInfo);
 }
 
-void InsertDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color,
-                      std::string_view label_name) {
-    const vk::DebugUtilsLabelEXT label_info = {
-        .pLabelName = label_name.data(),
+void InsertDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color, std::string_view labelName) {
+    const vk::DebugUtilsLabelEXT labelInfo = {
+        .pLabelName = labelName.data(),
         .color = color,
     };
 
-    command_buffer.insertDebugUtilsLabelEXT(label_info);
+    command_buffer.insertDebugUtilsLabelEXT(labelInfo);
 }
 
 void EndDebugLabel(vk::CommandBuffer command_buffer) {
     command_buffer.endDebugUtilsLabelEXT();
 }
 
-void BeginDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view label_name) {
-    const vk::DebugUtilsLabelEXT label_info = {
-        .pLabelName = label_name.data(),
+void BeginDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName) {
+    const vk::DebugUtilsLabelEXT labelInfo = {
+        .pLabelName = labelName.data(),
         .color = color,
     };
 
-    queue.beginDebugUtilsLabelEXT(label_info);
+    queue.beginDebugUtilsLabelEXT(labelInfo);
 }
 
-void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view label_name) {
-    const vk::DebugUtilsLabelEXT label_info = {
-        .pLabelName = label_name.data(),
+void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName) {
+    const vk::DebugUtilsLabelEXT labelInfo = {
+        .pLabelName = labelName.data(),
         .color = color,
     };
 
-    queue.insertDebugUtilsLabelEXT(label_info);
+    queue.insertDebugUtilsLabelEXT(labelInfo);
 }
 
 void EndDebugLabel(vk::Queue queue) {

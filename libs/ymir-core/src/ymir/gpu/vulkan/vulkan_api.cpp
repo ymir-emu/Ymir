@@ -15,10 +15,10 @@ static const bool vulkan_loader = []() -> bool {
 
 namespace ymir::gpu::vulkan {
 
-vk::UniqueInstance CreateInstance(std::span<const char *const> instance_extensions) {
+vk::UniqueInstance CreateInstance(std::span<const char *const> instanceExtensions) {
     vk::UniqueInstance result;
     // Create a minimal instance to enumerate physical devices
-    static const vk::ApplicationInfo application_info = {
+    static const vk::ApplicationInfo applicationInfo = {
         .pApplicationName = "ymir",
         .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
         .pEngineName = "ymir",
@@ -26,14 +26,14 @@ vk::UniqueInstance CreateInstance(std::span<const char *const> instance_extensio
         .apiVersion = VK_API_VERSION_1_1,
     };
 
-    const vk::InstanceCreateInfo instance_info = {
-        .pApplicationInfo = &application_info,
-        .enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
-        .ppEnabledExtensionNames = instance_extensions.data(),
+    const vk::InstanceCreateInfo instanceInfo = {
+        .pApplicationInfo = &applicationInfo,
+        .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
+        .ppEnabledExtensionNames = instanceExtensions.data(),
     };
 
-    if (auto CreateResult = vk::createInstanceUnique(instance_info); CreateResult.result == vk::Result::eSuccess) {
-        return std::move(CreateResult.value);
+    if (auto createResult = vk::createInstanceUnique(instanceInfo); createResult.result == vk::Result::eSuccess) {
+        return std::move(createResult.value);
     };
     return {};
 }

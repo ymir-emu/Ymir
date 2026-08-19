@@ -21,6 +21,6 @@
 
 namespace ymir::gpu::vulkan {
 
-vk::UniqueInstance CreateInstance(std::span<const char *const> instance_extensions);
+vk::UniqueInstance CreateInstance(std::span<const char *const> instanceExtensions);
 
 }

@@ -10,19 +10,18 @@ namespace ymir::gpu::vulkan {
 vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance);
 
 // Command buffer markers
-void SetObjectName(vk::Device device, vk::ObjectType object_type, const void *object_handle,
-                   std::string_view object_name);
+void SetObjectName(vk::Device device, vk::ObjectType objectType, const void *objectHandle, std::string_view objectName);
 
-void BeginDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color, std::string_view label_name);
+void BeginDebugLabel(vk::CommandBuffer commandBuffer, const std::array<float, 4> &color, std::string_view labelName);
 
-void InsertDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color, std::string_view label_name);
+void InsertDebugLabel(vk::CommandBuffer commandBuffer, const std::array<float, 4> &color, std::string_view labelName);
 
-void EndDebugLabel(vk::CommandBuffer command_buffer);
+void EndDebugLabel(vk::CommandBuffer commandBuffer);
 
 // Queue buffer markers
-void BeginDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view label_name);
+void BeginDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName);
 
-void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view label_name);
+void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName);
 
 void EndDebugLabel(vk::Queue queue);
 
@@ -31,22 +30,22 @@ concept VulkanHandleType = vk::isVulkanHandleType<T>::value;
 
 // Set Vulkan-Object name (automatically deduce object-type)
 template <VulkanHandleType T, typename... ArgsT>
-inline void SetObjectName(vk::Device device, const T object_handle, fmt::format_string<ArgsT...> format,
+inline void SetObjectName(vk::Device device, const T objectHandle, fmt::format_string<ArgsT...> format,
                           ArgsT &&...args) {
-    SetObjectName(device, T::objectType, object_handle, fmt::format(format, std::forward<ArgsT>(args)...));
+    SetObjectName(device, T::objectType, objectHandle, fmt::format(format, std::forward<ArgsT>(args)...));
 }
 
 // Command buffer markers (formatted)
 template <typename... ArgsT>
-void BeginDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color,
+void BeginDebugLabel(vk::CommandBuffer commandBuffer, const std::array<float, 4> &color,
                      fmt::format_string<ArgsT...> format, ArgsT &&...args) {
-    BeginDebugLabel(command_buffer, color, fmt::format(format, std::forward<ArgsT>(args)...));
+    BeginDebugLabel(commandBuffer, color, fmt::format(format, std::forward<ArgsT>(args)...));
 }
 
 template <typename... ArgsT>
-void InsertDebugLabel(vk::CommandBuffer command_buffer, const std::array<float, 4> &color,
+void InsertDebugLabel(vk::CommandBuffer commandBuffer, const std::array<float, 4> &color,
                       fmt::format_string<ArgsT...> format, ArgsT &&...args) {
-    InsertDebugLabel(command_buffer, color, fmt::format(format, std::forward<ArgsT>(args)...));
+    InsertDebugLabel(commandBuffer, color, fmt::format(format, std::forward<ArgsT>(args)...));
 }
 
 // Command buffer markers (formatted)
@@ -70,10 +69,10 @@ private:
 
 public:
     template <typename... ArgsT>
-    DebugLabelScope(vk::CommandBuffer target_command_buffer, const std::array<float, 4> &color,
+    DebugLabelScope(vk::CommandBuffer targetCommandBuffer, const std::array<float, 4> &color,
                     fmt::format_string<ArgsT...> format, ArgsT &&...args)
-        : target(target_command_buffer) {
-        BeginDebugLabel(target_command_buffer, color, fmt::format(format, std::forward<ArgsT>(args)...));
+        : target(targetCommandBuffer) {
+        BeginDebugLabel(targetCommandBuffer, color, fmt::format(format, std::forward<ArgsT>(args)...));
     }
 
     template <typename... ArgsT>

@@ -10,6 +10,9 @@
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_vulkan.h>
 
+using namespace ymir::gpu;
+using namespace ymir::gpu::vulkan;
+
 namespace app::gfx {
 
 // -----------------------------------------------------------------------------
@@ -24,14 +27,14 @@ struct VulkanGraphicsContext::Impl {
     VulkanGraphicsContextSpec spec;
 
     vk::UniqueInstance instance;
-    vk::UniqueDebugUtilsMessengerEXT debug_messenger;
+    vk::UniqueDebugUtilsMessengerEXT debugMessenger;
     vk::UniqueDevice device;
-    vk::PhysicalDevice physical_device;
+    vk::PhysicalDevice physicalDevice;
 
     vk::SurfaceKHR surface;
     vk::Queue queue;
 
-    vk::UniqueDescriptorPool descriptor_pool;
+    vk::UniqueDescriptorPool descriptorPool;
 
     PresentMode presentMode = PresentMode::VSync;
 
@@ -53,93 +56,95 @@ struct VulkanGraphicsContext::Impl {
         }
 
         // Create instance
-        uint32_t instance_extension_count;
-        const char *const *instance_extensions = SDL_Vulkan_GetInstanceExtensions(&instance_extension_count);
+        uint32_t instanceExtensionCount;
+        const char *const *instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&instanceExtensionCount);
 
-        instance = ymir::gpu::vulkan::CreateInstance(
-            std::span<const char *const>(instance_extensions, instance_extension_count));
+        instance =
+            ymir::gpu::vulkan::CreateInstance(std::span<const char *const>(instanceExtensions, instanceExtensionCount));
 
         // Register debug messenger
-        debug_messenger = ymir::gpu::vulkan::CreateDebugMessenger(instance.get());
+        debugMessenger = ymir::gpu::vulkan::CreateDebugMessenger(instance.get());
 
         // Determine physical device
 
         if (spec.device) {
-            physical_device = (VkPhysicalDevice)spec.device;
+            physicalDevice = (VkPhysicalDevice)spec.device;
         } else {
-            if (const auto enumerate_result = instance->enumeratePhysicalDevices(); enumerate_result.has_value()) {
+            if (const auto enumerateResult = instance->enumeratePhysicalDevices(); enumerateResult.has_value()) {
                 // No device specified, select the first device
-                physical_device = enumerate_result.value[0];
+                physicalDevice = enumerateResult.value[0];
             }
         }
 
         SDL_Vulkan_CreateSurface(spec.window, instance.get(), nullptr, (VkSurfaceKHR *)&surface);
 
         // Create Device
-        vk::DeviceCreateInfo device_info = {};
+        vk::DeviceCreateInfo deviceInfo = {};
 
-        static const char *device_extensions[] = {
+        static const char *deviceExtensions[] = {
 #if defined(__APPLE__)
             "VK_KHR_portability_subset",
 #endif
             VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
         };
-        device_info.ppEnabledExtensionNames = device_extensions;
-        device_info.enabledExtensionCount = std::size(device_extensions);
+        deviceInfo.ppEnabledExtensionNames = deviceExtensions;
+        deviceInfo.enabledExtensionCount = std::size(deviceExtensions);
 
         vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceTimelineSemaphoreFeatures>
-            device_feature_chain = {};
+            deviceFeatureChain = {};
 
-        auto &device_features = device_feature_chain.get<vk::PhysicalDeviceFeatures2>().features;
+        auto &deviceFeatures = deviceFeatureChain.get<vk::PhysicalDeviceFeatures2>().features;
 
         // Enable timeline semaphores
-        auto &device_timeline_features = device_feature_chain.get<vk::PhysicalDeviceTimelineSemaphoreFeatures>();
-        device_timeline_features.timelineSemaphore = VK_TRUE;
+        auto &deviceTimelineFeatures = deviceFeatureChain.get<vk::PhysicalDeviceTimelineSemaphoreFeatures>();
+        deviceTimelineFeatures.timelineSemaphore = VK_TRUE;
 
-        device_info.pNext = &device_feature_chain.get();
+        deviceInfo.pNext = &deviceFeatureChain.get();
 
-        static const float queue_priority = 1.0f;
+        static const float queuePriority = 1.0f;
 
-        static const vk::DeviceQueueCreateInfo queue_info = {
+        static const vk::DeviceQueueCreateInfo queueInfo = {
             .queueFamilyIndex = 0,
             .queueCount = 1,
-            .pQueuePriorities = &queue_priority,
+            .pQueuePriorities = &queuePriority,
         };
 
-        device_info.queueCreateInfoCount = 1;
-        device_info.pQueueCreateInfos = &queue_info;
+        deviceInfo.queueCreateInfoCount = 1;
+        deviceInfo.pQueueCreateInfos = &queueInfo;
 
-        if (auto create_result = physical_device.createDeviceUnique(device_info);
-            create_result.result == vk::Result::eSuccess) {
-            device = std::move(create_result.value);
+        if (auto createResult = physicalDevice.createDeviceUnique(deviceInfo);
+            createResult.result == vk::Result::eSuccess) {
+            device = std::move(createResult.value);
         } else {
-            return util::ErrorMessage{"Error creating logical device:" + vk::to_string(create_result.result)};
+            return util::ErrorMessage{"Error creating logical device:" + vk::to_string(createResult.result)};
         }
+        SetObjectName(device.get(), device.get(), "[Ymir-GCtx] Vulkan device");
 
         queue = device->getQueue(0, 0);
 
         // Descriptor Pool
         // ImGui wants VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT enabled and requires some
         // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptors
-        std::vector<vk::DescriptorPoolSize> PoolSizes;
-        PoolSizes.emplace_back(vk::DescriptorPoolSize{
+        std::vector<vk::DescriptorPoolSize> poolSizes;
+        poolSizes.emplace_back(vk::DescriptorPoolSize{
             .type = vk::DescriptorType::eCombinedImageSampler,
             .descriptorCount = kDescriptorCount,
         });
 
-        const vk::DescriptorPoolCreateInfo descriptor_pool_info{
+        const vk::DescriptorPoolCreateInfo descriptorPoolInfo{
             .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
             .maxSets = kDescriptorCount,
-            .poolSizeCount = static_cast<std::uint32_t>(PoolSizes.size()),
-            .pPoolSizes = PoolSizes.data(),
+            .poolSizeCount = static_cast<std::uint32_t>(poolSizes.size()),
+            .pPoolSizes = poolSizes.data(),
         };
 
-        if (auto create_result = device->createDescriptorPoolUnique(descriptor_pool_info);
-            create_result.result == vk::Result::eSuccess) {
-            descriptor_pool = std::move(create_result.value);
+        if (auto createResult = device->createDescriptorPoolUnique(descriptorPoolInfo);
+            createResult.result == vk::Result::eSuccess) {
+            descriptorPool = std::move(createResult.value);
         } else {
-            return util::ErrorMessage{"Error creating descriptor pool:" + vk::to_string(create_result.result)};
+            return util::ErrorMessage{"Error creating descriptor pool:" + vk::to_string(createResult.result)};
         }
+        SetObjectName(device.get(), descriptorPool.get(), "[Ymir-GCtx] Descriptor Pool");
 
         return {};
     }
@@ -247,28 +252,28 @@ void VulkanGraphicsContext::ClearScreen(gfx::ColorRGBA color) {
 
 bool VulkanGraphicsContext::ImGuiInit() {
 
-    const ImGui_ImplVulkan_PipelineInfo pipeline_info_main{
+    const ImGui_ImplVulkan_PipelineInfo pipelineInfoMain{
         .RenderPass = nullptr,
         .Subpass = 0,
     };
 
-    ImGui_ImplVulkan_InitInfo init_info = {
-        .ApiVersion = m_impl->spec.api_level,
+    ImGui_ImplVulkan_InitInfo initInfo = {
+        .ApiVersion = m_impl->spec.apiLevel,
         .Instance = m_impl->instance.get(),
-        .PhysicalDevice = m_impl->physical_device,
+        .PhysicalDevice = m_impl->physicalDevice,
         .Device = m_impl->device.get(),
         .QueueFamily = 0,
         .Queue = m_impl->queue,
-        .DescriptorPool = m_impl->descriptor_pool.get(),
+        .DescriptorPool = m_impl->descriptorPool.get(),
         .DescriptorPoolSize = 0,
         .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,
         .PipelineCache = nullptr,
-        .PipelineInfoMain = pipeline_info_main,
+        .PipelineInfoMain = pipelineInfoMain,
     };
 
     m_imguiInitialized =                                     //
         ImGui_ImplSDL3_InitForVulkan(m_impl->spec.window) && //
-        ImGui_ImplVulkan_Init(&init_info);
+        ImGui_ImplVulkan_Init(&initInfo);
 
     return m_imguiInitialized;
 }
