@@ -189,7 +189,12 @@ struct VulkanGraphicsContext::Impl {
         return device.get() != nullptr;
     }
 
-    util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {}
+    util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {
+        swapchain->RecreateSwapchain(vk::Extent2D{
+            .width = width,
+            .height = height,
+        });
+    }
 
     util::VoidResult<> BeginFrame() {
         return {};
