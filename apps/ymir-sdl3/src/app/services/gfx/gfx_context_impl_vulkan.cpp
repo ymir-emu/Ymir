@@ -4,6 +4,7 @@
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
 #include <ymir/gpu/vulkan/vulkan_descriptor_heap.hpp>
+#include <ymir/gpu/vulkan/vulkan_descriptor_update_batch.hpp>
 #include <ymir/gpu/vulkan/vulkan_swap_chain.hpp>
 #include <ymir/gpu/vulkan/vulkan_synchronization.hpp>
 
@@ -40,6 +41,7 @@ struct VulkanGraphicsContext::Impl {
     vk::Queue transferQueue;
 
     std::unique_ptr<VulkanDescriptorHeap> descriptorHeapImgui;
+    std::unique_ptr<VulkanDescriptorUpdateBatch> descriptorUpdateBatch;
     std::unique_ptr<VulkanSwapchain> swapchain;
 
     PresentMode presentMode = PresentMode::VSync;
@@ -169,6 +171,13 @@ struct VulkanGraphicsContext::Impl {
         SetObjectName(device.get(), descriptorHeapImgui->GetDescriptorSetLayout(),
                       "[Ymir-GCtx] ImGui Descriptor Set Layout");
 
+        // Descriptor update batching
+        if (auto createResult = VulkanDescriptorUpdateBatch::Create(device.get()); createResult.HasValue()) {
+            descriptorUpdateBatch = std::make_unique<VulkanDescriptorUpdateBatch>(std::move(createResult.Value()));
+        } else {
+            return createResult.Error();
+        }
+
         // Swapchain
         if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, presentQueue, surface,
                                                         kFrameCount, presentMode == PresentMode::VSync);
@@ -197,6 +206,7 @@ struct VulkanGraphicsContext::Impl {
     }
 
     util::VoidResult<> EndFrame() {
+        descriptorUpdateBatch->Flush();
         return {};
     }
 
