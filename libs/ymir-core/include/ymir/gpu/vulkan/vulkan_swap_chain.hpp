@@ -11,7 +11,7 @@
 
 namespace ymir::gpu::vulkan {
 
-/// @brief Manages an `vkSwapchainKHR` and provides synchronization primitives.
+/// @brief Manages an `vk::SwapchainKHR` and provides synchronization primitives.
 class VulkanSwapchain final {
 private:
     VulkanSwapchain(vk::Device device, vk::PhysicalDevice physicalDevice, uint32 presentQueueFamily,

@@ -3,6 +3,7 @@
 
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
+#include <ymir/gpu/vulkan/vulkan_descriptor_heap.hpp>
 #include <ymir/gpu/vulkan/vulkan_swap_chain.hpp>
 #include <ymir/gpu/vulkan/vulkan_synchronization.hpp>
 
@@ -24,7 +25,7 @@ struct VulkanGraphicsContext::Impl {
         : spec(spec) {}
 
     static constexpr uint8 kFrameCount = 3;
-    static constexpr uint32 kDescriptorCount = 256;
+    static constexpr uint32 kImGuiDescriptorCount = 256;
 
     VulkanGraphicsContextSpec spec;
 
@@ -38,7 +39,7 @@ struct VulkanGraphicsContext::Impl {
     vk::Queue renderQueue;
     vk::Queue transferQueue;
 
-    vk::UniqueDescriptorPool descriptorPool;
+    std::unique_ptr<VulkanDescriptorHeap> descriptorHeapImgui;
     std::unique_ptr<VulkanSwapchain> swapchain;
 
     PresentMode presentMode = PresentMode::VSync;
@@ -122,8 +123,6 @@ struct VulkanGraphicsContext::Impl {
             DetermineQueueIndexAllocation(presentQueueFamilyIndex, renderQueueFamilyIndex, transferQueueFamilyIndex,
                                           presentQueueIndex, renderQueueIndex, transferQueueIndex);
 
-        static const float queuePriority = 1.0f;
-
         deviceInfo.queueCreateInfoCount = static_cast<uint32>(queueInfo.size());
         deviceInfo.pQueueCreateInfos = queueInfo.data();
 
@@ -149,29 +148,26 @@ struct VulkanGraphicsContext::Impl {
                             ? device->getQueue(transferQueueFamilyIndex.value(), transferQueueIndex)
                             : vk::Queue{};
 
-        // Descriptor Pool
+        // ImGui Descriptor Heap
         // ImGui wants VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT enabled and requires some
         // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptors
-        std::vector<vk::DescriptorPoolSize> poolSizes;
-        poolSizes.emplace_back(vk::DescriptorPoolSize{
-            .type = vk::DescriptorType::eCombinedImageSampler,
-            .descriptorCount = kDescriptorCount,
+        const auto ImGuiBindingLayout = std::to_array<vk::DescriptorSetLayoutBinding>({
+            vk::DescriptorSetLayoutBinding{
+                .binding = 1,
+                .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+                .descriptorCount = 1,
+                .stageFlags = vk::ShaderStageFlagBits::eFragment,
+            },
         });
-
-        const vk::DescriptorPoolCreateInfo descriptorPoolInfo{
-            .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-            .maxSets = kDescriptorCount,
-            .poolSizeCount = static_cast<uint32>(poolSizes.size()),
-            .pPoolSizes = poolSizes.data(),
-        };
-
-        if (auto createResult = device->createDescriptorPoolUnique(descriptorPoolInfo);
-            createResult.result == vk::Result::eSuccess) {
-            descriptorPool = std::move(createResult.value);
+        if (auto createResult = VulkanDescriptorHeap::Create(device.get(), ImGuiBindingLayout, kImGuiDescriptorCount);
+            createResult.HasValue()) {
+            descriptorHeapImgui = std::make_unique<VulkanDescriptorHeap>(std::move(createResult.Value()));
         } else {
-            return util::ErrorMessage{"Error creating descriptor pool:" + vk::to_string(createResult.result)};
+            return createResult.Error();
         }
-        SetObjectName(device.get(), descriptorPool.get(), "[Ymir-GCtx] Descriptor Pool");
+        SetObjectName(device.get(), descriptorHeapImgui->GetDescriptorPool(), "[Ymir-GCtx] ImGui Descriptor Pool");
+        SetObjectName(device.get(), descriptorHeapImgui->GetDescriptorSetLayout(),
+                      "[Ymir-GCtx] ImGui Descriptor Set Layout");
 
         // Swapchain
         if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, presentQueue, surface,
@@ -317,7 +313,7 @@ bool VulkanGraphicsContext::ImGuiInit() {
         .Device = m_impl->device.get(),
         .QueueFamily = 0,
         .Queue = m_impl->renderQueue,
-        .DescriptorPool = m_impl->descriptorPool.get(),
+        .DescriptorPool = m_impl->descriptorHeapImgui->GetDescriptorPool(),
         .DescriptorPoolSize = 0,
         .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,
         .PipelineCache = nullptr,
