@@ -64,11 +64,26 @@ struct VulkanGraphicsContext::Impl {
         }
 
         // Create instance
-        uint32_t instanceExtensionCount;
-        const char *const *instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&instanceExtensionCount);
 
-        instance =
-            ymir::gpu::vulkan::CreateInstance(std::span<const char *const>(instanceExtensions, instanceExtensionCount));
+        std::vector<const char *> instanceExtensions;
+
+#ifndef NDEBUG
+        instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+        // Get the extensions that SDL wants
+        {
+            uint32 sdlInstanceExtensionCount;
+            const char *const *sdlInstanceExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlInstanceExtensionCount);
+            for (uint32 i = 0; i < sdlInstanceExtensionCount; ++i) {
+                instanceExtensions.emplace_back(sdlInstanceExtensions[i]);
+            }
+        }
+
+        instance = ymir::gpu::vulkan::CreateInstance(instanceExtensions);
+
+        // Initialize instance function pointers
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
 
         // Register debug messenger
         debugMessenger = ymir::gpu::vulkan::CreateDebugMessenger(instance.get());
@@ -93,6 +108,7 @@ struct VulkanGraphicsContext::Impl {
 #if defined(__APPLE__)
             "VK_KHR_portability_subset",
 #endif
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
         };
         deviceInfo.ppEnabledExtensionNames = deviceExtensions;
@@ -257,19 +273,27 @@ struct VulkanGraphicsContext::Impl {
 
     void DeletePendingTextures(bool force) {}
 
-    bool IsTextureValid(TextureID id) {}
+    bool IsTextureValid(TextureID id) {
+        return false;
+    }
 
-    TextureInstance *GetTexture(TextureID id) {}
+    TextureInstance *GetTexture(TextureID id) {
+        return {};
+    }
 
     util::VoidResult<> UpdateTexture(TextureID id, const IRect *rect,
                                      const std::function<void(void *data, size_t pitch)> &fnUpdate) {
         return {};
     }
 
-    util::VoidResult<> RenderToTexture(TextureID src, TextureID dst, const FRect &srcRect, const FRect &dstRect) {}
+    util::VoidResult<> RenderToTexture(TextureID src, TextureID dst, const FRect &srcRect, const FRect &dstRect) {
+        return {};
+    }
 
     util::VoidResult<> DrawTextureRotated(TextureID id, const FRect &srcRect, const FRect &dstRect, double rotAngle,
-                                          const FPoint2D *rotPivot) {}
+                                          const FPoint2D *rotPivot) {
+        return {};
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -326,6 +350,7 @@ bool VulkanGraphicsContext::ImGuiInit() {
         .DescriptorPool = m_impl->descriptorHeapImgui->GetDescriptorPool(),
         .DescriptorPoolSize = 0,
         .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,
+        .ImageCount = m_impl->swapchain->GetSwapchainCount(),
         .PipelineCache = nullptr,
         .PipelineInfoMain = pipelineInfoMain,
     };
