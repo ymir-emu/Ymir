@@ -5,6 +5,7 @@
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
 #include <ymir/gpu/vulkan/vulkan_descriptor_heap.hpp>
 #include <ymir/gpu/vulkan/vulkan_descriptor_update_batch.hpp>
+#include <ymir/gpu/vulkan/vulkan_memory.hpp>
 #include <ymir/gpu/vulkan/vulkan_swap_chain.hpp>
 #include <ymir/gpu/vulkan/vulkan_synchronization.hpp>
 
@@ -18,6 +19,17 @@ using namespace ymir::gpu;
 using namespace ymir::gpu::vulkan;
 
 namespace app::gfx {
+
+static vk::Format ToVulkanFormat(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::Unknown: return vk::Format::eUndefined;
+    case PixelFormat::R8G8B8A8_UNORM: return vk::Format::eR8G8B8A8Unorm;
+    case PixelFormat::R8G8B8X8_UNORM: return vk::Format::eR8G8B8A8Unorm; // Note: A instead of X
+    case PixelFormat::B8G8R8A8_UNORM: return vk::Format::eB8G8R8A8Unorm;
+    case PixelFormat::B8G8R8X8_UNORM: return vk::Format::eB8G8R8A8Unorm; // Note: A instead of X
+    }
+    return vk::Format::eUndefined;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -36,6 +48,10 @@ struct VulkanGraphicsContext::Impl {
     vk::PhysicalDevice physicalDevice;
 
     vk::SurfaceKHR surface;
+
+    uint32 presentQueueIndex = 0u;
+    uint32 renderQueueIndex = 0u;
+    uint32 transferQueueIndex = 0u;
     vk::Queue presentQueue;
     vk::Queue renderQueue;
     vk::Queue transferQueue;
@@ -49,10 +65,12 @@ struct VulkanGraphicsContext::Impl {
     struct TextureInstance {
         Texture2DSpec spec;
         vk::UniqueImage image;
+        vk::UniqueDeviceMemory imageMemory;
     };
 
-    struct TextureToDelete {
-        vk::UniqueImage texture;
+    struct TextureToDelete : TextureInstance {
+        // Timeline semaphore value used to indicate when it is safe to delete this texture
+        uint64 timeStamp;
     };
 
     std::unordered_map<TextureID, TextureInstance> textures;
@@ -134,9 +152,6 @@ struct VulkanGraphicsContext::Impl {
 
         // In the case that queues families are re-used, these are indices for the
         // particular queue to be allocated
-        uint32 presentQueueIndex = 0u;
-        uint32 renderQueueIndex = 0u;
-        uint32 transferQueueIndex = 0u;
         const std::vector<vk::DeviceQueueCreateInfo> queueInfo =
             DetermineQueueIndexAllocation(presentQueueFamilyIndex, renderQueueFamilyIndex, transferQueueFamilyIndex,
                                           presentQueueIndex, renderQueueIndex, transferQueueIndex);
@@ -215,6 +230,8 @@ struct VulkanGraphicsContext::Impl {
             .width = width,
             .height = height,
         });
+
+        return {};
     }
 
     util::VoidResult<> BeginFrame() {
@@ -239,9 +256,52 @@ struct VulkanGraphicsContext::Impl {
     }
 
     util::ValueResult<TextureInstance> CreateTexture(const Texture2DSpec &spec) {
-        const bool isRenderTarget = spec.access == TextureAccess::RenderTarget;
+        TextureInstance newTexture{
+            .spec = spec,
+        };
 
-        return TextureInstance{};
+        vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc |
+                                    vk::ImageUsageFlagBits::eTransferDst;
+
+        if (spec.access == TextureAccess::RenderTarget) {
+            usage |= vk::ImageUsageFlagBits::eColorAttachment;
+        }
+
+        const vk::ImageCreateInfo imageInfo{
+            .flags = {},
+            .imageType = vk::ImageType::e2D,
+            .format = ToVulkanFormat(spec.format),
+            .extent =
+                vk::Extent3D{
+                    .width = spec.width,
+                    .height = spec.height,
+                    .depth = 1,
+                },
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = vk::SampleCountFlagBits::e1,
+            .tiling = vk::ImageTiling::eOptimal,
+            .usage = usage,
+            .sharingMode = vk::SharingMode::eExclusive,
+            .queueFamilyIndexCount = 1,
+            .pQueueFamilyIndices = &renderQueueIndex,
+            .initialLayout = vk::ImageLayout::eUndefined,
+        };
+
+        if (auto createResult = device->createImageUnique(imageInfo); createResult.result == vk::Result::eSuccess) {
+            newTexture.image = std::move(createResult.value);
+        } else {
+            return util::ErrorMessage{fmt::format("Could not create texture:{}", vk::to_string(createResult.result))};
+        }
+
+        if (auto commitResult = CommitImageHeap(device.get(), physicalDevice, std::to_array({newTexture.image.get()}));
+            commitResult.HasValue()) {
+            newTexture.imageMemory = std::move(commitResult.Value());
+        } else {
+            return commitResult.Error();
+        }
+
+        return newTexture;
     }
 
     util::VoidResult<> ResizeTexture(TextureID id, uint32 width, uint32 height) {
@@ -251,7 +311,7 @@ struct VulkanGraphicsContext::Impl {
         }
         TextureInstance &texture = it->second;
 
-        // First, try creating new texture using the existing texture's specifications
+        // First, try creating the new texture using the existing texture's specifications
         Texture2DSpec newSpec = texture.spec;
         newSpec.width = width;
         newSpec.height = height;
@@ -267,14 +327,44 @@ struct VulkanGraphicsContext::Impl {
         return {};
     }
 
-    void DestroyTexture(TextureID id) {}
+    void DestroyTexture(TextureID id) {
+        auto it = textures.find(id);
+        if (it == textures.end()) {
+            return;
+        }
+        auto &texture = it->second;
+        SubmitTextureForDeletion(texture);
+        textures.erase(it);
+    }
 
-    void SubmitTextureForDeletion(TextureInstance &texture) {}
+    void SubmitTextureForDeletion(TextureInstance &texture) {
+        TextureToDelete &texToDelete = texturesToDelete.emplace_back(std::move(texture));
 
-    void DeletePendingTextures(bool force) {}
+        // TODO: Timeline semaphore value used to indicate when it is safe to delete this texture
+        texToDelete.timeStamp = 1;
+    }
+
+    void DeletePendingTextures(bool force) {
+        if (texturesToDelete.empty()) {
+            return;
+        }
+
+        // TODO: Timeline semaphore value used to indicate when it is safe to delete this texture
+        const uint64 currentTick = 0;
+
+        while (!texturesToDelete.empty() && (force || texturesToDelete.front().timeStamp <= currentTick)) {
+            texturesToDelete.front().~TextureToDelete();
+            texturesToDelete.pop_front();
+        }
+    }
 
     bool IsTextureValid(TextureID id) {
-        return false;
+        auto it = textures.find(id);
+        if (it == textures.end()) {
+            return false;
+        }
+        auto &texture = it->second;
+        return texture.image.get();
     }
 
     TextureInstance *GetTexture(TextureID id) {
