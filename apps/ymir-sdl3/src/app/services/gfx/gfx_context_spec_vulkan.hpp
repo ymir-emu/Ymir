@@ -7,7 +7,7 @@
 
 #include <SDL3/SDL_video.h>
 
-#include <vulkan/vulkan_core.h>
+#include <ymir/gpu/vulkan/vulkan_api.hpp>
 
 namespace app::gfx {
 

@@ -400,6 +400,16 @@ else ()
     )
 endif ()
 
+if (Vulkan_FOUND)
+    target_sources(ymir-core
+        PUBLIC
+            include/ymir/gpu/vulkan/vulkan_api.hpp
+
+        PRIVATE
+            src/ymir/gpu/vulkan/vulkan_api.cpp
+    )
+endif ()
+
 ## Compile VDP1 and VDP2 renderer shaders
 set(SHADER_INPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res/shaders")
 set(SHADER_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/shaders")

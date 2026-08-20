@@ -1,10 +1,7 @@
 #include "gfx_context_impl_vulkan.hpp"
 #include "gfx_context_spec_vulkan.hpp"
 
-#define VULKAN_HPP_NO_EXCEPTIONS
-// Used to allow aggregate initialization for structs
-#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
-#include <vulkan/vulkan.hpp>
+#include <ymir/gpu/vulkan/vulkan_api.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
