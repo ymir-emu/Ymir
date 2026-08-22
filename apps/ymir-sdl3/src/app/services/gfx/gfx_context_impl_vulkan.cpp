@@ -407,12 +407,41 @@ struct VulkanGraphicsContext::Impl {
 
         const FrameContext &currFrame = GetCurrentFrameContext();
 
-        currFrame.mainCommandBuffer->reset();
+        if (const auto resetResult = currFrame.mainCommandBuffer->reset(); resetResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error resetting swapchain command buffer: {}", vk::to_string(resetResult))};
+        }
 
         const vk::CommandBufferBeginInfo beginInfo{
             .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
         };
-        currFrame.mainCommandBuffer->begin(beginInfo);
+        if (const auto beginResult = currFrame.mainCommandBuffer->begin(beginInfo);
+            beginResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error beginning swapchain command buffer: {}", vk::to_string(beginResult))};
+        }
+
+        // Transition present-image to be render-ready
+        const vk::ImageMemoryBarrier presentBarrier{
+            .srcAccessMask = {},
+            .dstAccessMask = {},
+            .oldLayout = vk::ImageLayout::eUndefined,
+            .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
+            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .image = swapchain->GetNextSwapImage(),
+            .subresourceRange =
+                vk::ImageSubresourceRange{
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = vk::RemainingArrayLayers,
+                },
+        };
+        currFrame.mainCommandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eBottomOfPipe,
+                                                     vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                                                     vk::DependencyFlagBits::eByRegion, {}, {}, {presentBarrier});
 
         vk::RenderPass renderTargetRenderPass;
         if (auto getResult = GetRenderTargetRenderPass(swapchain->GetSurfaceImageFormat()); getResult.HasValue()) {
@@ -446,7 +475,28 @@ struct VulkanGraphicsContext::Impl {
         const FrameContext &currFrame = GetCurrentFrameContext();
         currFrame.mainCommandBuffer->endRenderPass();
 
-        // Transition present-image into present-layout
+        // Transition present-image to be present-ready
+        const vk::ImageMemoryBarrier presentBarrier{
+            .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+            .dstAccessMask = {},
+            .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+            .newLayout = vk::ImageLayout::ePresentSrcKHR,
+            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .image = swapchain->GetNextSwapImage(),
+            .subresourceRange =
+                vk::ImageSubresourceRange{
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = vk::RemainingArrayLayers,
+                },
+        };
+
+        currFrame.mainCommandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                                                     vk::PipelineStageFlagBits::eBottomOfPipe,
+                                                     vk::DependencyFlagBits::eByRegion, {}, {}, {presentBarrier});
 
         if (const auto endResult = currFrame.mainCommandBuffer->end(); endResult != vk::Result::eSuccess) {
             return util::ErrorMessage{fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
