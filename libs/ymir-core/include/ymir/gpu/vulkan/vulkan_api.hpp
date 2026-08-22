@@ -13,6 +13,8 @@
 // Used to allow aggregate initialization for structs
 #define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
 
+#define VULKAN_HPP_ASSERT_ON_RESULT
+
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_format_traits.hpp>
 #include <vulkan/vulkan_hash.hpp>
