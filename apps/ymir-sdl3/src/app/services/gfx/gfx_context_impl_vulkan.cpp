@@ -154,7 +154,6 @@ struct VulkanGraphicsContext::Impl {
         }
 
         // Create instance
-
         std::vector<const char *> instanceExtensions;
 
 #ifndef NDEBUG
@@ -372,9 +371,6 @@ struct VulkanGraphicsContext::Impl {
             }
         }
 
-        if (auto result = BeginFrame(); !result) {
-            return util::ErrorMessage{fmt::format("Could not begin frame: {}", result.Error().message)};
-        }
         return {};
     }
 
@@ -553,7 +549,11 @@ struct VulkanGraphicsContext::Impl {
             },
         };
 
-        device->resetFences({currFrame.submitFence.get()});
+        if (const auto resetResult = device->resetFences({currFrame.submitFence.get()});
+            resetResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{fmt::format("Error resetting swapchain fence: {}", vk::to_string(resetResult))};
+        }
+
         if (auto submitResult = renderQueue.submit(SubmitInfoChain.get(), currFrame.submitFence.get());
             submitResult != vk::Result::eSuccess) {
             return util::ErrorMessage{
@@ -592,10 +592,16 @@ struct VulkanGraphicsContext::Impl {
 
         const FrameContext &currFrame = GetCurrentFrameContext();
 
-        // If the next frame is not ready to be rendered yet, wait until it is ready
+        // If the next frame has not finished rendering yet, wait for it.
         if (const auto waitResult = device->waitForFences({currFrame.submitFence.get()}, vk::True, ~0ULL);
             waitResult != vk::Result::eSuccess) {
             return util::ErrorMessage{fmt::format("Error waiting on swapchain fence: {}", vk::to_string(waitResult))};
+        }
+
+        if (const auto resetResult = device->resetCommandPool(currFrame.commandPool.get(), {});
+            resetResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error resetting swapchain command pool: {}", vk::to_string(resetResult))};
         }
 
         return {};
@@ -869,7 +875,6 @@ struct VulkanGraphicsContext::Impl {
         SetObjectName(device.get(), vertModule.get(), "Imgui vertex shader module");
         SetObjectName(device.get(), fragModule.get(), "Imgui pixel shader module");
 
-        // Describe the stage and entry point of each shader
         const std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStagesInfo{{
             vk::PipelineShaderStageCreateInfo{
                 .stage = vk::ShaderStageFlagBits::eVertex,
@@ -956,9 +961,6 @@ struct VulkanGraphicsContext::Impl {
 
         vk::PipelineDynamicStateCreateInfo dynamicState = {};
         const std::array<vk::DynamicState, 2> dynamicStates{{
-            // The viewport and scissor of the framebuffer will be dynamic at
-            // run-time
-            // so we definately add these
             vk::DynamicState::eViewport,
             vk::DynamicState::eScissor,
         }};
@@ -1059,9 +1061,9 @@ bool VulkanGraphicsContext::ImGuiInit() {
         .Instance = m_impl->instance.get(),
         .PhysicalDevice = m_impl->physicalDevice,
         .Device = m_impl->device.get(),
-        .QueueFamily = 0,
+        .QueueFamily = m_impl->renderQueueFamilyIndex,
         .Queue = m_impl->renderQueue,
-        .DescriptorPool = {}, // m_impl->descriptorHeapImgui->GetDescriptorPool(),
+        .DescriptorPool = {},
         .DescriptorPoolSize = VulkanGraphicsContext::Impl::kImGuiDescriptorCount,
         .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,
         .ImageCount = m_impl->swapchain->GetSwapchainCount(),
