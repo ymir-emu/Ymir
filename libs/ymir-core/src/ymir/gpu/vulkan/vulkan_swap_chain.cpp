@@ -117,6 +117,8 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
     if (surfaceCapabilities.currentExtent.width == 0 || surfaceCapabilities.currentExtent.height == 0) {
         // Window is likely minimized
         m_swapImages.clear();
+        m_swapImageViews.clear();
+        m_swapFramebuffers.clear();
         m_swapchainInstance.reset();
         return {};
     }
@@ -187,6 +189,117 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
         m_swapImages = std::move(getResult.value);
     } else {
         return util::ErrorMessage{"Error getting swapchain images:" + vk::to_string(getResult.result)};
+    }
+
+    /// Create swapchain image-views
+    m_swapImageViews.resize(m_swapImageCount);
+    for (uint8 swapIndex = 0; swapIndex < m_swapImageCount; ++swapIndex) {
+        const vk::ImageViewCreateInfo imageViewInfo{
+            .flags = {},
+            .image = m_swapImages[swapIndex],
+            .viewType = vk::ImageViewType::e2D,
+            .format = m_surfaceFormat.format,
+            .components = vk::ComponentMapping{},
+            .subresourceRange =
+                vk::ImageSubresourceRange{
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        if (auto createResult = m_device.createImageViewUnique(imageViewInfo);
+            createResult.result == vk::Result::eSuccess) {
+            m_swapImageViews[swapIndex] = std::move(createResult.value);
+            SetObjectName(m_device, m_swapImageViews[swapIndex].get(), "Swapchain: ImageView #{}", swapIndex);
+        } else {
+            return util::ErrorMessage{"Error creating swapchain image view:" + vk::to_string(createResult.result)};
+        }
+    }
+
+    /// Create trivial renderpass for baseline framebuffer compatibility
+    {
+        // Create trivial render-pass for the rendertarget
+        vk::RenderPassCreateInfo renderPassInfo{};
+
+        const std::array<vk::AttachmentDescription, 1> attachments{{
+            // Color Attachment
+            vk::AttachmentDescription{
+                .flags = vk::AttachmentDescriptionFlags(),
+                .format = m_surfaceFormat.format,
+                .samples = vk::SampleCountFlagBits::e1,
+                .loadOp = vk::AttachmentLoadOp::eLoad,
+                .storeOp = vk::AttachmentStoreOp::eStore,
+                .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+                .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+                .initialLayout = vk::ImageLayout::eColorAttachmentOptimal,
+                .finalLayout = vk::ImageLayout::eColorAttachmentOptimal,
+            },
+        }};
+
+        const std::array<vk::AttachmentReference, 1> attachmentRefs{{
+            vk::AttachmentReference{.attachment = 0, .layout = vk::ImageLayout::eColorAttachmentOptimal},
+        }};
+        renderPassInfo.setAttachments(attachments);
+
+        const std::array<vk::SubpassDescription, 1> subPasses{
+            vk::SubpassDescription{
+                .colorAttachmentCount = 1,
+                .pColorAttachments = &attachmentRefs[0],
+            },
+        };
+        renderPassInfo.setSubpasses(subPasses);
+
+        const std::array<vk::SubpassDependency, 1> subpassDependencies{{
+            vk::SubpassDependency{
+                .srcSubpass = vk::SubpassExternal,
+                .dstSubpass = 0,
+                .srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe,
+                .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
+                                vk::PipelineStageFlagBits::eEarlyFragmentTests |
+                                vk::PipelineStageFlagBits::eLateFragmentTests,
+                .srcAccessMask = vk::AccessFlagBits::eNone,
+                .dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite |
+                                 vk::AccessFlagBits::eDepthStencilAttachmentRead |
+                                 vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+                .dependencyFlags = vk::DependencyFlagBits::eByRegion,
+            },
+        }};
+
+        renderPassInfo.setDependencies(subpassDependencies);
+
+        if (auto createResult = m_device.createRenderPassUnique(renderPassInfo);
+            createResult.result == vk::Result::eSuccess) {
+            trivialRenderPass = std::move(createResult.value);
+        } else {
+            return util::ErrorMessage{
+                fmt::format("Error creating trivial swapchain render-pass: {}", vk::to_string(createResult.result))};
+        }
+        SetObjectName(m_device, trivialRenderPass.get(), "Swapchain: Trivial render pass {}",
+                      vk::to_string(m_surfaceFormat.format));
+    }
+
+    /// Create trivial swapchain image framebuffers
+    m_swapFramebuffers.resize(m_swapImageCount);
+    for (uint8 swapIndex = 0; swapIndex < m_swapImageCount; ++swapIndex) {
+        const vk::ImageView swapImageColorTarget = m_swapImageViews[swapIndex].get();
+        const vk::FramebufferCreateInfo framebufferInfo{
+            .flags = {},
+            .renderPass = trivialRenderPass.get(),
+            .attachmentCount = 1,
+            .pAttachments = &swapImageColorTarget,
+            .width = m_swapImageExtents.width,
+            .height = m_swapImageExtents.height,
+            .layers = 1,
+        };
+        if (auto createResult = m_device.createFramebufferUnique(framebufferInfo);
+            createResult.result == vk::Result::eSuccess) {
+            m_swapFramebuffers[swapIndex] = std::move(createResult.value);
+            SetObjectName(m_device, m_swapFramebuffers[swapIndex].get(), "Swapchain: Framebuffer #{}", swapIndex);
+        } else {
+            return util::ErrorMessage{"Error creating swapchain framebuffer:" + vk::to_string(createResult.result)};
+        }
     }
 
     return {};

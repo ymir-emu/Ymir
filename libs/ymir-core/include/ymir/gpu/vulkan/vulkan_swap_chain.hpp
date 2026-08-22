@@ -33,6 +33,11 @@ private:
     vk::Extent2D m_swapImageExtents;
 
     std::vector<vk::Image> m_swapImages;
+    std::vector<vk::UniqueImageView> m_swapImageViews;
+
+    // Trivial single-attachment render-pass that the framebuffers will be compatible with
+    vk::UniqueRenderPass trivialRenderPass;
+    std::vector<vk::UniqueFramebuffer> m_swapFramebuffers;
 
     // Semaphores that `vkAcquireNextImageKHR` will signal for then the
     // swapchain image is ready to be rendered into. A new frame should wait on
@@ -83,6 +88,10 @@ public:
 
     [[nodiscard]] const vk::Image &GetNextSwapImage() const {
         return m_swapImages.at(m_nextSwapImageIndex);
+    }
+
+    [[nodiscard]] const vk::Framebuffer &GetNextSwapFramebuffer() const {
+        return m_swapFramebuffers.at(m_nextSwapImageIndex).get();
     }
 
     [[nodiscard]] const vk::Semaphore &GetImageAcquiredSemaphore(uint8_t swapIndex) const {
