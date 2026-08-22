@@ -192,7 +192,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
     return {};
 }
 
-vk::Semaphore VulkanSwapchain::AcquireNextImage() {
+vk::Semaphore VulkanSwapchain::AcquireNextImage(uint8_t *nextSwapIndex) {
     if (!m_swapchainInstance) {
         return {};
     }
@@ -237,6 +237,9 @@ vk::Semaphore VulkanSwapchain::AcquireNextImage() {
 
         // Got the next swapchain image to render into
         m_nextSwapImageIndex = acquireResult.value;
+        if (nextSwapIndex) {
+            *nextSwapIndex = m_nextSwapImageIndex;
+        }
         break;
     }
     case vk::Result::eSuboptimalKHR:

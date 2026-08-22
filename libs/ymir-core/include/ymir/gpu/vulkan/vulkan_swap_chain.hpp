@@ -108,7 +108,7 @@ public:
     // on for when the image is actually ready to be rendered into. Returns a
     // null-handle if there was an error or if the swapchain needs to be
     // recreated.
-    [[nodiscard]] vk::Semaphore AcquireNextImage();
+    [[nodiscard]] vk::Semaphore AcquireNextImage(uint8_t *nextSwapIndex = nullptr);
 
     // Waits on the current "Present-Ready"-semaphore and presents the current
     // swapchain image to the present-queue
