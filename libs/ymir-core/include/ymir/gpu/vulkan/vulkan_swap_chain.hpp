@@ -30,6 +30,8 @@ private:
     bool m_vsync;
 
     uint8_t m_swapImageCount = 0u;
+    // TODO: Use timeline semaphores here to avoid having to create one extra semaphore
+    uint8_t m_semaphoreCount = 0u;
     vk::Extent2D m_swapImageExtents;
 
     std::vector<vk::Image> m_swapImages;

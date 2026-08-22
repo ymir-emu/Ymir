@@ -307,26 +307,26 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
 
     /// Swapchain synchronization primitives
     const vk::SemaphoreCreateInfo semaphoreInfo{};
-    m_swapSemaphoreImageAcquired.resize(m_swapImageCount);
-    m_swapSemaphorePresentReady.resize(m_swapImageCount);
+    m_semaphoreCount = m_swapImageCount + 1;
+    m_swapSemaphoreImageAcquired.resize(m_semaphoreCount);
+    m_swapSemaphorePresentReady.resize(m_semaphoreCount);
     m_curImageAcquireSemaphoreIndex = 0;
-    for (uint8 swapIndex = 0; swapIndex < m_swapImageCount; ++swapIndex) {
-        SetObjectName(m_device, m_swapImages[swapIndex], "Swapchain: Image #{}", swapIndex);
-
+    for (uint8 semaphoreIndex = 0; semaphoreIndex < m_semaphoreCount; ++semaphoreIndex) {
         if (auto createResult = m_device.createSemaphoreUnique(semaphoreInfo);
             createResult.result == vk::Result::eSuccess) {
-            SetObjectName(m_device, createResult.value.get(), "Swapchain: Image-Acquired Semaphore #{}", swapIndex);
+            SetObjectName(m_device, createResult.value.get(), "Swapchain: Image-Acquired Semaphore #{}",
+                          semaphoreIndex);
 
-            m_swapSemaphoreImageAcquired[swapIndex] = std::move(createResult.value);
+            m_swapSemaphoreImageAcquired[semaphoreIndex] = std::move(createResult.value);
         } else {
             return util::ErrorMessage{"Error creating swapchain semaphore:" + vk::to_string(createResult.result)};
         }
 
         if (auto createResult = m_device.createSemaphoreUnique(semaphoreInfo);
             createResult.result == vk::Result::eSuccess) {
-            SetObjectName(m_device, createResult.value.get(), "Swapchain: Present-Ready Semaphore #{}", swapIndex);
+            SetObjectName(m_device, createResult.value.get(), "Swapchain: Present-Ready Semaphore #{}", semaphoreIndex);
 
-            m_swapSemaphorePresentReady[swapIndex] = std::move(createResult.value);
+            m_swapSemaphorePresentReady[semaphoreIndex] = std::move(createResult.value);
         } else {
             return util::ErrorMessage{"Error creating present-ready semaphore:" + vk::to_string(createResult.result)};
         }
@@ -401,7 +401,7 @@ bool VulkanSwapchain::Present() {
     }
     case vk::Result::eSuboptimalKHR:
     case vk::Result::eErrorOutOfDateKHR: {
-        break;
+        return false;
     }
     case vk::Result::eErrorSurfaceLostKHR:
     default: {
@@ -411,7 +411,7 @@ bool VulkanSwapchain::Present() {
     }
 
     // Move on to the next semaphore
-    m_curImageAcquireSemaphoreIndex = (m_curImageAcquireSemaphoreIndex + 1) % GetSwapchainCount();
+    m_curImageAcquireSemaphoreIndex = (m_curImageAcquireSemaphoreIndex + 1) % m_semaphoreCount;
 
     return true;
 }
