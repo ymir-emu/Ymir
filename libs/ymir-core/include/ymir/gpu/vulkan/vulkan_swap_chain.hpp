@@ -90,6 +90,10 @@ public:
         return m_swapImages.at(m_nextSwapImageIndex);
     }
 
+    [[nodiscard]] const vk::RenderPass &GetTrivialRenderPass() const {
+        return trivialRenderPass.get();
+    }
+
     [[nodiscard]] const vk::Framebuffer &GetNextSwapFramebuffer() const {
         return m_swapFramebuffers.at(m_nextSwapImageIndex).get();
     }

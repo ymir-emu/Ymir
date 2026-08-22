@@ -14,7 +14,15 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugMessengerCallback(vk::DebugUtilsMessageSev
     case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose: break;
     case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo: break;
     case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning: break;
-    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError: break;
+    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+#ifdef _MSC_VER
+        __debugbreak();
+#elif defined(_GNUC__)
+        __builtin_trap();
+#else
+        raise(SIGTRAP)
+#endif
+        break;
     }
 
     return false;
