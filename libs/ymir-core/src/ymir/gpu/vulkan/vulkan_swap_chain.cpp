@@ -396,12 +396,10 @@ bool VulkanSwapchain::Present() {
     const vk::Result presentResult = m_presentQueue.presentKHR(presentInfo);
 
     switch (presentResult) {
+    case vk::Result::eSuboptimalKHR:
+    case vk::Result::eErrorOutOfDateKHR:
     case vk::Result::eSuccess: {
         break;
-    }
-    case vk::Result::eSuboptimalKHR:
-    case vk::Result::eErrorOutOfDateKHR: {
-        return false;
     }
     case vk::Result::eErrorSurfaceLostKHR:
     default: {
