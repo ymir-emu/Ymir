@@ -14,6 +14,8 @@ void EnumerateVulkanGraphicsAdapters() {
         return;
     }
 
+    g_VulkanAdapters.clear();
+
     if (const auto enumerate_result = instance->enumeratePhysicalDevices(); enumerate_result.has_value()) {
         for (uint8 device_index = 0; const vk::PhysicalDevice &physical_device : enumerate_result.value) {
             const vk::PhysicalDeviceProperties physical_device_properties = physical_device.getProperties();
@@ -34,8 +36,6 @@ void EnumerateVulkanGraphicsAdapters() {
             ++device_index;
         }
     }
-
-    g_VulkanAdapters.clear();
 }
 
 const std::vector<VulkanGraphicsAdapter> &GetVulkanGraphicsAdapters() {
