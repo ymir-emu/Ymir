@@ -575,11 +575,19 @@ struct VulkanGraphicsContext::Impl {
     }
 
     util::VoidResult<> WaitForGPU() {
+
+        // Wait for current frame
         const FrameContext &currFrame = GetCurrentFrameContext();
 
         if (const auto waitResult = device->waitForFences({currFrame.submitFence.get()}, vk::True, ~0ULL);
             waitResult != vk::Result::eSuccess) {
             return util::ErrorMessage{fmt::format("Error waiting on swapchain fence: {}", vk::to_string(waitResult))};
+        }
+
+        // Wait for the device to idle to ensure the entire swapchain has been flushed
+        // TODO: Replace this with waiting on actual timeline semaphore values
+        if (const auto waitResult = device->waitIdle(); waitResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{fmt::format("Error waiting for device to idle: {}", vk::to_string(waitResult))};
         }
 
         return {};
@@ -1018,7 +1026,12 @@ VulkanGraphicsContext::VulkanGraphicsContext(const VulkanGraphicsContextSpec &sp
     : IGraphicsContext(kBackend)
     , m_impl(std::make_unique<Impl>(spec)) {}
 
-VulkanGraphicsContext::~VulkanGraphicsContext() {}
+VulkanGraphicsContext::~VulkanGraphicsContext() {
+    if (m_impl->IsInitialized()) {
+        m_impl->WaitForGPU();
+        ImGuiShutdown();
+    }
+}
 
 util::ObjectResult<VulkanGraphicsContext> VulkanGraphicsContext::Create(const VulkanGraphicsContextSpec &spec) {
     auto context = std::make_unique<VulkanGraphicsContext>(spec);
@@ -1080,8 +1093,8 @@ bool VulkanGraphicsContext::ImGuiInit() {
 
 void VulkanGraphicsContext::ImGuiShutdown() {
     if (m_imguiInitialized) {
-        ImGui_ImplSDL3_Shutdown();
         ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplSDL3_Shutdown();
         m_imguiInitialized = false;
     }
 }
