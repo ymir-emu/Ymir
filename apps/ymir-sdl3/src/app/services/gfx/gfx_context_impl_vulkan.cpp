@@ -1053,9 +1053,7 @@ bool VulkanGraphicsContext::IsInitialized() const {
 }
 
 util::VoidResult<> VulkanGraphicsContext::ResizeFramebuffer(uint32 width, uint32 height) {
-    // TODO: destroy and recreate swap chain resources
-    return {};
-    return util::ErrorMessage{"Unimplemented"};
+    return m_impl->ResizeFramebuffer(width, height);
 }
 
 void VulkanGraphicsContext::ClearScreen(gfx::ColorRGBA color) {
