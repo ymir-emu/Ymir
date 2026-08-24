@@ -110,6 +110,9 @@ struct VulkanGraphicsContext::Impl {
 
     // Timeline tick-value of the current submit that is being worked on
     uint64 mainSemaphoreTick = 1;
+    // Last known main semaphore tick value from the GPU
+    std::atomic_uint64_t mainSemaphoreTickGPU = 0;
+
     // Main timeline semaphore to keep track of submits. Note that this is not the same as "frame-index", but rather the
     // "submit-index". There may be several submits within a single frame.
     vk::UniqueSemaphore mainSemaphore;
@@ -726,8 +729,9 @@ struct VulkanGraphicsContext::Impl {
     void SubmitTextureForDeletion(TextureInstance &texture) {
         TextureToDelete &texToDelete = texturesToDelete.emplace_back(std::move(texture));
 
-        // TODO: Timeline semaphore value used to indicate when it is safe to delete this texture
-        texToDelete.timeStamp = 1;
+        // It is possible that this frame is created, used, and deleted all in one frame.
+        // Queue this texture to delete _after_ the current frame has finished rendering.
+        texToDelete.timeStamp = mainSemaphoreTick;
     }
 
     void DeletePendingTextures(bool force) {
@@ -735,10 +739,11 @@ struct VulkanGraphicsContext::Impl {
             return;
         }
 
-        // TODO: Timeline semaphore value used to indicate when it is safe to delete this texture
-        const uint64 currentTick = 0;
+        // Get the latest timeline value from the GPU to indicate when it is safe to delete;
+        UpdateTimelineSemaphoreValue(device.get(), mainSemaphore.get(), mainSemaphoreTickGPU);
 
-        while (!texturesToDelete.empty() && (force || texturesToDelete.front().timeStamp <= currentTick)) {
+        while (!texturesToDelete.empty() &&
+               (force || texturesToDelete.front().timeStamp <= mainSemaphoreTickGPU.load(std::memory_order_acquire))) {
             texturesToDelete.front().~TextureToDelete();
             texturesToDelete.pop_front();
         }
