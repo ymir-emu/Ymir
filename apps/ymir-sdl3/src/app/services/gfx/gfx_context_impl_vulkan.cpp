@@ -739,6 +739,13 @@ struct VulkanGraphicsContext::Impl {
 
     util::VoidResult<> UpdateTexture(TextureID id, const IRect *rect,
                                      const std::function<void(void *data, size_t pitch)> &fnUpdate) {
+        auto it = textures.find(id);
+        if (it == textures.end()) {
+            return util::ErrorMessage{"Invalid texture ID"};
+        }
+
+        TextureInstance &texture = it->second;
+
         return {};
     }
 
