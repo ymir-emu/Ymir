@@ -27,7 +27,7 @@ private:
     vk::SurfaceKHR m_surface;
     vk::SurfaceFormatKHR m_surfaceFormat;
 
-    bool m_vsync;
+    bool m_vsync = true;
 
     uint8_t m_swapImageCount = 0u;
     // TODO: Use timeline semaphores here to avoid having to create one extra semaphore
