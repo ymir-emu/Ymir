@@ -84,8 +84,8 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
     // frames are done.
     // TODO: VK_{KHR,EXT}_swapchain_maintenance1 has better swapchain
     // waiting/cleanup mechanisms that should be used here
-    if (const vk::Result waitResult = m_device.waitIdle(); waitResult != vk::Result::eSuccess) {
-        return util::ErrorMessage{"Error waiting on device to idle:" + vk::to_string(waitResult)};
+    if (const vk::Result waitResult = m_presentQueue.waitIdle(); waitResult != vk::Result::eSuccess) {
+        return util::ErrorMessage{"Error waiting on present queue to idle:" + vk::to_string(waitResult)};
     }
 
     /// Swapchain surface format
