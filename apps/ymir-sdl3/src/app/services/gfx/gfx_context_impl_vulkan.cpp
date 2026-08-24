@@ -52,7 +52,7 @@ static const std::array<vk::VertexInputAttributeDescription, 2> inputAttributeDe
 const auto descriptorLayoutImgui = std::to_array<vk::DescriptorSetLayoutBinding>({
     vk::DescriptorSetLayoutBinding{
         .binding = 0,
-        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorType = vk::DescriptorType::eSampledImage,
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eFragment,
     },
