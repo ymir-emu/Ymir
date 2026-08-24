@@ -127,7 +127,6 @@ struct VulkanGraphicsContext::Impl {
         vk::DescriptorSet descriptorSet;
 
         std::vector<vk::UniqueCommandBuffer> transcientCommandBuffers;
-        vk::CommandBuffer allocateTranscientCommandBuffer();
 
         // If there are any transcient command buffers to wait on, this is the tick-value to wait on
         std::optional<uint64> waitTick;
@@ -152,6 +151,8 @@ struct VulkanGraphicsContext::Impl {
         Texture2DSpec spec;
         vk::UniqueImage image;
         vk::UniqueDeviceMemory imageMemory;
+        vk::UniqueImageView imageView;
+        vk::DescriptorSet imageDescriptorSet;
     };
 
     struct TextureToDelete : TextureInstance {
@@ -714,7 +715,7 @@ struct VulkanGraphicsContext::Impl {
         if (auto createResult = device->createImageUnique(imageInfo); createResult.result == vk::Result::eSuccess) {
             newTexture.image = std::move(createResult.value);
         } else {
-            return util::ErrorMessage{fmt::format("Could not create texture:{}", vk::to_string(createResult.result))};
+            return util::ErrorMessage{fmt::format("Could not create image:{}", vk::to_string(createResult.result))};
         }
 
         if (auto commitResult = CommitImageHeap(device.get(), physicalDevice, std::to_array({newTexture.image.get()}));
@@ -724,7 +725,37 @@ struct VulkanGraphicsContext::Impl {
             return commitResult.Error();
         }
 
-        // Transition image into
+        const vk::ImageViewCreateInfo imageViewInfo{
+            .flags = {},
+            .image = newTexture.image.get(),
+            .viewType = vk::ImageViewType::e2D,
+            .format = ToVulkanFormat(spec.format),
+            .components = vk::ComponentMapping{},
+            .subresourceRange =
+                vk::ImageSubresourceRange{
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        if (auto createResult = device->createImageViewUnique(imageViewInfo);
+            createResult.result == vk::Result::eSuccess) {
+            newTexture.imageView = std::move(createResult.value);
+        } else {
+            return util::ErrorMessage{
+                fmt::format("Could not create image view:{}", vk::to_string(createResult.result))};
+        }
+
+        if (auto allocateResult = descriptorHeapImgui->AllocateDescriptorSet(); allocateResult.HasValue()) {
+            newTexture.imageDescriptorSet = allocateResult.Value();
+        } else {
+            return allocateResult.Error();
+        }
+
+        descriptorUpdateBatch->AddImage(newTexture.imageDescriptorSet, 0, newTexture.imageView.get(),
+                                        vk::ImageLayout::eShaderReadOnlyOptimal);
 
         return newTexture;
     }
@@ -780,6 +811,7 @@ struct VulkanGraphicsContext::Impl {
 
         while (!texturesToDelete.empty() &&
                (force || texturesToDelete.front().timeStamp <= mainSemaphoreTickGPU.load(std::memory_order_acquire))) {
+            descriptorHeapImgui->FreeDescriptorSet(texturesToDelete.front().imageDescriptorSet);
             texturesToDelete.pop_front();
         }
     }
@@ -1363,7 +1395,7 @@ bool VulkanGraphicsContext::IsTextureValid(TextureID id) const {
 ImTextureID VulkanGraphicsContext::GetImGuiTextureID(TextureID id) const {
     // ImTextureIDs for Vulkan are the VkImage handles
     Impl::TextureInstance *instance = m_impl->GetTexture(id);
-    return (instance != nullptr) ? reinterpret_cast<ImTextureID>((VkImage)instance->image.get()) : 0;
+    return (instance != nullptr) ? reinterpret_cast<ImTextureID>((VkDescriptorSet)instance->imageDescriptorSet) : 0;
 }
 
 util::VoidResult<> VulkanGraphicsContext::ResizeTexture(TextureID id, uint32 width, uint32 height) {
