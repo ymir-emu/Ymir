@@ -78,7 +78,8 @@ VulkanSwapchain::VulkanSwapchain(vk::Device device, vk::PhysicalDevice physicalD
     , m_presentQueue(presentQueue) {}
 
 util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D> newExtent,
-                                                      std::optional<vk::SwapchainKHR> oldSwapchain) {
+                                                      std::optional<vk::SwapchainKHR> oldSwapchain,
+                                                      uint8 *nextSwapIndex, vk::Fence nextSwapSignalFence) {
     // Unfortunately this is the best way to ensure that any currently in-flight
     // frames are done.
     // TODO: VK_{KHR,EXT}_swapchain_maintenance1 has better swapchain
@@ -332,14 +333,14 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(std::optional<vk::Extent2D
         }
     }
 
-    AcquireNextImage();
+    AcquireNextImage(nextSwapIndex, nextSwapSignalFence);
 
     return {};
 }
 
-vk::Semaphore VulkanSwapchain::AcquireNextImage(uint8_t *nextSwapIndex, vk::Fence signalFence) {
+util::ValueResult<vk::Semaphore> VulkanSwapchain::AcquireNextImage(uint8_t *nextSwapIndex, vk::Fence signalFence) {
     if (!m_swapchainInstance) {
-        return {};
+        return util::ErrorMessage{"Attempting to acquire image while swapchain instance is invalid"};
     }
 
     // Semaphore to signal when the image has been acquired, generally all image
@@ -366,14 +367,16 @@ vk::Semaphore VulkanSwapchain::AcquireNextImage(uint8_t *nextSwapIndex, vk::Fenc
     case vk::Result::eErrorSurfaceLostKHR:
     case vk::Result::eErrorOutOfDateKHR: {
         // Swapchain needs to be recreated
-        if (RecreateSwapchain({}, m_swapchainInstance.get())) {
-            return AcquireNextImage(nextSwapIndex, signalFence);
+        if (const auto recreateResult = RecreateSwapchain({}, m_swapchainInstance.get(), nextSwapIndex, signalFence)) {
+            return GetCurrentImageAcquiredSemaphore();
         } else {
-            return {};
+            return recreateResult.Error();
         }
         break;
     }
-    default: return {};
+    default:
+        return util::ErrorMessage{
+            fmt::format("Unhandled VkAcquireNextImage result: {}", vk::to_string(acquireResult.result))};
     }
 
     return semaphoreImageAcquired;

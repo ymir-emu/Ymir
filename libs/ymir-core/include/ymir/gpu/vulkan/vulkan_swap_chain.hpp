@@ -117,13 +117,14 @@ public:
     }
 
     util::VoidResult<> RecreateSwapchain(std::optional<vk::Extent2D> newExtent = {},
-                                         std::optional<vk::SwapchainKHR> oldSwapchain = {});
+                                         std::optional<vk::SwapchainKHR> oldSwapchain = {},
+                                         uint8 *nextSwapIndex = nullptr, vk::Fence nextSwapSignalFence = {});
 
     // Move on to the next image in the swapchain. Returns the semaphore to wait
     // on for when the image is actually ready to be rendered into. Returns a
     // null-handle if there was an error or if the swapchain needs to be
     // recreated.
-    [[nodiscard]] vk::Semaphore AcquireNextImage(uint8_t *nextSwapIndex = nullptr, vk::Fence signalFence = {});
+    [[nodiscard]] util::ValueResult<vk::Semaphore> AcquireNextImage(uint8_t *nextSwapIndex = nullptr, vk::Fence signalFence = {});
 
     // Waits on the current "Present-Ready"-semaphore and presents the current
     // swapchain image to the present-queue
