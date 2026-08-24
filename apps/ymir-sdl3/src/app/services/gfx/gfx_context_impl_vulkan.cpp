@@ -123,7 +123,6 @@ struct VulkanGraphicsContext::Impl {
         vk::UniqueCommandBuffer mainCommandBuffer;
         vk::DescriptorSet descriptorSet;
 
-        vk::UniqueFence submitFence;
         uint64 submitTick = 0;
     };
     std::array<FrameContext, kFrameCount> frames;
@@ -345,17 +344,6 @@ struct VulkanGraphicsContext::Impl {
                                               vk::to_string(allocateResult.result)};
                 }
                 SetObjectName(device.get(), frames[i].mainCommandBuffer.get(), "Swapchain Main Command Buffer #{}", i);
-
-                const vk::FenceCreateInfo fenceInfo{
-                    .flags = vk::FenceCreateFlagBits::eSignaled,
-                };
-                if (auto createResult = device->createFenceUnique(fenceInfo);
-                    createResult.result == vk::Result::eSuccess) {
-                    frames[i].submitFence = std::move(createResult.value);
-                } else {
-                    return util::ErrorMessage{"Error creating fence:" + vk::to_string(createResult.result)};
-                }
-                SetObjectName(device.get(), frames[i].submitFence.get(), "Swapchain submit fence #{}", i);
             }
         }
 
@@ -403,10 +391,19 @@ struct VulkanGraphicsContext::Impl {
     }
 
     util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {
-        swapchain->RecreateSwapchain(vk::Extent2D{
-            .width = width,
-            .height = height,
-        });
+        if (auto result = EndFrame(); !result) {
+            return util::ErrorMessage{fmt::format("Could not end frame: {}", result.Error().message)};
+        }
+
+        // Flush all current GPU commands
+        WaitForGPU();
+
+        swapchain->RecreateSwapchain(
+            vk::Extent2D{
+                .width = width,
+                .height = height,
+            },
+            {}, &frameIndex);
 
         const vk::Extent2D swapExtents = swapchain->GetSwapchainExtents();
         viewport = vk::Viewport{
@@ -420,6 +417,9 @@ struct VulkanGraphicsContext::Impl {
         scissorRect.offset = {};
         scissorRect.extent = swapExtents;
 
+        if (auto result = BeginFrame(); !result) {
+            return util::ErrorMessage{fmt::format("Could not begin frame: {}", result.Error().message)};
+        }
         return {};
     }
 
@@ -542,10 +542,6 @@ struct VulkanGraphicsContext::Impl {
         std::vector<std::uint64_t> waitSemaphoreValues;
         std::vector<std::uint64_t> signalSemaphoreValues;
 
-        // Wait for transfers
-        // waitStages.emplace_back(vk::PipelineStageFlagBits::eTransfer);
-        // waitTimelineValues.emplace_back(UploadTick);
-
         // Main Semaphore
         {
             // Signal that the image is ready to be presented
@@ -584,13 +580,7 @@ struct VulkanGraphicsContext::Impl {
             },
         };
 
-        if (const auto resetResult = device->resetFences({currFrame.submitFence.get()});
-            resetResult != vk::Result::eSuccess) {
-            return util::ErrorMessage{fmt::format("Error resetting swapchain fence: {}", vk::to_string(resetResult))};
-        }
-
-        if (auto submitResult = renderQueue.submit(SubmitInfoChain.get(), currFrame.submitFence.get());
-            submitResult != vk::Result::eSuccess) {
+        if (auto submitResult = renderQueue.submit(SubmitInfoChain.get(), {}); submitResult != vk::Result::eSuccess) {
             return util::ErrorMessage{
                 fmt::format("Error submitting command buffer to render queue: {}", vk::to_string(submitResult))};
         }
@@ -613,18 +603,15 @@ struct VulkanGraphicsContext::Impl {
 
     util::VoidResult<> WaitForGPU() {
 
-        // Wait for current frame
-        const FrameContext &currFrame = GetCurrentFrameContext();
-
-        if (const auto waitResult = device->waitForFences({currFrame.submitFence.get()}, vk::True, ~0ULL);
-            waitResult != vk::Result::eSuccess) {
-            return util::ErrorMessage{fmt::format("Error waiting on swapchain fence: {}", vk::to_string(waitResult))};
+        // Wait for all frames to finish rendering
+        uint64 lastFrame = 0u;
+        for (const FrameContext &currFrame : frames) {
+            lastFrame = std::max(lastFrame, currFrame.submitTick);
         }
 
-        // Wait for the device to idle to ensure the entire swapchain has been flushed
-        // TODO: Replace this with waiting on actual timeline semaphore values
-        if (const auto waitResult = device->waitIdle(); waitResult != vk::Result::eSuccess) {
-            return util::ErrorMessage{fmt::format("Error waiting for device to idle: {}", vk::to_string(waitResult))};
+        if (auto waitResult = WaitUntilSemaphoreValue(device.get(), mainSemaphore.get(), lastFrame);
+            waitResult.HasError()) {
+            return waitResult.Error();
         }
 
         return {};
@@ -638,9 +625,9 @@ struct VulkanGraphicsContext::Impl {
         const FrameContext &currFrame = GetCurrentFrameContext();
 
         // If the next frame has not finished rendering yet, wait for it.
-        if (const auto waitResult = device->waitForFences({currFrame.submitFence.get()}, vk::True, ~0ULL);
-            waitResult != vk::Result::eSuccess) {
-            return util::ErrorMessage{fmt::format("Error waiting on swapchain fence: {}", vk::to_string(waitResult))};
+        if (auto waitResult = WaitUntilSemaphoreValue(device.get(), mainSemaphore.get(), currFrame.submitTick);
+            waitResult.HasError()) {
+            return waitResult.Error();
         }
 
         if (const auto resetResult = device->resetCommandPool(currFrame.commandPool.get(), {});
