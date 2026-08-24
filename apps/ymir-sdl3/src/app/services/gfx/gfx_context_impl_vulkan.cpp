@@ -101,12 +101,18 @@ struct VulkanGraphicsContext::Impl {
 
     vk::SurfaceKHR surface;
 
-    uint32 presentQueueFamilyIndex = 0u;
-    uint32 renderQueueFamilyIndex = 0u;
-    uint32 transferQueueFamilyIndex = 0u;
+    uint32 presentQueueFamilyIndex = 0;
+    uint32 renderQueueFamilyIndex = 0;
+    uint32 transferQueueFamilyIndex = 0;
     vk::Queue presentQueue;
     vk::Queue renderQueue;
     vk::Queue transferQueue;
+
+    // Timeline tick-value of the current submit that is being worked on
+    uint64 mainSemaphoreTick = 1;
+    // Main timeline semaphore to keep track of submits. Note that this is not the same as "frame-index", but rather the
+    // "submit-index". There may be several submits within a single frame.
+    vk::UniqueSemaphore mainSemaphore;
 
     std::unique_ptr<VulkanDescriptorHeap> descriptorHeapImgui;
     std::unique_ptr<VulkanDescriptorUpdateBatch> descriptorUpdateBatch;
@@ -118,6 +124,7 @@ struct VulkanGraphicsContext::Impl {
         vk::DescriptorSet descriptorSet;
 
         vk::UniqueFence submitFence;
+        uint64 submitTick = 0;
     };
     std::array<FrameContext, kFrameCount> frames;
     uint8 frameIndex = 0;
@@ -251,6 +258,23 @@ struct VulkanGraphicsContext::Impl {
         transferQueue = bestTransferQueueFamilyIndex.has_value()
                             ? device->getQueue(bestTransferQueueFamilyIndex.value(), transferQueueFamilyIndex)
                             : vk::Queue{};
+
+        // Main timeline semaphore
+        const vk::StructureChain<vk::SemaphoreCreateInfo, vk::SemaphoreTypeCreateInfo> flushSemaphoreInfoChain = {
+            vk::SemaphoreCreateInfo{},
+            vk::SemaphoreTypeCreateInfo{
+                .semaphoreType = vk::SemaphoreType::eTimeline,
+                .initialValue = 0,
+            },
+        };
+
+        if (auto createResult = device->createSemaphoreUnique(flushSemaphoreInfoChain.get());
+            createResult.result == vk::Result::eSuccess) {
+            mainSemaphore = std::move(createResult.value);
+        } else {
+            return util::ErrorMessage{"Error creating Main Semaphore:" + vk::to_string(createResult.result)};
+        }
+        SetObjectName(device.get(), mainSemaphore.get(), "[Ymir-GCtx] Main Semaphore");
 
         if (auto createResult =
                 VulkanDescriptorHeap::Create(device.get(), descriptorLayoutImgui, kImGuiDescriptorCount);
@@ -509,28 +533,37 @@ struct VulkanGraphicsContext::Impl {
 
         const vk::Semaphore acquiredImageReady = swapchain->GetCurrentImageAcquiredSemaphore();
 
-        const FrameContext &currFrame = GetCurrentFrameContext();
+        FrameContext &currFrame = GetCurrentFrameContext();
 
         // Submit work
         std::vector<vk::Semaphore> waitSemaphores;
-        std::vector<vk::PipelineStageFlags> waitStages;
-        std::vector<std::uint64_t> waitTimelineValues;
         std::vector<vk::Semaphore> signalSemaphores;
+        std::vector<vk::PipelineStageFlags> waitStages;
+        std::vector<std::uint64_t> waitSemaphoreValues;
+        std::vector<std::uint64_t> signalSemaphoreValues;
 
         // Wait for transfers
         // waitStages.emplace_back(vk::PipelineStageFlagBits::eTransfer);
         // waitTimelineValues.emplace_back(UploadTick);
+
+        // Main Semaphore
+        {
+            // Signal that the image is ready to be presented
+            signalSemaphores.emplace_back(mainSemaphore.get());
+            signalSemaphoreValues.emplace_back(mainSemaphoreTick);
+        }
 
         // Swapchain synchronization
         {
             // Wait for the swapchain image to be acquired
             waitSemaphores.emplace_back(acquiredImageReady);
             waitStages.emplace_back(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-            // This is a binary semaphore, push a dummy value
-            waitTimelineValues.emplace_back(0);
-
             // Signal that the image is ready to be presented
             signalSemaphores.emplace_back(swapchain->GetNextImagePresentReadySemaphore());
+
+            // This is a binary semaphore, push dummy values
+            waitSemaphoreValues.emplace_back(0);
+            signalSemaphoreValues.emplace_back(0);
         }
 
         const vk::StructureChain<vk::SubmitInfo, vk::TimelineSemaphoreSubmitInfo> SubmitInfoChain{
@@ -544,8 +577,10 @@ struct VulkanGraphicsContext::Impl {
                 .pSignalSemaphores = signalSemaphores.data(),
             },
             vk::TimelineSemaphoreSubmitInfo{
-                .waitSemaphoreValueCount = static_cast<std::uint32_t>(waitTimelineValues.size()),
-                .pWaitSemaphoreValues = waitTimelineValues.data(),
+                .waitSemaphoreValueCount = static_cast<std::uint32_t>(waitSemaphoreValues.size()),
+                .pWaitSemaphoreValues = waitSemaphoreValues.data(),
+                .signalSemaphoreValueCount = static_cast<std::uint32_t>(signalSemaphoreValues.size()),
+                .pSignalSemaphoreValues = signalSemaphoreValues.data(),
             },
         };
 
@@ -559,6 +594,8 @@ struct VulkanGraphicsContext::Impl {
             return util::ErrorMessage{
                 fmt::format("Error submitting command buffer to render queue: {}", vk::to_string(submitResult))};
         }
+
+        currFrame.submitTick = mainSemaphoreTick++;
 
         if (!swapchain->Present()) {
             return util::ErrorMessage{"Error presenting frame"};
