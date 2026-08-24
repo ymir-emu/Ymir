@@ -878,67 +878,69 @@ struct VulkanGraphicsContext::Impl {
                 fmt::format("Error beginning swapchain command buffer: {}", vk::to_string(beginResult))};
         }
 
-        DebugLabelScope debugScope(commandBuffer, {1.0f, 1.0f, 0.0f, 1.0f}, "UpdateTexture {}", texture.spec.name);
+        /// Upload texture
+        {
+            DebugLabelScope debugScope(commandBuffer, {1.0f, 1.0f, 0.0f, 1.0f}, "UpdateTexture {}", texture.spec.name);
 
-        // Transition texture for upload
-        const vk::ImageSubresourceRange targetSubresourceRange{
-            .aspectMask = vk::ImageAspectFlagBits::eColor,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = vk::RemainingArrayLayers,
-        };
+            // Transition texture for upload
+            const vk::ImageSubresourceRange targetSubresourceRange{
+                .aspectMask = vk::ImageAspectFlagBits::eColor,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = vk::RemainingArrayLayers,
+            };
 
-        const vk::ImageMemoryBarrier imagePreBarrier{
-            .srcAccessMask = vk::AccessFlagBits::eMemoryWrite,
-            .dstAccessMask = vk::AccessFlagBits::eTransferWrite,
-            .oldLayout = vk::ImageLayout::eUndefined,
-            .newLayout = vk::ImageLayout::eTransferDstOptimal,
-            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-            .image = texture.image.get(),
-            .subresourceRange = targetSubresourceRange,
-        };
-        commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer,
-                                      vk::DependencyFlagBits::eByRegion, {}, {}, {imagePreBarrier});
+            const vk::ImageMemoryBarrier imagePreBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eMemoryWrite,
+                .dstAccessMask = vk::AccessFlagBits::eTransferWrite,
+                .oldLayout = vk::ImageLayout::eUndefined,
+                .newLayout = vk::ImageLayout::eTransferDstOptimal,
+                .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .image = texture.image.get(),
+                .subresourceRange = targetSubresourceRange,
+            };
+            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer,
+                                          vk::DependencyFlagBits::eByRegion, {}, {}, {imagePreBarrier});
 
-        // Upload to texture
-        const vk::BufferImageCopy imageCopy{
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource =
-                vk::ImageSubresourceLayers{
-                    .aspectMask = vk::ImageAspectFlagBits::eColor,
-                    .mipLevel = 0,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1,
-                },
-            .imageOffset = {},
-            .imageExtent =
-                vk::Extent3D{
-                    .width = texture.spec.width,
-                    .height = texture.spec.height,
-                    .depth = 1,
-                },
-        };
-        commandBuffer.copyBufferToImage(newStreamBuffer.buffer.get(), texture.image.get(),
-                                        vk::ImageLayout::eTransferDstOptimal, {imageCopy});
+            // Upload to texture
+            const vk::BufferImageCopy imageCopy{
+                .bufferOffset = 0,
+                .bufferRowLength = 0,
+                .bufferImageHeight = 0,
+                .imageSubresource =
+                    vk::ImageSubresourceLayers{
+                        .aspectMask = vk::ImageAspectFlagBits::eColor,
+                        .mipLevel = 0,
+                        .baseArrayLayer = 0,
+                        .layerCount = 1,
+                    },
+                .imageOffset = {},
+                .imageExtent =
+                    vk::Extent3D{
+                        .width = texture.spec.width,
+                        .height = texture.spec.height,
+                        .depth = 1,
+                    },
+            };
+            commandBuffer.copyBufferToImage(newStreamBuffer.buffer.get(), texture.image.get(),
+                                            vk::ImageLayout::eTransferDstOptimal, {imageCopy});
 
-        // Transition texture for sampling
-        const vk::ImageMemoryBarrier imagePostBarrier{
-            .srcAccessMask = vk::AccessFlagBits::eTransferWrite,
-            .dstAccessMask = vk::AccessFlagBits::eMemoryRead,
-            .oldLayout = vk::ImageLayout::eTransferDstOptimal,
-            .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
-            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-            .image = texture.image.get(),
-            .subresourceRange = targetSubresourceRange,
-        };
-        commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllCommands,
-                                      vk::DependencyFlagBits::eByRegion, {}, {}, {imagePostBarrier});
-
+            // Transition texture for sampling
+            const vk::ImageMemoryBarrier imagePostBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eTransferWrite,
+                .dstAccessMask = vk::AccessFlagBits::eMemoryRead,
+                .oldLayout = vk::ImageLayout::eTransferDstOptimal,
+                .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+                .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .image = texture.image.get(),
+                .subresourceRange = targetSubresourceRange,
+            };
+            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllCommands,
+                                          vk::DependencyFlagBits::eByRegion, {}, {}, {imagePostBarrier});
+        }
         if (const auto endResult = commandBuffer.end(); endResult != vk::Result::eSuccess) {
             return util::ErrorMessage{fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
         }
