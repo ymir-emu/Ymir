@@ -744,7 +744,6 @@ struct VulkanGraphicsContext::Impl {
 
         while (!texturesToDelete.empty() &&
                (force || texturesToDelete.front().timeStamp <= mainSemaphoreTickGPU.load(std::memory_order_acquire))) {
-            texturesToDelete.front().~TextureToDelete();
             texturesToDelete.pop_front();
         }
     }
