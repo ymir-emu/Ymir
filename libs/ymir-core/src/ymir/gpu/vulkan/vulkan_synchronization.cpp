@@ -98,4 +98,29 @@ DetermineQueueIndexAllocation(const std::optional<uint32> &presentQueueFamilyInd
     return QueueInfo;
 }
 
+util::ValueResult<std::chrono::nanoseconds> WaitUntilSemaphoreValue(const vk::Device device,
+                                                                    const vk::Semaphore timelineSemaphore,
+                                                                    const std::uint64_t timelineValue,
+                                                                    const std::chrono::nanoseconds timeOut) {
+    const vk::SemaphoreWaitInfo waitInfo{
+        .semaphoreCount = 1,
+        .pSemaphores = &timelineSemaphore,
+        .pValues = &timelineValue,
+    };
+
+    const auto startTime = std::chrono::high_resolution_clock::now();
+    vk::Result waitResult = device.waitSemaphores(waitInfo, timeOut.count());
+    while (waitResult == vk::Result::eTimeout) {
+        // Spin
+        waitResult = device.waitSemaphores(waitInfo, timeOut.count());
+    }
+    const auto stopTime = std::chrono::high_resolution_clock::now();
+
+    if (waitResult == vk::Result::eSuccess) {
+        return stopTime - startTime;
+    }
+
+    return util::ErrorMessage{fmt::format("Error waiting on timeline semaphore: {}", vk::to_string(waitResult))};
+}
+
 } // namespace ymir::gpu::vulkan

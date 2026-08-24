@@ -7,8 +7,10 @@
 
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
 
+#include <ymir/util/result.hpp>
+
+#include <chrono>
 #include <optional>
-#include <unordered_map>
 #include <vector>
 
 namespace ymir::gpu::vulkan {
@@ -23,5 +25,10 @@ DetermineQueueIndexAllocation(const std::optional<uint32> &presentQueueFamilyInd
                               const std::optional<uint32> &renderQueueFamilyIndex,
                               const std::optional<uint32> &transferQueueFamilyIndex, uint32 &presentQueueIndex,
                               uint32 &renderQueueIndex, uint32 &transferQueueIndex);
+
+util::ValueResult<std::chrono::nanoseconds>
+WaitUntilSemaphoreValue(const vk::Device logicalDevice, const vk::Semaphore timelineSemaphore,
+                        const std::uint64_t timelineValue,
+                        const std::chrono::nanoseconds timeOut = std::chrono::nanoseconds(~0ULL));
 
 } // namespace ymir::gpu::vulkan
