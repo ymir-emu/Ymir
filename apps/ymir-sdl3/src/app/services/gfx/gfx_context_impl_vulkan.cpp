@@ -126,6 +126,11 @@ struct VulkanGraphicsContext::Impl {
         vk::UniqueCommandBuffer mainCommandBuffer;
         vk::DescriptorSet descriptorSet;
 
+        std::vector<vk::UniqueCommandBuffer> transcientCommandBuffers;
+        vk::CommandBuffer allocateTranscientCommandBuffer();
+
+        // If there are any transcient command buffers to wait on, this is the tick-value to wait on
+        std::optional<uint64> waitTick;
         uint64 submitTick = 0;
     };
     std::array<FrameContext, kFrameCount> frames;
@@ -156,6 +161,14 @@ struct VulkanGraphicsContext::Impl {
 
     std::unordered_map<TextureID, TextureInstance> textures;
     std::deque<TextureToDelete> texturesToDelete;
+
+    struct StreamBuffer {
+        vk::UniqueBuffer buffer;
+        vk::UniqueDeviceMemory bufferMemory;
+
+        uint64 timeStamp;
+    };
+    std::deque<StreamBuffer> streamBuffers;
 
     util::VoidResult<> Init() {
         if (spec.window == nullptr) {
@@ -490,6 +503,19 @@ struct VulkanGraphicsContext::Impl {
         currFrame.mainCommandBuffer->setViewport(0, {viewport});
         currFrame.mainCommandBuffer->setScissor(0, {scissorRect});
 
+        DeletePendingTextures(false);
+
+        // Delete pending streambuffers
+        {
+            // Get the latest timeline value from the GPU to indicate when it is safe to delete;
+            UpdateTimelineSemaphoreValue(device.get(), mainSemaphore.get(), mainSemaphoreTickGPU);
+
+            while (!streamBuffers.empty() &&
+                   (streamBuffers.front().timeStamp <= mainSemaphoreTickGPU.load(std::memory_order_acquire))) {
+                streamBuffers.pop_front();
+            }
+        }
+
         return {};
     }
 
@@ -544,6 +570,14 @@ struct VulkanGraphicsContext::Impl {
         std::vector<vk::PipelineStageFlags> waitStages;
         std::vector<std::uint64_t> waitSemaphoreValues;
         std::vector<std::uint64_t> signalSemaphoreValues;
+
+        // Wait for transcient command buffers
+        if (currFrame.waitTick.has_value()) {
+            // Wait for the swapchain image to be acquired
+            waitSemaphores.emplace_back(mainSemaphore.get());
+            waitStages.emplace_back(vk::PipelineStageFlagBits::eAllCommands);
+            waitSemaphoreValues.emplace_back(currFrame.waitTick.value());
+        }
 
         // Main Semaphore
         {
@@ -625,7 +659,7 @@ struct VulkanGraphicsContext::Impl {
         // Update the frame index
         swapchain->AcquireNextImage(&frameIndex);
 
-        const FrameContext &currFrame = GetCurrentFrameContext();
+        FrameContext &currFrame = GetCurrentFrameContext();
 
         // If the next frame has not finished rendering yet, wait for it.
         if (auto waitResult = WaitUntilSemaphoreValue(device.get(), mainSemaphore.get(), currFrame.submitTick);
@@ -638,6 +672,8 @@ struct VulkanGraphicsContext::Impl {
             return util::ErrorMessage{
                 fmt::format("Error resetting swapchain command pool: {}", vk::to_string(resetResult))};
         }
+
+        currFrame.transcientCommandBuffers.clear();
 
         return {};
     }
@@ -773,6 +809,159 @@ struct VulkanGraphicsContext::Impl {
         }
 
         TextureInstance &texture = it->second;
+
+        // Allocate new streambuffer
+        StreamBuffer &newStreamBuffer = streamBuffers.emplace_back(StreamBuffer{
+            .timeStamp = mainSemaphoreTick,
+        });
+
+        const vk::DeviceSize imageBufferSize =
+            PixelFormatUnitSize(texture.spec.format) * texture.spec.width * texture.spec.height;
+
+        const vk::BufferCreateInfo streamBufferInfo{
+            .flags = {},
+            .size = imageBufferSize,
+            .usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc,
+            .sharingMode = vk::SharingMode::eExclusive,
+            .queueFamilyIndexCount = {},
+            .pQueueFamilyIndices = {},
+        };
+
+        if (auto createResult = device->createBufferUnique(streamBufferInfo);
+            createResult.result == vk::Result::eSuccess) {
+            newStreamBuffer.buffer = std::move(createResult.value);
+        } else {
+            return util::ErrorMessage{
+                fmt::format("Error creating stream buffer: {}", vk::to_string(createResult.result))};
+        }
+
+        if (auto commitResult =
+                CommitBufferHeap(device.get(), physicalDevice, std::to_array({newStreamBuffer.buffer.get()}),
+                                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+            commitResult) {
+            newStreamBuffer.bufferMemory = std::move(commitResult.Value());
+        } else {
+            return commitResult.Error();
+        }
+
+        // Copy data to staging buffer
+        if (const auto mapResult = device->mapMemory(newStreamBuffer.bufferMemory.get(), 0, vk::WholeSize);
+            mapResult.result == vk::Result::eSuccess) {
+
+            fnUpdate(mapResult.value, PixelFormatUnitSize(texture.spec.format) * texture.spec.width);
+
+            device->unmapMemory(newStreamBuffer.bufferMemory.get());
+        } else {
+            return util::ErrorMessage{fmt::format("Error mapping stream buffer: {}", vk::to_string(mapResult.result))};
+        }
+
+        FrameContext &currFrame = GetCurrentFrameContext();
+
+        // allocate new transient command buffer
+        vk::CommandBuffer commandBuffer{};
+
+        const vk::CommandBufferAllocateInfo commandBufferInfo{
+            .commandPool = currFrame.commandPool.get(),
+            .level = vk::CommandBufferLevel::ePrimary,
+            .commandBufferCount = 1,
+        };
+        if (auto allocateResult = device->allocateCommandBuffersUnique(commandBufferInfo);
+            allocateResult.result == vk::Result::eSuccess) {
+            commandBuffer = currFrame.transcientCommandBuffers.emplace_back(std::move(allocateResult.value[0])).get();
+        }
+
+        const vk::CommandBufferBeginInfo beginInfo{
+            .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+        };
+        if (const auto beginResult = commandBuffer.begin(beginInfo); beginResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error beginning swapchain command buffer: {}", vk::to_string(beginResult))};
+        }
+
+        DebugLabelScope debugScope(commandBuffer, {1.0f, 1.0f, 0.0f, 1.0f}, "UpdateTexture {}", texture.spec.name);
+
+        // Transition texture for upload
+        const vk::ImageSubresourceRange targetSubresourceRange{
+            .aspectMask = vk::ImageAspectFlagBits::eColor,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = vk::RemainingArrayLayers,
+        };
+
+        const vk::ImageMemoryBarrier imagePreBarrier{
+            .srcAccessMask = vk::AccessFlagBits::eMemoryWrite,
+            .dstAccessMask = vk::AccessFlagBits::eTransferWrite,
+            .oldLayout = vk::ImageLayout::eUndefined,
+            .newLayout = vk::ImageLayout::eTransferDstOptimal,
+            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .image = texture.image.get(),
+            .subresourceRange = targetSubresourceRange,
+        };
+        commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer,
+                                      vk::DependencyFlagBits::eByRegion, {}, {}, {imagePreBarrier});
+
+        // Upload to texture
+        const vk::BufferImageCopy imageCopy{
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource =
+                vk::ImageSubresourceLayers{
+                    .aspectMask = vk::ImageAspectFlagBits::eColor,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            .imageOffset = {},
+            .imageExtent =
+                vk::Extent3D{
+                    .width = texture.spec.width,
+                    .height = texture.spec.height,
+                    .depth = 1,
+                },
+        };
+        commandBuffer.copyBufferToImage(newStreamBuffer.buffer.get(), texture.image.get(),
+                                        vk::ImageLayout::eTransferDstOptimal, {imageCopy});
+
+        // Transition texture for sampling
+        const vk::ImageMemoryBarrier imagePostBarrier{
+            .srcAccessMask = vk::AccessFlagBits::eTransferWrite,
+            .dstAccessMask = vk::AccessFlagBits::eMemoryRead,
+            .oldLayout = vk::ImageLayout::eTransferDstOptimal,
+            .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+            .image = texture.image.get(),
+            .subresourceRange = targetSubresourceRange,
+        };
+        commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllCommands,
+                                      vk::DependencyFlagBits::eByRegion, {}, {}, {imagePostBarrier});
+
+        if (const auto endResult = commandBuffer.end(); endResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
+        }
+
+        const vk::StructureChain<vk::SubmitInfo, vk::TimelineSemaphoreSubmitInfo> submitInfoChain{
+            vk::SubmitInfo{
+                .commandBufferCount = 1,
+                .pCommandBuffers = &commandBuffer,
+                .signalSemaphoreCount = 1,
+                .pSignalSemaphores = &mainSemaphore.get(),
+            },
+            vk::TimelineSemaphoreSubmitInfo{
+                .signalSemaphoreValueCount = 1,
+                .pSignalSemaphoreValues = &mainSemaphoreTick,
+            },
+        };
+
+        if (auto submitResult = renderQueue.submit(submitInfoChain.get(), {}); submitResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error submitting command buffer to render queue: {}", vk::to_string(submitResult))};
+        }
+
+        currFrame.waitTick = mainSemaphoreTick++;
 
         return {};
     }
