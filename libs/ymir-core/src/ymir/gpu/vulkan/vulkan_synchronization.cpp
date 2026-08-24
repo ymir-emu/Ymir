@@ -98,9 +98,34 @@ DetermineQueueIndexAllocation(const std::optional<uint32> &presentQueueFamilyInd
     return QueueInfo;
 }
 
+util::ValueResult<uint64> UpdateTimelineSemaphoreValue(const vk::Device logicalDevice,
+                                                       const vk::Semaphore timelineSemaphore,
+                                                       std::atomic_uint64_t &hostTickValue) {
+    uint64 expectedCpuTickValue;
+    uint64 incomingGpuTickValue;
+    do {
+        // For the duration of the loop iteration, this value should stay still
+        expectedCpuTickValue = hostTickValue.load(std::memory_order_acquire);
+
+        // Get the current timeline semaphore value from the GPU
+        if (auto getResult = logicalDevice.getSemaphoreCounterValue(timelineSemaphore);
+            getResult.result == vk::Result::eSuccess) {
+            incomingGpuTickValue = getResult.value;
+        } else {
+            // Error getting timeline semaphore value
+            return util::ErrorMessage{
+                fmt::format("Error waiting getting timeline semaphore value: {}", vk::to_string(getResult.result))};
+        }
+
+    } while (!hostTickValue.compare_exchange_weak(expectedCpuTickValue, incomingGpuTickValue, std::memory_order_release,
+                                                  std::memory_order_relaxed));
+
+    return expectedCpuTickValue;
+}
+
 util::ValueResult<std::chrono::nanoseconds> WaitUntilSemaphoreValue(const vk::Device device,
                                                                     const vk::Semaphore timelineSemaphore,
-                                                                    const std::uint64_t timelineValue,
+                                                                    const uint64_t timelineValue,
                                                                     const std::chrono::nanoseconds timeOut) {
     const vk::SemaphoreWaitInfo waitInfo{
         .semaphoreCount = 1,
