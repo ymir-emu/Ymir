@@ -1,5 +1,7 @@
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
 
+#include <ymir/util/dev_assert.hpp>
+
 namespace {
 
 VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugMessengerCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -14,18 +16,10 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugMessengerCallback(vk::DebugUtilsMessageSev
     case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose: break;
     case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo: break;
     case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning: break;
-    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
-#ifdef _MSC_VER
-        __debugbreak();
-#elif defined(_GNUC__)
-        __builtin_trap();
-#else
-        raise(SIGTRAP)
-#endif
-        break;
+    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError: YMIR_DEV_CHECK(); break;
     }
 
-    return false;
+    return vk::False;
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
