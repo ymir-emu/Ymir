@@ -286,7 +286,7 @@ jobs:
             sudo pkg install -y cmake evdev-proto git gmake libX11 libXcursor libXext \
               libXfixes libXi libXrandr libXrender libXScrnSaver libXtst libglvnd \
               libinotify llvm21 ninja patchelf pkgconf python3 vulkan-loader zip \
-              glslang shaderc vulkan-headers
+              glslang shaderc vulkan-headers dxc
 
             if [ ${{ matrix.build-set.library-only}} = 'no' ]; then
               ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
