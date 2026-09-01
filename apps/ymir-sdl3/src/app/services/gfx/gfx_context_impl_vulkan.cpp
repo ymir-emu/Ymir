@@ -36,9 +36,26 @@ static vk::Format ToVulkanFormat(PixelFormat format) {
     return vk::Format::eUndefined;
 }
 
+struct alignas(uint32) Float4 {
+    float x, y, z, w;
+};
+
+struct alignas(uint32) Float3 {
+    float x, y, z;
+};
+
+struct alignas(uint32) Float2 {
+    float x, y;
+};
+
+struct Vertex {
+    Float3 position;
+    Float2 uv;
+};
+
 static const std::array<vk::VertexInputBindingDescription, 2> inputBindingDescs{{
-    {.binding = 0, .stride = 0, .inputRate = vk::VertexInputRate::eVertex},  // Position
-    {.binding = 1, .stride = 12, .inputRate = vk::VertexInputRate::eVertex}, // TexCoord
+    {.binding = 0, .stride = sizeof(Vertex), .inputRate = vk::VertexInputRate::eVertex}, // Position
+    {.binding = 1, .stride = sizeof(Vertex), .inputRate = vk::VertexInputRate::eVertex}, // TexCoord
 }};
 
 static const std::array<vk::VertexInputAttributeDescription, 2> inputAttributeDescs{{
@@ -63,23 +80,6 @@ const auto descriptorLayoutImgui = std::to_array<vk::DescriptorSetLayoutBinding>
         .stageFlags = vk::ShaderStageFlagBits::eFragment,
     },
 });
-
-struct alignas(uint32) Float4 {
-    float x, y, z, w;
-};
-
-struct alignas(uint32) Float3 {
-    float x, y, z;
-};
-
-struct alignas(uint32) Float2 {
-    float x, y;
-};
-
-struct Vertex {
-    Float3 position;
-    Float2 uv;
-};
 
 struct alignas(uint32) DrawTextureConstants {
     Float4 srcRect;
