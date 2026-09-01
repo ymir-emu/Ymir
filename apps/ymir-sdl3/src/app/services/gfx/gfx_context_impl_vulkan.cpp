@@ -66,7 +66,7 @@ static const std::array<vk::VertexInputAttributeDescription, 2> inputAttributeDe
 // ImGui Descriptor Heap
 // ImGui wants VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT enabled and requires some
 // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptors
-const auto descriptorLayoutImgui = std::to_array<vk::DescriptorSetLayoutBinding>({
+const auto descriptorLayoutTexture = std::to_array<vk::DescriptorSetLayoutBinding>({
     vk::DescriptorSetLayoutBinding{
         .binding = 0,
         .descriptorType = vk::DescriptorType::eSampledImage,
@@ -96,7 +96,7 @@ struct VulkanGraphicsContext::Impl {
         : spec(spec) {}
 
     static constexpr uint8 kFrameCount = 3;
-    static constexpr uint32 kImGuiDescriptorCount = 256;
+    static constexpr uint32 kTextureDescriptorCount = 256;
 
     VulkanGraphicsContextSpec spec;
 
@@ -123,7 +123,7 @@ struct VulkanGraphicsContext::Impl {
     // "submit-index". There may be several submits within a single frame.
     vk::UniqueSemaphore mainSemaphore;
 
-    std::unique_ptr<VulkanDescriptorHeap> descriptorHeapImgui;
+    std::unique_ptr<VulkanDescriptorHeap> descriptorHeapTexture;
     std::unique_ptr<VulkanDescriptorUpdateBatch> descriptorUpdateBatch;
     std::unique_ptr<VulkanSwapchain> swapchain;
 
@@ -150,9 +150,15 @@ struct VulkanGraphicsContext::Impl {
     PixelShader pixelShader;
 
     std::unordered_map<vk::Format, vk::UniquePipeline> renderTargetPipelines;
-    std::unordered_map<vk::Format, vk::UniqueRenderPass> renderTargetRenderPasses;
+    std::unordered_map<vk::Format, vk::UniqueRenderPass> renderTargetClearRenderPasses;
+    std::unordered_map<vk::Format, vk::UniqueRenderPass> renderTargetLoadRenderPasses;
+
+    vk::UniqueBuffer quadVertexBuffer;
+    vk::UniqueDeviceMemory quadVertexBufferMemory;
 
     DrawTextureConstants drawTextureConstants;
+
+    vk::UniquePipelineLayout renderTargetPipelineLayout;
 
     PresentMode presentMode = PresentMode::VSync;
 
@@ -161,7 +167,9 @@ struct VulkanGraphicsContext::Impl {
         vk::UniqueImage image;
         vk::UniqueDeviceMemory imageMemory;
         vk::UniqueImageView imageView;
+        vk::UniqueFramebuffer imageFrameBuffer;
         vk::DescriptorSet imageDescriptorSet;
+        vk::DescriptorSet imageDescriptorSetImgui;
     };
 
     struct TextureToDelete : TextureInstance {
@@ -302,15 +310,39 @@ struct VulkanGraphicsContext::Impl {
         SetObjectName(device.get(), mainSemaphore.get(), "[Ymir-GCtx] Main Semaphore");
 
         if (auto createResult =
-                VulkanDescriptorHeap::Create(device.get(), descriptorLayoutImgui, kImGuiDescriptorCount);
+                VulkanDescriptorHeap::Create(device.get(), descriptorLayoutTexture, kTextureDescriptorCount);
             createResult.HasValue()) {
-            descriptorHeapImgui = std::make_unique<VulkanDescriptorHeap>(std::move(createResult.Value()));
+            descriptorHeapTexture = std::make_unique<VulkanDescriptorHeap>(std::move(createResult.Value()));
         } else {
             return createResult.Error();
         }
-        SetObjectName(device.get(), descriptorHeapImgui->GetDescriptorPool(), "[Ymir-GCtx] ImGui Descriptor Pool");
-        SetObjectName(device.get(), descriptorHeapImgui->GetDescriptorSetLayout(),
-                      "[Ymir-GCtx] ImGui Descriptor Set Layout");
+        SetObjectName(device.get(), descriptorHeapTexture->GetDescriptorPool(), "[Ymir-GCtx] Texture Descriptor Pool");
+        SetObjectName(device.get(), descriptorHeapTexture->GetDescriptorSetLayout(),
+                      "[Ymir-GCtx] Texture Descriptor Set Layout");
+
+        // Create Pipeline Layout
+        {
+            vk::PipelineLayoutCreateInfo graphicsPipelineLayoutInfo{};
+
+            // ImGui expects 4 floats of push-constant data
+            const vk::PushConstantRange pushConstantInfo{
+                .stageFlags = vk::ShaderStageFlagBits::eVertex,
+                .offset = 0,
+                .size = sizeof(DrawTextureConstants),
+            };
+            graphicsPipelineLayoutInfo.setPushConstantRanges({pushConstantInfo});
+
+            graphicsPipelineLayoutInfo.setSetLayouts({descriptorHeapTexture->GetDescriptorSetLayout()});
+
+            if (auto [result, newPipelineLayout] = device->createPipelineLayoutUnique(graphicsPipelineLayoutInfo);
+                result == vk::Result::eSuccess) {
+                renderTargetPipelineLayout = std::move(newPipelineLayout);
+            } else {
+                return util::ErrorMessage{"Error creating pipeline layout"};
+            }
+
+            SetObjectName(device.get(), renderTargetPipelineLayout.get(), "[Ymir-GCtx] Render Target Pipeline Layout");
+        }
 
         // Descriptor update batching
         if (auto createResult = VulkanDescriptorUpdateBatch::Create(device.get()); createResult.HasValue()) {
@@ -331,9 +363,9 @@ struct VulkanGraphicsContext::Impl {
         const vk::Extent2D swapExtents = swapchain->GetSwapchainExtents();
         viewport = vk::Viewport{
             .x = 0.0f,
-            .y = 0.0f,
+            .y = static_cast<float>(swapExtents.height),
             .width = static_cast<float>(swapExtents.width),
-            .height = static_cast<float>(swapExtents.height),
+            .height = -static_cast<float>(swapExtents.height),
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
@@ -462,6 +494,147 @@ struct VulkanGraphicsContext::Impl {
             }
         }
 
+        // Create the vertex buffer
+        {
+            // Define the geometry for a quad
+            const Vertex vertices[] = {
+                {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+                {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+                {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+                {{1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+            };
+
+            // Create quad vertex buffer
+            const vk::BufferCreateInfo quadBufferInfo{
+                .flags = {},
+                .size = sizeof(vertices),
+                .usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+                .sharingMode = vk::SharingMode::eExclusive,
+                .queueFamilyIndexCount = {},
+                .pQueueFamilyIndices = {},
+            };
+
+            if (auto createResult = device->createBufferUnique(quadBufferInfo);
+                createResult.result == vk::Result::eSuccess) {
+                quadVertexBuffer = std::move(createResult.value);
+            } else {
+                return util::ErrorMessage{
+                    fmt::format("Error creating stream buffer: {}", vk::to_string(createResult.result))};
+            }
+            SetObjectName(device.get(), quadVertexBuffer.get(), "[Ymir-GCtx] Quad Vertex Buffer");
+
+            if (auto commitResult = CommitBufferHeap(
+                    device.get(), physicalDevice, std::to_array({quadVertexBuffer.get()}),
+                    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+                commitResult) {
+                quadVertexBufferMemory = std::move(commitResult.Value());
+            } else {
+                return commitResult.Error();
+            }
+            SetObjectName(device.get(), quadVertexBufferMemory.get(), "[Ymir-GCtx] Quad Vertex Buffer Memory");
+
+            // Create upload buffer
+            StreamBuffer &newStreamBuffer = streamBuffers.emplace_back(StreamBuffer{
+                .timeStamp = mainSemaphoreTick,
+            });
+
+            const vk::BufferCreateInfo streamBufferInfo{
+                .flags = {},
+                .size = sizeof(vertices),
+                .usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc,
+                .sharingMode = vk::SharingMode::eExclusive,
+                .queueFamilyIndexCount = {},
+                .pQueueFamilyIndices = {},
+            };
+
+            if (auto createResult = device->createBufferUnique(streamBufferInfo);
+                createResult.result == vk::Result::eSuccess) {
+                newStreamBuffer.buffer = std::move(createResult.value);
+            } else {
+                return util::ErrorMessage{
+                    fmt::format("Error creating vertex stream buffer: {}", vk::to_string(createResult.result))};
+            }
+
+            if (auto commitResult = CommitBufferHeap(
+                    device.get(), physicalDevice, std::to_array({newStreamBuffer.buffer.get()}),
+                    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+                commitResult) {
+                newStreamBuffer.bufferMemory = std::move(commitResult.Value());
+            } else {
+                return commitResult.Error();
+            }
+
+            // Copy the quad data to the upload buffer
+            if (const auto mapResult = device->mapMemory(newStreamBuffer.bufferMemory.get(), 0, vk::WholeSize);
+                mapResult.result == vk::Result::eSuccess) {
+
+                memcpy(mapResult.value, vertices, sizeof(vertices));
+                device->unmapMemory(newStreamBuffer.bufferMemory.get());
+            } else {
+                return util::ErrorMessage{
+                    fmt::format("Error mapping vertex stream buffer: {}", vk::to_string(mapResult.result))};
+            }
+
+            // allocate new transient command buffer
+            FrameContext &currFrame = GetCurrentFrameContext();
+            vk::CommandBuffer commandBuffer{};
+
+            const vk::CommandBufferAllocateInfo commandBufferInfo{
+                .commandPool = currFrame.commandPool.get(),
+                .level = vk::CommandBufferLevel::ePrimary,
+                .commandBufferCount = 1,
+            };
+            if (auto allocateResult = device->allocateCommandBuffersUnique(commandBufferInfo);
+                allocateResult.result == vk::Result::eSuccess) {
+                commandBuffer =
+                    currFrame.transcientCommandBuffers.emplace_back(std::move(allocateResult.value[0])).get();
+            }
+
+            const vk::CommandBufferBeginInfo beginInfo{
+                .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+            };
+            if (const auto beginResult = commandBuffer.begin(beginInfo); beginResult != vk::Result::eSuccess) {
+                return util::ErrorMessage{
+                    fmt::format("Error beginning swapchain command buffer: {}", vk::to_string(beginResult))};
+            }
+
+            /// Upload vertex buffer
+            {
+                DebugLabelScope debugScope(commandBuffer, {1.0f, 1.0f, 0.0f, 1.0f}, "Upload vertex buffer");
+                commandBuffer.copyBuffer(newStreamBuffer.buffer.get(), quadVertexBuffer.get(),
+                                         vk::BufferCopy{
+                                             .srcOffset = 0,
+                                             .dstOffset = 0,
+                                             .size = sizeof(vertices),
+                                         });
+            }
+            if (const auto endResult = commandBuffer.end(); endResult != vk::Result::eSuccess) {
+                return util::ErrorMessage{
+                    fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
+            }
+
+            const vk::StructureChain<vk::SubmitInfo, vk::TimelineSemaphoreSubmitInfo> submitInfoChain{
+                vk::SubmitInfo{
+                    .commandBufferCount = 1,
+                    .pCommandBuffers = &commandBuffer,
+                    .signalSemaphoreCount = 1,
+                    .pSignalSemaphores = &mainSemaphore.get(),
+                },
+                vk::TimelineSemaphoreSubmitInfo{
+                    .signalSemaphoreValueCount = 1,
+                    .pSignalSemaphoreValues = &mainSemaphoreTick,
+                },
+            };
+
+            if (auto submitResult = renderQueue.submit(submitInfoChain.get(), {});
+                submitResult != vk::Result::eSuccess) {
+                return util::ErrorMessage{
+                    fmt::format("Error submitting command buffer to render queue: {}", vk::to_string(submitResult))};
+            }
+
+            currFrame.waitTick = mainSemaphoreTick++;
+        }
+
         return {};
     }
 
@@ -487,9 +660,9 @@ struct VulkanGraphicsContext::Impl {
         const vk::Extent2D swapExtents = swapchain->GetSwapchainExtents();
         viewport = vk::Viewport{
             .x = 0.0f,
-            .y = 0.0f,
+            .y = static_cast<float>(swapExtents.height),
             .width = static_cast<float>(swapExtents.width),
-            .height = static_cast<float>(swapExtents.height),
+            .height = -static_cast<float>(swapExtents.height),
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
@@ -542,9 +715,10 @@ struct VulkanGraphicsContext::Impl {
                                                      vk::PipelineStageFlagBits::eColorAttachmentOutput,
                                                      vk::DependencyFlagBits::eByRegion, {}, {}, {presentBarrier});
 
-        vk::RenderPass renderTargetRenderPass;
-        if (auto getResult = GetRenderTargetRenderPass(swapchain->GetSurfaceImageFormat()); getResult.HasValue()) {
-            renderTargetRenderPass = getResult.Value();
+        vk::RenderPass swapchainRenderPass;
+        if (auto getResult = GetRenderTargetRenderPass(swapchain->GetSurfaceImageFormat(), true);
+            getResult.HasValue()) {
+            swapchainRenderPass = getResult.Value();
         } else {
             return getResult.Error();
         }
@@ -556,7 +730,7 @@ struct VulkanGraphicsContext::Impl {
         static const std::array<float, 4> clearColor{0.0f, 0.0f, 0.0f, 0.0f};
         static const vk::ClearValue clearColorValue{vk::ClearColorValue(clearColor)};
         const vk::RenderPassBeginInfo renderPassInfo{
-            .renderPass = renderTargetRenderPass,
+            .renderPass = swapchainRenderPass,
             .framebuffer = swapchain->GetNextSwapFramebuffer(),
             .renderArea = renderArea,
             .clearValueCount = 1,
@@ -565,6 +739,9 @@ struct VulkanGraphicsContext::Impl {
         currFrame.mainCommandBuffer->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
         currFrame.mainCommandBuffer->setViewport(0, {viewport});
         currFrame.mainCommandBuffer->setScissor(0, {scissorRect});
+
+        drawTextureConstants.renderTargetSize.x = swapchain->GetWidth();
+        drawTextureConstants.renderTargetSize.y = swapchain->GetHeight();
 
         DeletePendingTextures(false);
 
@@ -810,7 +987,33 @@ struct VulkanGraphicsContext::Impl {
                 fmt::format("Could not create image view:{}", vk::to_string(createResult.result))};
         }
 
-        if (auto allocateResult = descriptorHeapImgui->AllocateDescriptorSet(); allocateResult.HasValue()) {
+        if (spec.access == TextureAccess::RenderTarget) {
+            auto renderPassResult = GetRenderTargetRenderPass(ToVulkanFormat(spec.format), false);
+            if (!renderPassResult) {
+                return util::ErrorMessage{
+                    fmt::format("Could not get render target render pass: {}", renderPassResult.Error().message)};
+            }
+            vk::RenderPass renderPass = renderPassResult.Value();
+
+            const vk::FramebufferCreateInfo frameBufferInfo{
+                .flags = {},
+                .renderPass = renderPass,
+                .attachmentCount = 1,
+                .pAttachments = &newTexture.imageView.get(),
+                .width = spec.width,
+                .height = spec.height,
+                .layers = 1,
+            };
+            if (auto createResult = device->createFramebufferUnique(frameBufferInfo);
+                createResult.result == vk::Result::eSuccess) {
+                newTexture.imageFrameBuffer = std::move(createResult.value);
+            } else {
+                return util::ErrorMessage{
+                    fmt::format("Could not create framebuffer:{}", vk::to_string(createResult.result))};
+            }
+        }
+
+        if (auto allocateResult = descriptorHeapTexture->AllocateDescriptorSet(); allocateResult.HasValue()) {
             newTexture.imageDescriptorSet = allocateResult.Value();
         } else {
             return allocateResult.Error();
@@ -877,7 +1080,11 @@ struct VulkanGraphicsContext::Impl {
 
         while (!texturesToDelete.empty() &&
                (force || texturesToDelete.front().timeStamp <= mainSemaphoreTickGPU.load(std::memory_order_acquire))) {
-            descriptorHeapImgui->FreeDescriptorSet(texturesToDelete.front().imageDescriptorSet);
+            auto &textureToDelete = texturesToDelete.front();
+            descriptorHeapTexture->FreeDescriptorSet(textureToDelete.imageDescriptorSet);
+            if (textureToDelete.imageDescriptorSetImgui) {
+                ImGui_ImplVulkan_RemoveTexture(textureToDelete.imageDescriptorSetImgui);
+            }
             texturesToDelete.pop_front();
         }
     }
@@ -1066,14 +1273,16 @@ struct VulkanGraphicsContext::Impl {
         return {};
     }
 
-    util::ValueResult<vk::RenderPass> GetRenderTargetRenderPass(vk::Format vulkanFormat) {
-        auto it = renderTargetRenderPasses.find(vulkanFormat);
-        if (it != renderTargetRenderPasses.end()) {
+    util::ValueResult<vk::RenderPass> GetRenderTargetRenderPass(vk::Format vulkanFormat, bool clear) {
+        auto &renderPassesMap = clear ? renderTargetClearRenderPasses : renderTargetLoadRenderPasses;
+
+        auto it = renderPassesMap.find(vulkanFormat);
+        if (it != renderPassesMap.end()) {
             return it->second.get();
         }
 
         // Create trivial render-pass for the rendertarget
-        vk::UniqueRenderPass &renderTargetRenderPass = renderTargetRenderPasses[vulkanFormat];
+        vk::UniqueRenderPass &renderTargetRenderPass = renderPassesMap[vulkanFormat];
 
         vk::RenderPassCreateInfo renderPassInfo{};
 
@@ -1083,7 +1292,7 @@ struct VulkanGraphicsContext::Impl {
                 .flags = vk::AttachmentDescriptionFlags(),
                 .format = vulkanFormat,
                 .samples = vk::SampleCountFlagBits::e1,
-                .loadOp = vk::AttachmentLoadOp::eClear,
+                .loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad,
                 .storeOp = vk::AttachmentStoreOp::eStore,
                 .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
                 .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
@@ -1149,34 +1358,13 @@ struct VulkanGraphicsContext::Impl {
 
         // Create trivial render-pass for the rendertarget
         vk::RenderPass renderTargetRenderPass;
-        if (auto getResult = GetRenderTargetRenderPass(vulkanFormat); getResult.HasValue()) {
+        if (auto getResult = GetRenderTargetRenderPass(vulkanFormat, false); getResult.HasValue()) {
             renderTargetRenderPass = getResult.Value();
         } else {
             return getResult.Error();
         }
 
         vk::UniquePipeline &renderTargetPipeline = renderTargetPipelines[vulkanFormat];
-
-        // Create Pipeline Layout
-        vk::PipelineLayoutCreateInfo graphicsPipelineLayoutInfo{};
-
-        // ImGui expects 4 floats of push-constant data
-        const vk::PushConstantRange pushConstantInfo{
-            .stageFlags = vk::ShaderStageFlagBits::eVertex,
-            .offset = 0,
-            .size = sizeof(DrawTextureConstants),
-        };
-        graphicsPipelineLayoutInfo.setPushConstantRanges({pushConstantInfo});
-
-        graphicsPipelineLayoutInfo.setSetLayouts({descriptorHeapImgui->GetDescriptorSetLayout()});
-
-        vk::UniquePipelineLayout graphicsPipelineLayout;
-        if (auto [result, newPipelineLayout] = device->createPipelineLayoutUnique(graphicsPipelineLayoutInfo);
-            result == vk::Result::eSuccess) {
-            graphicsPipelineLayout = std::move(newPipelineLayout);
-        } else {
-            return util::ErrorMessage{"Error creating pipeline layout"};
-        }
 
         vk::UniqueShaderModule vertModule;
         vk::UniqueShaderModule fragModule;
@@ -1226,7 +1414,7 @@ struct VulkanGraphicsContext::Impl {
         vertexInputState.setVertexAttributeDescriptions(inputAttributeDescs);
 
         const vk::PipelineInputAssemblyStateCreateInfo InputAssemblyState{
-            .topology = vk::PrimitiveTopology::eTriangleList,
+            .topology = vk::PrimitiveTopology::eTriangleStrip,
             .primitiveRestartEnable = false,
         };
 
@@ -1310,7 +1498,7 @@ struct VulkanGraphicsContext::Impl {
         renderPipelineInfo.pDynamicState = &dynamicState;
         renderPipelineInfo.subpass = 0;
         renderPipelineInfo.renderPass = renderTargetRenderPass;
-        renderPipelineInfo.layout = graphicsPipelineLayout.get();
+        renderPipelineInfo.layout = renderTargetPipelineLayout.get();
 
         // Create Pipeline
         if (auto createResult = device->createGraphicsPipelineUnique({}, renderPipelineInfo);
@@ -1327,11 +1515,251 @@ struct VulkanGraphicsContext::Impl {
     }
 
     util::VoidResult<> RenderToTexture(TextureID src, TextureID dst, const FRect &srcRect, const FRect &dstRect) {
+        TextureInstance *srcTexture = GetTexture(src);
+        if (srcTexture == nullptr) {
+            return util::ErrorMessage{"Invalid source texture"};
+        }
+
+        TextureInstance *dstTexture = GetTexture(dst);
+        if (dstTexture == nullptr) {
+            return util::ErrorMessage{"Invalid destination texture"};
+        }
+        if (dstTexture->spec.access != TextureAccess::RenderTarget) {
+            return util::ErrorMessage{"Destination texture is not a valid render target"};
+        }
+
+        auto renderPassResult = GetRenderTargetRenderPass(ToVulkanFormat(dstTexture->spec.format), false);
+        if (!renderPassResult) {
+            return util::ErrorMessage{
+                fmt::format("Could not get render target render pass: {}", renderPassResult.Error().message)};
+        }
+        vk::RenderPass renderPass = renderPassResult.Value();
+
+        auto psoResult = GetRenderTargetPipeline(*dstTexture);
+        if (!psoResult) {
+            return util::ErrorMessage{fmt::format("Could not get render target PSO: {}", psoResult.Error().message)};
+        }
+        vk::Pipeline pipeline = psoResult.Value();
+
+        FrameContext &currFrame = GetCurrentFrameContext();
+
+        // allocate new transient command buffer
+        vk::CommandBuffer commandBuffer{};
+
+        const vk::CommandBufferAllocateInfo commandBufferInfo{
+            .commandPool = currFrame.commandPool.get(),
+            .level = vk::CommandBufferLevel::ePrimary,
+            .commandBufferCount = 1,
+        };
+        if (auto allocateResult = device->allocateCommandBuffersUnique(commandBufferInfo);
+            allocateResult.result == vk::Result::eSuccess) {
+            commandBuffer = currFrame.transcientCommandBuffers.emplace_back(std::move(allocateResult.value[0])).get();
+        }
+
+        const vk::CommandBufferBeginInfo beginInfo{
+            .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+        };
+        if (const auto beginResult = commandBuffer.begin(beginInfo); beginResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error beginning swapchain command buffer: {}", vk::to_string(beginResult))};
+        }
+
+        const vk::ImageSubresourceRange targetSubresourceRange{
+            .aspectMask = vk::ImageAspectFlagBits::eColor,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = vk::RemainingArrayLayers,
+        };
+
+        {
+            DebugLabelScope debugScope(commandBuffer, {1.0f, 1.0f, 0.0f, 1.0f}, "RenderToTexture {}",
+                                       dstTexture->spec.name);
+
+            // Transition from sampled-image into a color-attachment
+            const vk::ImageMemoryBarrier renderPreBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eShaderRead,
+                .dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead,
+                .oldLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+                .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
+                .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .image = dstTexture->image.get(),
+                .subresourceRange = targetSubresourceRange,
+            };
+            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllGraphics,
+                                          vk::PipelineStageFlagBits::eAllGraphics, vk::DependencyFlagBits::eByRegion,
+                                          {}, {}, {renderPreBarrier});
+
+            const vk::RenderPassBeginInfo renderPassInfo{
+                .renderPass = renderPass,
+                .framebuffer = dstTexture->imageFrameBuffer.get(),
+                .renderArea =
+                    vk::Rect2D{
+                        .offset = {},
+                        .extent =
+                            vk::Extent2D{
+                                .width = dstTexture->spec.width,
+                                .height = dstTexture->spec.height,
+                            },
+                    },
+                .clearValueCount = {},
+                .pClearValues = {},
+            };
+            commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+            // We're rendering directly to a texture, so we must make sure to flip the NDC Y axis
+            const vk::Viewport renderTargetViewport{
+                .x = 0.0f,
+                .y = static_cast<float>(dstTexture->spec.height),
+                .width = static_cast<float>(dstTexture->spec.width),
+                .height = -static_cast<float>(dstTexture->spec.height),
+                .minDepth = 0.0f,
+                .maxDepth = 1.0f,
+            };
+            const vk::Rect2D renderTargetScissorRect{
+                .offset = vk::Offset2D{},
+                .extent =
+                    vk::Extent2D{
+                        .width = dstTexture->spec.width,
+                        .height = dstTexture->spec.height,
+                    },
+            };
+            commandBuffer.setViewport(0, {renderTargetViewport});
+            commandBuffer.setScissor(0, {renderTargetScissorRect});
+
+            commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+
+            // auto drawResult = DrawTextureRotated(commandBuffer, src, srcRect, dstRect, 0, nullptr);
+            {
+                // Update constants with source UVs, destination area (in pixels), rotation angle and pivot point
+                DrawTextureConstants localDrawConstants{drawTextureConstants};
+                localDrawConstants.srcRect = {
+                    srcRect.x / srcTexture->spec.width,
+                    srcRect.y / srcTexture->spec.height,
+                    srcRect.w / srcTexture->spec.width,
+                    srcRect.h / srcTexture->spec.height,
+                };
+                localDrawConstants.dstRect = {
+                    dstRect.x,
+                    dstRect.y,
+                    dstRect.w,
+                    dstRect.h,
+                };
+                localDrawConstants.rotPivot.x = dstRect.w * 0.5f;
+                localDrawConstants.rotPivot.y = dstRect.h * 0.5f;
+                localDrawConstants.rotAngle = 0;
+                localDrawConstants.renderTargetSize.x = dstTexture->spec.width;
+                localDrawConstants.renderTargetSize.y = dstTexture->spec.height;
+
+                // Draw rectangle
+                commandBuffer.pushConstants<DrawTextureConstants>(
+                    renderTargetPipelineLayout.get(), vk::ShaderStageFlagBits::eVertex, 0, {localDrawConstants});
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, renderTargetPipelineLayout.get(), 0,
+                                                 {srcTexture->imageDescriptorSet}, {});
+                commandBuffer.bindVertexBuffers(0, {quadVertexBuffer.get()}, {0});
+                commandBuffer.draw(4, 1, 0, 0);
+            }
+
+            commandBuffer.endRenderPass();
+
+            // Transition from color-attachment to sampled-image
+            const vk::ImageMemoryBarrier renderPostBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+                .dstAccessMask = vk::AccessFlagBits::eShaderRead,
+                .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+                .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+                .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .image = dstTexture->image.get(),
+                .subresourceRange = targetSubresourceRange,
+            };
+            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllGraphics,
+                                          vk::PipelineStageFlagBits::eAllCommands, vk::DependencyFlagBits::eByRegion,
+                                          {}, {}, {renderPostBarrier});
+        }
+
+        if (const auto endResult = commandBuffer.end(); endResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
+        }
+
+        const vk::StructureChain<vk::SubmitInfo, vk::TimelineSemaphoreSubmitInfo> submitInfoChain{
+            vk::SubmitInfo{
+                .commandBufferCount = 1,
+                .pCommandBuffers = &commandBuffer,
+                .signalSemaphoreCount = 1,
+                .pSignalSemaphores = &mainSemaphore.get(),
+            },
+            vk::TimelineSemaphoreSubmitInfo{
+                .signalSemaphoreValueCount = 1,
+                .pSignalSemaphoreValues = &mainSemaphoreTick,
+            },
+        };
+
+        if (auto submitResult = renderQueue.submit(submitInfoChain.get(), {}); submitResult != vk::Result::eSuccess) {
+            return util::ErrorMessage{
+                fmt::format("Error submitting command buffer to render queue: {}", vk::to_string(submitResult))};
+        }
+
+        currFrame.waitTick = mainSemaphoreTick++;
+
         return {};
     }
 
     util::VoidResult<> DrawTextureRotated(TextureID id, const FRect &srcRect, const FRect &dstRect, double rotAngle,
                                           const FPoint2D *rotPivot) {
+        TextureInstance *instance = GetTexture(id);
+        if (instance == nullptr) {
+            return util::ErrorMessage{"Invalid texture"};
+        }
+
+        // Update constants with source UVs, destination area (in pixels), rotation angle and pivot point
+        DrawTextureConstants localDrawConstants{drawTextureConstants};
+        localDrawConstants.srcRect = {
+            srcRect.x / instance->spec.width,
+            srcRect.y / instance->spec.height,
+            srcRect.w / instance->spec.width,
+            srcRect.h / instance->spec.height,
+        };
+        localDrawConstants.dstRect = {
+            dstRect.x,
+            dstRect.y,
+            dstRect.w,
+            dstRect.h,
+        };
+        if (rotPivot == nullptr) {
+            localDrawConstants.rotPivot.x = dstRect.w * 0.5f;
+            localDrawConstants.rotPivot.y = dstRect.h * 0.5f;
+        } else {
+            localDrawConstants.rotPivot.x = rotPivot->x;
+            localDrawConstants.rotPivot.y = rotPivot->y;
+        }
+        localDrawConstants.rotAngle = rotAngle;
+
+        auto psoResult = GetRenderTargetPipeline(swapchain->GetSurfaceImageFormat());
+        if (!psoResult) {
+            return util::ErrorMessage{fmt::format("Could not get render target PSO: {}", psoResult.Error().message)};
+        }
+        vk::Pipeline pipeline = psoResult.Value();
+
+        const FrameContext &currFrame = GetCurrentFrameContext();
+        vk::CommandBuffer commandBuffer = currFrame.mainCommandBuffer.get();
+
+        // Draw rectangle
+
+        {
+            const DebugLabelScope debugScope(commandBuffer, {0.25f, 0.5f, 0.25f, 1.0f}, "DrawTextureRotated {}",
+                                             instance->spec.name);
+            commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+
+            commandBuffer.pushConstants<DrawTextureConstants>(
+                renderTargetPipelineLayout.get(), vk::ShaderStageFlagBits::eVertex, 0, {localDrawConstants});
+            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, renderTargetPipelineLayout.get(), 0,
+                                             {instance->imageDescriptorSet}, {});
+            commandBuffer.bindVertexBuffers(0, {quadVertexBuffer.get()}, {0});
+            commandBuffer.draw(4, 1, 0, 0);
+        }
+
         return {};
     }
 
@@ -1399,7 +1827,7 @@ bool VulkanGraphicsContext::ImGuiInit() {
         .QueueFamily = m_impl->renderQueueFamilyIndex,
         .Queue = m_impl->renderQueue,
         .DescriptorPool = {},
-        .DescriptorPoolSize = VulkanGraphicsContext::Impl::kImGuiDescriptorCount,
+        .DescriptorPoolSize = VulkanGraphicsContext::Impl::kTextureDescriptorCount,
         .MinImageCount = VulkanGraphicsContext::Impl::kFrameCount,
         .ImageCount = m_impl->swapchain->GetSwapchainCount(),
         .PipelineCache = nullptr,
@@ -1461,7 +1889,12 @@ bool VulkanGraphicsContext::IsTextureValid(TextureID id) const {
 ImTextureID VulkanGraphicsContext::GetImGuiTextureID(TextureID id) const {
     // ImTextureIDs for Vulkan are the VkImage handles
     Impl::TextureInstance *instance = m_impl->GetTexture(id);
-    return (instance != nullptr) ? reinterpret_cast<ImTextureID>((VkDescriptorSet)instance->imageDescriptorSet) : 0;
+    if (instance->imageDescriptorSetImgui == nullptr) {
+        instance->imageDescriptorSetImgui = ImGui_ImplVulkan_AddTexture(
+            (VkImageView)instance->imageView.get(), (VkImageLayout)vk::ImageLayout::eShaderReadOnlyOptimal);
+    }
+    return (instance != nullptr) ? reinterpret_cast<ImTextureID>((VkDescriptorSet)instance->imageDescriptorSetImgui)
+                                 : 0;
 }
 
 util::VoidResult<> VulkanGraphicsContext::ResizeTexture(TextureID id, uint32 width, uint32 height) {
