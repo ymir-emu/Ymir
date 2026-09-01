@@ -143,6 +143,9 @@ struct VulkanGraphicsContext::Impl {
     vk::Viewport viewport;
     vk::Rect2D scissorRect;
 
+    vk::UniqueSampler samplerNearest;
+    vk::UniqueSampler samplerLinear;
+
     VertexShader vertexShader;
     PixelShader pixelShader;
 
@@ -367,6 +370,59 @@ struct VulkanGraphicsContext::Impl {
                                               vk::to_string(allocateResult.result)};
                 }
                 SetObjectName(device.get(), frames[i].mainCommandBuffer.get(), "Swapchain Main Command Buffer #{}", i);
+            }
+        }
+
+        // Create nearest neighbor and linear samplers
+        {
+            const vk::SamplerCreateInfo nearestSamplerInfo{
+                .flags = {},
+                .magFilter = vk::Filter::eNearest,
+                .minFilter = vk::Filter::eNearest,
+                .mipmapMode = vk::SamplerMipmapMode::eNearest,
+                .addressModeU = vk::SamplerAddressMode::eClampToBorder,
+                .addressModeV = vk::SamplerAddressMode::eClampToBorder,
+                .addressModeW = vk::SamplerAddressMode::eClampToBorder,
+                .mipLodBias = 0,
+                .anisotropyEnable = false,
+                .maxAnisotropy = 1.0,
+                .compareEnable = false,
+                .compareOp = vk::CompareOp::eNever,
+                .minLod = 0,
+                .maxLod = vk::LodClampNone,
+                .borderColor = vk::BorderColor::eFloatTransparentBlack,
+                .unnormalizedCoordinates = false,
+            };
+            if (auto createResult = device->createSamplerUnique(nearestSamplerInfo);
+                createResult.result == vk::Result::eSuccess) {
+                samplerNearest = std::move(createResult.value);
+            } else {
+                return util::ErrorMessage{"Error creating command pool:" + vk::to_string(createResult.result)};
+            }
+
+            const vk::SamplerCreateInfo linearSamplerInfo{
+                .flags = {},
+                .magFilter = vk::Filter::eLinear,
+                .minFilter = vk::Filter::eLinear,
+                .mipmapMode = vk::SamplerMipmapMode::eLinear,
+                .addressModeU = vk::SamplerAddressMode::eClampToBorder,
+                .addressModeV = vk::SamplerAddressMode::eClampToBorder,
+                .addressModeW = vk::SamplerAddressMode::eClampToBorder,
+                .mipLodBias = 0,
+                .anisotropyEnable = false,
+                .maxAnisotropy = 1.0,
+                .compareEnable = false,
+                .compareOp = vk::CompareOp::eNever,
+                .minLod = 0,
+                .maxLod = vk::LodClampNone,
+                .borderColor = vk::BorderColor::eFloatTransparentBlack,
+                .unnormalizedCoordinates = false,
+            };
+            if (auto createResult = device->createSamplerUnique(nearestSamplerInfo);
+                createResult.result == vk::Result::eSuccess) {
+                samplerLinear = std::move(createResult.value);
+            } else {
+                return util::ErrorMessage{"Error creating command pool:" + vk::to_string(createResult.result)};
             }
         }
 
@@ -762,6 +818,10 @@ struct VulkanGraphicsContext::Impl {
 
         descriptorUpdateBatch->AddImage(newTexture.imageDescriptorSet, 0, newTexture.imageView.get(),
                                         vk::ImageLayout::eShaderReadOnlyOptimal);
+        descriptorUpdateBatch->AddSampler(newTexture.imageDescriptorSet, 1,
+                                          spec.filterMode == TextureFilterMode::Nearest ? samplerNearest.get()
+                                                                                        : samplerLinear.get());
+        descriptorUpdateBatch->Flush();
 
         return newTexture;
     }
