@@ -56,6 +56,12 @@ const auto descriptorLayoutImgui = std::to_array<vk::DescriptorSetLayoutBinding>
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eFragment,
     },
+    vk::DescriptorSetLayoutBinding{
+        .binding = 1,
+        .descriptorType = vk::DescriptorType::eSampler,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment,
+    },
 });
 
 struct alignas(uint32) Float4 {
