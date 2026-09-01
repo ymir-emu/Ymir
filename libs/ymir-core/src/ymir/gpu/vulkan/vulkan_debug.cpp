@@ -79,6 +79,7 @@ vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
     return {};
 }
 
+#ifndef NDEBUG
 void SetObjectName(vk::Device device, vk::ObjectType objectType, const void *objectHandle,
                    std::string_view objectName) {
     const vk::DebugUtilsObjectNameInfoEXT nameInfo = {
@@ -135,5 +136,6 @@ void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::s
 void EndDebugLabel(vk::Queue queue) {
     queue.endDebugUtilsLabelEXT();
 }
+#endif
 
 } // namespace ymir::gpu::vulkan

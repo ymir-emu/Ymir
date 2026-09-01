@@ -11,6 +11,7 @@ namespace ymir::gpu::vulkan {
 
 vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance);
 
+#ifndef NDEBUG
 // Command buffer markers
 void SetObjectName(vk::Device device, vk::ObjectType objectType, const void *objectHandle, std::string_view objectName);
 
@@ -26,6 +27,16 @@ void BeginDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::st
 void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName);
 
 void EndDebugLabel(vk::Queue queue);
+
+#else
+inline void SetObjectName(vk::Device device, vk::ObjectType objectType, const void *objectHandle,std::string_view objectName) {}
+inline void BeginDebugLabel(vk::CommandBuffer commandBuffer, const std::array<float, 4> &color, std::string_view labelName) {}
+inline void InsertDebugLabel(vk::CommandBuffer commandBuffer, const std::array<float, 4> &color, std::string_view labelName) {}
+inline void EndDebugLabel(vk::CommandBuffer commandBuffer) {}
+inline void BeginDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName) {}
+inline void InsertDebugLabel(vk::Queue queue, const std::array<float, 4> &color, std::string_view labelName) {}
+inline void EndDebugLabel(vk::Queue queue) {}
+#endif
 
 template <typename T>
 concept VulkanHandleType = vk::isVulkanHandleType<T>::value;

@@ -214,8 +214,10 @@ struct VulkanGraphicsContext::Impl {
         // Initialize instance function pointers
         VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
 
+#ifndef NDEBUG
         // Register debug messenger
         debugMessenger = ymir::gpu::vulkan::CreateDebugMessenger(instance.get());
+#endif
 
         // Determine physical device
 
