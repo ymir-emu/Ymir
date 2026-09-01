@@ -5,9 +5,9 @@
 namespace app::gfx {
 
 static std::vector<VulkanGraphicsAdapter> g_VulkanAdapters;
+static bool s_adaptersEnumerated = false;
 
 void EnumerateVulkanGraphicsAdapters() {
-
     const vk::UniqueInstance instance = ymir::gpu::vulkan::CreateInstance({});
 
     if (!instance) {
@@ -39,6 +39,9 @@ void EnumerateVulkanGraphicsAdapters() {
 }
 
 const std::vector<VulkanGraphicsAdapter> &GetVulkanGraphicsAdapters() {
+    if (!s_adaptersEnumerated) {
+        EnumerateVulkanGraphicsAdapters();
+    }
     return g_VulkanAdapters;
 }
 

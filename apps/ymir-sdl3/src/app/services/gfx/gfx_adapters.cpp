@@ -31,12 +31,13 @@ std::vector<Adapter> GetGraphicsAdapters(Backend backend) {
 #endif
 #if YMIR_PLATFORM_HAS_VULKAN
     case Backend::Vulkan:
-        for (const VulkanGraphicsAdapter &metalAdapter : GetVulkanGraphicsAdapters()) {
+        for (const VulkanGraphicsAdapter &vulkanAdapter : GetVulkanGraphicsAdapters()) {
             adapters.push_back(Adapter{
-                .id = metalAdapter.id,
-                .name = metalAdapter.name,
+                .id = vulkanAdapter.id,
+                .name = vulkanAdapter.name,
             });
         }
+        break;
 #endif
 #if YMIR_PLATFORM_HAS_METAL
     case Backend::Metal:
