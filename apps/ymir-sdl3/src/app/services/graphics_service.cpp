@@ -6,6 +6,9 @@
 #if YMIR_PLATFORM_HAS_DIRECT3D
     #include "gfx/gfx_d3d_utils.hpp"
 #endif
+#if YMIR_PLATFORM_HAS_VULKAN
+    #include "gfx/gfx_vulkan_utils.hpp"
+#endif
 #if YMIR_PLATFORM_HAS_METAL
     #include "gfx/gfx_metal_utils.hpp"
 #endif
@@ -89,7 +92,11 @@ util::ObjectResult<IGraphicsContext> GraphicsService::CreateGraphicsContext(cons
         }));
 #endif
 #if YMIR_PLATFORM_HAS_VULKAN
-    case Backend::Vulkan: return ConvertResult(VulkanGraphicsContext::Create({/*TODO*/}));
+    case Backend::Vulkan:
+        return ConvertResult(VulkanGraphicsContext::Create({
+            .window = spec.window,
+            .device = spec.adapter ? gfx::GetVulkanDeviceByID(*spec.adapter) : nullptr
+        }));
 #endif
 #if YMIR_PLATFORM_HAS_METAL
     case Backend::Metal:

@@ -391,6 +391,28 @@ else ()
     )
 endif ()
 
+if (Vulkan_FOUND)
+    target_sources(ymir-core
+        PUBLIC
+            include/ymir/gpu/vulkan/vulkan_api.hpp
+            include/ymir/gpu/vulkan/vulkan_debug.hpp
+            include/ymir/gpu/vulkan/vulkan_descriptor_heap.hpp
+            include/ymir/gpu/vulkan/vulkan_descriptor_update_batch.hpp
+            include/ymir/gpu/vulkan/vulkan_memory.hpp
+            include/ymir/gpu/vulkan/vulkan_swap_chain.hpp
+            include/ymir/gpu/vulkan/vulkan_synchronization.hpp
+			
+			PRIVATE
+            src/ymir/gpu/vulkan/vulkan_api.cpp
+            src/ymir/gpu/vulkan/vulkan_debug.cpp
+            src/ymir/gpu/vulkan/vulkan_descriptor_heap.cpp
+			src/ymir/gpu/vulkan/vulkan_descriptor_update_batch.cpp
+            src/ymir/gpu/vulkan/vulkan_memory.cpp
+            src/ymir/gpu/vulkan/vulkan_swap_chain.cpp
+            src/ymir/gpu/vulkan/vulkan_synchronization.cpp
+    )
+endif ()
+
 ## Compile VDP1 and VDP2 renderer shaders
 set(SHADER_INPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res/shaders")
 set(SHADER_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/shaders")

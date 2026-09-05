@@ -4,13 +4,16 @@
 
 namespace app::gfx {
 
-struct VulkanGraphicsContextSpec {};
+struct VulkanGraphicsContextSpec;
 
 class VulkanGraphicsContext final : public IGraphicsContext {
+    struct Impl;
+
 public:
     static constexpr Backend kBackend = Backend::Vulkan;
 
-    VulkanGraphicsContext();
+    VulkanGraphicsContext(const VulkanGraphicsContextSpec &spec);
+    ~VulkanGraphicsContext();
 
     /// @brief Creates a Vulkan graphics context.
     /// @param[in] spec the backend specifications
@@ -46,6 +49,9 @@ public:
     util::ValueResult<PresentResult> Present() override;
 
 private:
+    std::unique_ptr<Impl> m_impl;
+
+    bool m_imguiInitialized = false;
 };
 
 } // namespace app::gfx

@@ -241,7 +241,7 @@ static util::VoidResult<> ValidateShaderSPIRV(CompiledShader<stage> &spec) {
     auto out = std::back_inserter(buf);
 
     // TODO: allow selecting version
-    spvtools::SpirvTools tools{SPV_ENV_VULKAN_1_3};
+    spvtools::SpirvTools tools{SPV_ENV_VULKAN_1_1};
     tools.SetMessageConsumer(
         [&](spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
             fmt::format_to(out, "[{}:{}] {}\n", position.line, position.column, message);

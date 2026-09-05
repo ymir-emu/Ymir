@@ -437,6 +437,12 @@ if (Vulkan_FOUND)
     target_sources(ymir-sdl3 PRIVATE
         src/app/services/gfx/gfx_context_impl_vulkan.cpp
         src/app/services/gfx/gfx_context_impl_vulkan.hpp
+        src/app/services/gfx/gfx_context_spec_vulkan.hpp
+        src/app/services/gfx/gfx_vulkan_utils.cpp
+        src/app/services/gfx/gfx_vulkan_utils.hpp
+    )
+    target_link_libraries(ymir-sdl3 PRIVATE
+        Vulkan::Vulkan
     )
 endif ()
 
