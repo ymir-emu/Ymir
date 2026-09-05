@@ -97,6 +97,7 @@
 #ifdef _WIN32
     #include <app/services/gfx/gfx_d3d_utils.hpp>
 #endif
+#include <app/services/disc_service.hpp>
 #include <app/services/gfx/gfx_adapters.hpp>
 
 #include <app/input/input_backend_sdl3.hpp>
@@ -3392,6 +3393,7 @@ void App::EmulatorThread() {
         for (size_t i = 0; i < evtCount; i++) {
             EmuEvent &evt = evts[i];
             using enum EmuEvent::Type;
+
             switch (evt.type) {
             case FactoryReset:
                 m_context.saturn.instance->FactoryReset();
@@ -3465,8 +3467,16 @@ void App::EmulatorThread() {
             case LoadDisc: //
             {
                 auto &path = std::get<std::filesystem::path>(evt.value);
-                // LoadDiscImage locks the disc mutex
-                if (m_discService.LoadDiscImage(path, true)) {
+                m_discService.LoadDiscImageAsync(path, true);
+                break;
+            }
+            case ApplyDisc: {
+                app::services::DiscService::AsyncLoadState &loadState =
+                    std::get<app::services::DiscService::AsyncLoadState>(evt.value);
+                if (loadState.disc) {
+                    // UpdateSettingsAndContext locks the disc mutex
+                    m_discService.UpdateSettingsAndContext(loadState.disc.value(), loadState.path);
+                } else {
                     m_saveStateService.LoadSaveStates();
                     m_saveStateService.LoadDebuggerState();
                     auto iplLoadResult = m_romService.LoadIPLROM();

@@ -28,6 +28,15 @@ DiscService::DiscService(SharedContext &context, Settings &settings, ShowModalCa
     , m_settings(settings)
     , m_showModal(std::move(showModal)) {}
 
+DiscService::~DiscService() {
+    std::lock_guard<std::mutex> lock(m_threadListMutex);
+    for (auto itr = m_asyncDiscLoadThreads.begin(); itr != m_asyncDiscLoadThreads.end();) {
+        if (itr->first.joinable()) {
+            itr->first.join();
+        }
+        itr = m_asyncDiscLoadThreads.erase(itr);
+    }
+}
 void DiscService::OpenLoadDiscDialog() {
     FileDialogParams params{};
     params.dialogTitle = "Load Sega Saturn disc image";
@@ -58,13 +67,22 @@ void DiscService::ProcessOpenDiscImageFileDialogSelection(const char *const *fil
 }
 
 bool DiscService::LoadDiscImage(std::filesystem::path path, bool showErrorModal) {
-    auto &settings = m_settings;
+    // If any discs are being loaded asyncronously, wait until they are done
+    {
+        std::lock_guard<std::mutex> lock(m_threadListMutex);
+        for (auto itr = m_asyncDiscLoadThreads.begin(); itr != m_asyncDiscLoadThreads.end();) {
+            if (itr->first.joinable()) {
+                itr->first.join();
+            }
+            itr = m_asyncDiscLoadThreads.erase(itr);
+        }
+    }
 
     // Try to load disc image from specified path
     devlog::info<grp::base>("Loading disc image from {}", path);
     ymir::media::Disc disc{};
 
-    auto showError = [this, path, showErrorModal](std::string message) {
+    auto showError = [this, path](std::string message) {
         m_showModal("Error", [this, path, message] {
             ImGui::TextUnformatted(fmt::format("Could not load {} as a game disc image.", path).c_str());
             ImGui::NewLine();
@@ -100,7 +118,7 @@ bool DiscService::LoadDiscImage(std::filesystem::path path, bool showErrorModal)
     };
 
     bool hasErrors = false;
-    if (!ymir::media::LoadDisc(path, disc, settings.general.preloadDiscImagesToRAM,
+    if (!ymir::media::LoadDisc(path, disc, m_settings.general.preloadDiscImagesToRAM,
                                [&](ymir::media::MessageType type, std::string message) {
                                    switch (type) {
                                    case ymir::media::MessageType::InvalidFormat:
@@ -130,54 +148,105 @@ bool DiscService::LoadDiscImage(std::filesystem::path path, bool showErrorModal)
     }
     devlog::info<grp::base>("Disc image loaded succesfully");
 
-    // Insert disc into the Saturn drive
-    {
-        std::unique_lock lock{m_context.locks.disc};
-        m_context.saturn.instance->LoadDisc(std::move(disc));
-        if (m_context.saturn.GetConfiguration().system.autodetectRegion) {
-            settings.system.videoStandard = m_context.saturn.GetConfiguration().system.videoStandard.Get();
-            settings.MakeDirty();
-        }
-    }
+    UpdateSettingsAndContext(disc, path);
 
-    // Load new internal backup memory image if using per-game images
-    if (settings.system.internalBackupRAMPerGame) {
-        m_context.EnqueueEvent(events::emu::LoadInternalBackupMemory());
-    }
-
-    // Update currently loaded disc path
-    m_context.state.loadedDiscImagePath = path;
-    m_context.state.loadedDiscDrivePath.clear();
-
-    // Add to recent games list
-    if (auto it = std::find(m_context.state.recentDiscs.begin(), m_context.state.recentDiscs.end(), path);
-        it != m_context.state.recentDiscs.end()) {
-        m_context.state.recentDiscs.erase(it);
-    }
-    m_context.state.recentDiscs.push_front(path);
-
-    // Limit to 10 entries
-    if (m_context.state.recentDiscs.size() > 10) {
-        m_context.state.recentDiscs.resize(10);
-    }
-
-    SaveRecentDiscs();
-
-    // Load cartridge
-    if (settings.cartridge.autoLoadGameCarts) {
-        if (auto *romService = m_context.serviceLocator.Get<ROMService>()) {
-            romService->LoadRecommendedCartridge();
-        }
-    } else {
-        m_context.EnqueueEvent(events::emu::InsertCartridgeFromSettings());
-    }
-
-    m_context.rewindBuffer.Reset();
-
-    if (m_context.paused && settings.general.unpauseOnDiscLoad) {
-        m_context.EnqueueEvent(events::emu::SetPaused(false));
-    }
     return true;
+}
+
+void DiscService::LoadDiscImageAsync(std::filesystem::path &path, bool showErrorModal) {
+    // If a disc is being loaded asyncronously, wait until it is done
+    std::lock_guard<std::mutex> lock(m_threadListMutex);
+    for (auto itr = m_asyncDiscLoadThreads.begin(); itr != m_asyncDiscLoadThreads.end();) {
+        if (itr->second->load()) {
+            if (itr->first.joinable()) {
+                itr->first.join();
+            }
+            itr = m_asyncDiscLoadThreads.erase(itr);
+        } else {
+            itr++;
+        }
+    }
+    auto flag = std::make_shared<std::atomic<bool>>(false);
+    m_asyncDiscLoadThreads.emplace_back(std::thread(&DiscService::AsyncDiscLoad, this, path, showErrorModal, flag), flag);
+}
+
+void DiscService::AsyncDiscLoad(std::filesystem::path path, bool showErrorModal,
+                                std::shared_ptr<std::atomic<bool>> finishedFlag) {
+    // Try to load disc image from specified path
+    devlog::info<grp::base>("Loading disc image from {}", path);
+    app::services::DiscService::AsyncLoadState loadState;
+    loadState.disc = ymir::media::Disc{};
+    ymir::media::Disc &disc = loadState.disc.value();
+    loadState.path = path;
+
+    auto showError = [this, path](std::string message) {
+        m_showModal("Error", [this, path, message] {
+            ImGui::TextUnformatted(fmt::format("Could not load {} as a game disc image.", path).c_str());
+            ImGui::NewLine();
+            ImGui::TextUnformatted(message.c_str());
+#ifdef __linux__
+            // Check if we're running inside Flatpak's sandbox and warn user about filesystem permissions
+            if (getenv("FLATPAK_ID") != nullptr) {
+                ImGui::Separator();
+                ImGui::PushFont(m_context.fonts.sansSerif.bold, m_context.fontSizes.medium);
+                ImGui::TextColored(m_context.colors.notice, "Flatpak restricts access to the filesystem by default.");
+                ImGui::TextColored(m_context.colors.notice,
+                                   "You must manually grant Ymir permission to access the directory.");
+                ImGui::PopFont();
+                ImGui::TextUnformatted(
+                    "You can ignore this error if you already granted permission to read the files.\n"
+                    "In this case, the image is probably invalid or unsupported by Ymir.");
+                ImGui::NewLine();
+                ImGui::TextUnformatted("Learn more about Flatpak's sandbox system:");
+                ImGui::Bullet();
+                ImGui::TextLinkOpenURL("Flatpak - Sandbox permissions",
+                                       R"(https://docs.flatpak.org/en/latest/sandbox-permissions.html)");
+                ImGui::Bullet();
+                ImGui::TextLinkOpenURL("Flatseal - Filesystem permissions",
+                                       R"(https://github.com/tchx84/Flatseal/blob/master/DOCUMENTATION.md#filesystem)");
+                ImGui::Bullet();
+                ImGui::TextLinkOpenURL(
+                    "How to configure Ymir using Flatseal",
+                    R"(https://github.com/StrikerX3/Ymir/blob/main/TROUBLESHOOTING.md#game-discs-dont-load-with-the-flatpak-release)");
+            }
+#endif
+            ImGui::Separator();
+        });
+    };
+
+    bool hasErrors = false;
+    if (!ymir::media::LoadDisc(path, disc, m_settings.general.preloadDiscImagesToRAM,
+                               [&](ymir::media::MessageType type, std::string message) {
+                                   switch (type) {
+                                   case ymir::media::MessageType::InvalidFormat:
+                                       devlog::trace<grp::media>("{}", message);
+                                       break;
+                                   case ymir::media::MessageType::Debug:
+                                       devlog::trace<grp::media>("{}", message);
+                                       break;
+                                   case ymir::media::MessageType::Error:
+                                       devlog::error<grp::media>("{}", message);
+                                       if (showErrorModal) {
+                                           hasErrors = true;
+                                           showError(message);
+                                       }
+                                       break;
+                                   case ymir::media::MessageType::NotValid:
+                                       devlog::error<grp::media>("{}", message);
+                                       if (showErrorModal && !hasErrors) {
+                                           showError(message);
+                                       }
+                                       break;
+                                   default: break;
+                                   }
+                               })) {
+        devlog::error<grp::base>("Failed to load disc image");
+        loadState.disc = std::nullopt;
+    } else {
+        devlog::info<grp::base>("Disc image loaded succesfully");
+    }
+    m_context.EnqueueEvent(app::EmuEvent{app::EmuEvent::Type::ApplyDisc, std::move(loadState)});
+    *finishedFlag = true;
 }
 
 void DiscService::LoadRecentDiscs() {
@@ -210,4 +279,53 @@ void DiscService::SaveRecentDiscs() {
     }
 }
 
+void DiscService::UpdateSettingsAndContext(ymir::media::Disc &disc, std::filesystem::path &path) {
+    // Insert disc into the Saturn drive
+    {
+        std::unique_lock lock{m_context.locks.disc};
+        m_context.saturn.instance->LoadDisc(std::move(disc));
+        if (m_context.saturn.GetConfiguration().system.autodetectRegion) {
+            m_settings.system.videoStandard = m_context.saturn.GetConfiguration().system.videoStandard.Get();
+            m_settings.MakeDirty();
+        }
+    }
+
+    // Load new internal backup memory image if using per-game images
+    if (m_settings.system.internalBackupRAMPerGame) {
+        m_context.EnqueueEvent(events::emu::LoadInternalBackupMemory());
+    }
+
+    // Update currently loaded disc path
+    m_context.state.loadedDiscImagePath = path;
+    m_context.state.loadedDiscDrivePath.clear();
+
+    // Add to recent games list
+    if (auto it = std::find(m_context.state.recentDiscs.begin(), m_context.state.recentDiscs.end(), path);
+        it != m_context.state.recentDiscs.end()) {
+        m_context.state.recentDiscs.erase(it);
+    }
+    m_context.state.recentDiscs.push_front(path);
+
+    // Limit to 10 entries
+    if (m_context.state.recentDiscs.size() > 10) {
+        m_context.state.recentDiscs.resize(10);
+    }
+
+    SaveRecentDiscs();
+
+    // Load cartridge
+    if (m_settings.cartridge.autoLoadGameCarts) {
+        if (auto *romService = m_context.serviceLocator.Get<ROMService>()) {
+            romService->LoadRecommendedCartridge();
+        }
+    } else {
+        m_context.EnqueueEvent(events::emu::InsertCartridgeFromSettings());
+    }
+
+    m_context.rewindBuffer.Reset();
+
+    if (m_context.paused && m_settings.general.unpauseOnDiscLoad) {
+        m_context.EnqueueEvent(events::emu::SetPaused(false));
+    }
+}
 } // namespace app::services
