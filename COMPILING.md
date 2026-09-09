@@ -136,7 +136,7 @@ Install required packages:
 ```sh
 pkg install cmake evdev-proto git gmake libX11 libXcursor libXext libXfixes libXi \
     libXrandr libXrender libXScrnSaver libXtst libglvnd libinotify llvm19 ninja patchelf \
-    pkgconf python3 vulkan-loader zip glslang shaderc vulkan-headers
+    pkgconf python3 vulkan-loader zip glslang shaderc vulkan-headers dxc
 ```
 
 Notes:
