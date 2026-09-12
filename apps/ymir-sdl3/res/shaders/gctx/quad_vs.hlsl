@@ -1,6 +1,6 @@
 #include "quad_defs.hlsli"
 
-ConstantBuffer<DrawTextureConstants> g_consts : register(b0);
+[[vk::push_constant]] ConstantBuffer<DrawTextureConstants> g_consts : register(b0);
 
 PSInput VSMain(float4 position : POSITION, float2 uv : TEXCOORD) {
     PSInput result;

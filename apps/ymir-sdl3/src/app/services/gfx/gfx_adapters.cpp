@@ -3,6 +3,9 @@
 #if YMIR_PLATFORM_HAS_DIRECT3D
     #include "gfx_d3d_utils.hpp"
 #endif
+#if YMIR_PLATFORM_HAS_VULKAN
+    #include "gfx_vulkan_utils.hpp"
+#endif
 #if YMIR_PLATFORM_HAS_METAL
     #include "gfx_metal_utils.hpp"
 #endif
@@ -27,7 +30,14 @@ std::vector<Adapter> GetGraphicsAdapters(Backend backend) {
 
 #endif
 #if YMIR_PLATFORM_HAS_VULKAN
-    case Backend::Vulkan: /*TODO*/ break;
+    case Backend::Vulkan:
+        for (const VulkanGraphicsAdapter &vulkanAdapter : GetVulkanGraphicsAdapters()) {
+            adapters.push_back(Adapter{
+                .id = vulkanAdapter.id,
+                .name = vulkanAdapter.name,
+            });
+        }
+        break;
 #endif
 #if YMIR_PLATFORM_HAS_METAL
     case Backend::Metal:
@@ -53,7 +63,7 @@ void RefreshGraphicsAdapters(Backend backend) {
 
 #endif
 #if YMIR_PLATFORM_HAS_VULKAN
-    case Backend::Vulkan: /*TODO*/ break;
+    case Backend::Vulkan: EnumerateVulkanGraphicsAdapters(); break;
 #endif
 #if YMIR_PLATFORM_HAS_METAL
     case Backend::Metal: EnumerateMetalGraphicsAdapters(); break;

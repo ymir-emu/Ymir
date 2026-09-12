@@ -36,6 +36,18 @@ template <std::unsigned_integral T>
     return std::bit_ceil(value);
 }
 
+/// @brief Adjusts a value to the smallest value not less than `value` with the specified alignment
+/// @tparam T the type of the unsigned integral
+/// @param[in] value the value to align
+/// @param[in] alignment the alignment to align to
+/// @return the aligned value
+template <std::unsigned_integral T>
+[[nodiscard]] FORCE_INLINE constexpr T align(T value, unsigned alignment) noexcept {
+    const T mod = static_cast<T>(value % alignment);
+    value -= mod;
+    return static_cast<T>(mod == T{0} ? value : value + alignment);
+}
+
 /// @brief Adjusts a value to the smallest value not less than `value` with the `B` least significant bits zeroed out.
 /// @tparam[in] B the number of bits to align to
 /// @tparam[in] T the type of the integral
