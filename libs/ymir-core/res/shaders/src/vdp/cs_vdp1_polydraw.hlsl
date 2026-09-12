@@ -435,6 +435,19 @@ struct LineStepper {
     }
 };
 
+uint4 Uint16ToColor555(uint rawValue) {
+    return uint4(
+        BitExtract(rawValue, 0, 5),
+        BitExtract(rawValue, 5, 5),
+        BitExtract(rawValue, 10, 5),
+        BitExtract(rawValue, 15, 1)
+    );
+}
+
+uint Color555ToUint16(uint4 color) {
+    return color.r | (color.g << 5) | (color.b << 10) | (color.a << 15);
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Entrypoint
 
@@ -504,31 +517,39 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
         // TODO: fetch texel
         spriteData = 0xFFFF;
 #else
-        spriteData = BitExtract(span.cmdcolr, 0, pixel8Bits ? 8 : 16);
+        spriteData = span.cmdcolr;
+        if (pixel8Bits) {
+            spriteData &= 0xFFu;
+        }
 #endif
 
 #if POLYSPEC_SHADING_GOURAUD
+        //uint4 srcColor = Uint16ToColor555(spriteData);
+
         GouraudStepper gouraud;
         gouraud.Setup(span.length, span.gouraud0, span.gouraud1);
         gouraud.Skip(spanStep);
+        //srcColor = gouraud.Blend(srcColor);
+
+        //spriteData = Color555ToUint16(srcColor);
 #endif
 
         value = spriteData | (spanIndex << 16u);
     }
 
+    // TODO: if SRC==0 && DST==1, track shadow writes per pixel
     // TODO: if SRC==1 && DST==1, use OIT algorithm instead
     const int2 coord = lineStepper.Coord();
     const uint outOffset = coord.y * fbSize.x + coord.x;
     if (msbOn) {
         InterlockedMax(internalSpriteMSB[outOffset], spanIndex);
     } else {
-        const uint outOffset = coord.y * fbSize.x + coord.x;
         InterlockedMax(internalSpriteOut[outOffset], value);
     }
 
     if (span.antialias) {
         const int2 aaCoord = lineStepper.AACoord();
-        const uint aaOutOffset = coord.y * fbSize.x + coord.x;
+        const uint aaOutOffset = aaCoord.y * fbSize.x + aaCoord.x;
         if (msbOn) {
             InterlockedMax(internalSpriteMSB[aaOutOffset], spanIndex);
         } else {

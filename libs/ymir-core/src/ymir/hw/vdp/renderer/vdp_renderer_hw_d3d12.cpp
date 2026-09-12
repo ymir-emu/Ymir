@@ -3159,7 +3159,7 @@ struct Direct3D12VDPRenderer::Impl {
 
         // Upload spans
         {
-            const size_t size = sizeof(VDP1SpanData) * frameCtx.cpuSpanCount;
+            const size_t size = sizeof(VDP1SpanParams) * frameCtx.cpuSpanCount;
             if (auto result = AllocateUploadBuffer(uploadBuffer, size, 4, alloc); !result) {
                 return util::ErrorMessage{fmt::format("Failed to allocate upload buffer for VDP1 span parameters: {}",
                                                       result.Error().message)};
