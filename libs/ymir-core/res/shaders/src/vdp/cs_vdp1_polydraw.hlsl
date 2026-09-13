@@ -16,7 +16,7 @@
 #define POLYSPEC_TEXTURED         0
 #define POLYSPEC_TRANSPARENT_MESH 0
 #define POLYSPEC_SHADING_GOURAUD  1
-#define POLYSPEC_SHADING_HALF_SRC 0
+#define POLYSPEC_SHADING_HALF_SRC 1
 #define POLYSPEC_SHADING_HALF_DST 0
 #endif
 
@@ -460,8 +460,8 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     //  DST=0 SRC=1  Half-Luminance     dst = src >> 1
     //  DST=1 SRC=0  Shadow             if (dst.msb) { dst = dst >> 1 }
     //  DST=1 SRC=1  Half-Transparency  if (dst.msb) { dst = (dst + src) >> 1 } else { dst = src }
-
-    // Common implementation details:
+    //
+    // More implementation details:
     // - inputs:
     //   - span parameters list
     //     - start and end coordinates and gouraud colors
@@ -481,21 +481,13 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     //     - index 22 -> span 2 pixel 10
     //     - index 25 -> span 2 pixel 13 (last)
     //     - index 26 -> out of bounds, discarded
-    // - draw spans in parallel into internalSpriteOut
-    // - run a second shader to combine that into the output FBRAM (2 or 4 pixels at a time to fit into 32-bit values)
-
-    // Possible implementation for Replace and Half-Luminance (and maybe Shadow):
-    // - combine 8/16-bit sprite data output with the span index into a single 32-bit value to be written to the intermediate output buffer
-    //   - top bits contain the span sequence number (index into span array plus one)
-    //   - FBRAM transfer shader will zero these counters out; apply UAV barriers between these dispatches
-    // - use InterlockedMax to plot the latest pixel to the framebuffer
-
-    // Half-Transparency needs an order-independent transparency implementation and different inputs and outputs.
-    // TODO: investigate alternatives:
-    // see https://github.com/nvpro-samples/vk_order_independent_transparency
-    // - Linked List
-    // - Loop32
-    // - Spinlock
+    // - spans are drawn parallel using order-independent algorithms depending on the blending mode
+    //   - MSB applies the bit directly to FBRAM with InterlockedOr (or set bits in a dedicated buffer; check which is faster)
+    //   - Replace and Half-Luminance use InterlockedMax with a sequence number to write the latest version of a pixel to the output
+    //   - Shadow increments per-pixel counters with InterlockedAdd
+    //   - Half-Transparency uses an order-independent transparency algorithm [TBD]
+    // - the output merger shader applies the output of this shader to the output FBRAM in 32-bit units (2 or 4 pixels at a time)
+    //   - skipped for MSB (unless using a dedicated buffer)
 
     const uint spanIndex = GetSpanIndex(id.x);
     if (spanIndex == 0xFFFFFFFF) {
@@ -509,51 +501,75 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     lineStepper.Setup(span.coord0, span.coord1, span.antialias);
     lineStepper.SetStep(spanStep);
 
+    // Apply MSB bit if enabled
+    // TODO: move MSB to a dedicated shader
+    // - use InterlockedOr to apply bit directly to FBRAM
     const bool msbOn = BitTest(span.cmdpmod, 15);
-    uint value;
-    if (!msbOn) {
-        uint spriteData;
-#if POLYSPEC_TEXTURED
-        // TODO: fetch texel
-        spriteData = 0xFFFF;
-#else
-        spriteData = span.cmdcolr;
-        if (pixel8Bits) {
-            spriteData &= 0xFFu;
+    if (msbOn) {
+        const int2 coord = lineStepper.Coord();
+        const uint outOffset = coord.y * fbSize.x + coord.x;
+        InterlockedMax(internalSpriteMSB[outOffset], spanIndex);
+
+        if (span.antialias) {
+            const int2 aaCoord = lineStepper.AACoord();
+            const uint aaOutOffset = aaCoord.y * fbSize.x + aaCoord.x;
+            InterlockedMax(internalSpriteOut[aaOutOffset], spanIndex);
         }
+        return;
+    }
+
+    uint spriteData;
+#if POLYSPEC_TEXTURED
+    // TODO: fetch texel
+    spriteData = 0xFFFF;
+#else
+    spriteData = span.cmdcolr;
+    if (pixel8Bits) {
+        spriteData &= 0xFFu;
+    }
 #endif
 
-#if POLYSPEC_SHADING_GOURAUD
-        //uint4 srcColor = Uint16ToColor555(spriteData);
+    uint4 srcColor = Uint16ToColor555(spriteData);
 
+#if POLYSPEC_SHADING_GOURAUD
+    if (!pixel8Bits) {
         GouraudStepper gouraud;
         gouraud.Setup(span.length, span.gouraud0, span.gouraud1);
         gouraud.Skip(spanStep);
-        //srcColor = gouraud.Blend(srcColor);
-
-        //spriteData = Color555ToUint16(srcColor);
+        srcColor = gouraud.Blend(srcColor);
+    }
 #endif
 
-        value = spriteData | (spanIndex << 16u);
+#if !POLYSPEC_SHADING_HALF_DST // Replace or Half-Luminance
+#if POLYSPEC_SHADING_HALF_SRC
+    if (!pixel8Bits) {
+        // Apply half-luminance
+        srcColor.r >>= 1u;
+        srcColor.g >>= 1u;
+        srcColor.b >>= 1u;
     }
+#endif
 
-    // TODO: if SRC==0 && DST==1, track shadow writes per pixel
-    // TODO: if SRC==1 && DST==1, use OIT algorithm instead
+    spriteData = Color555ToUint16(srcColor);
+    const uint value = spriteData | (spanIndex << 16u);
+
     const int2 coord = lineStepper.Coord();
     const uint outOffset = coord.y * fbSize.x + coord.x;
-    if (msbOn) {
-        InterlockedMax(internalSpriteMSB[outOffset], spanIndex);
-    } else {
-        InterlockedMax(internalSpriteOut[outOffset], value);
-    }
+    InterlockedMax(internalSpriteOut[outOffset], value);
 
     if (span.antialias) {
         const int2 aaCoord = lineStepper.AACoord();
         const uint aaOutOffset = aaCoord.y * fbSize.x + aaCoord.x;
-        if (msbOn) {
-            InterlockedMax(internalSpriteMSB[aaOutOffset], spanIndex);
-        } else {
-            InterlockedMax(internalSpriteOut[aaOutOffset], value);
-        }
+        InterlockedMax(internalSpriteOut[aaOutOffset], value);
     }
+#elif POLYSPEC_SHADING_HALF_SRC // Half-Transparency
+    // TODO: use OIT algorithm
+    // see https://github.com/nvpro-samples/vk_order_independent_transparency
+    // - Linked List
+    // - Loop32
+    // - Spinlock
+#else // Shadow
+    // TODO: increment shadow writes per pixel with InterlockedAdd
+    // - output merger shifts components right by min(N, 5) if the respective MSB is set, then clears counters to zero
+#endif
 }
