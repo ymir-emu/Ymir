@@ -9,7 +9,6 @@ cbuffer CommonRenderParamsBuffer : register(b0) {
 
 RWByteAddressBuffer fbramOut : register(u0);
 RWBuffer<uint> internalSpriteOut : register(u1);
-RWBuffer<uint> internalSpriteMSB : register(u2);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Parameters
@@ -39,25 +38,16 @@ void Merge8(uint2 pos) {
     const uint out1 = internalSpriteOut[inOffset + 1];
     const uint out2 = internalSpriteOut[inOffset + 2];
     const uint out3 = internalSpriteOut[inOffset + 3];
-    const uint msb0 = internalSpriteMSB[inOffset + 0];
-    const uint msb1 = internalSpriteMSB[inOffset + 1];
-    const uint msb2 = internalSpriteMSB[inOffset + 2];
-    const uint msb3 = internalSpriteMSB[inOffset + 3];
     internalSpriteOut[inOffset + 0] = 0;
     internalSpriteOut[inOffset + 1] = 0;
     internalSpriteOut[inOffset + 2] = 0;
     internalSpriteOut[inOffset + 3] = 0;
-    internalSpriteMSB[inOffset + 0] = 0;
-    internalSpriteMSB[inOffset + 1] = 0;
-    internalSpriteMSB[inOffset + 2] = 0;
-    internalSpriteMSB[inOffset + 3] = 0;
 
     const uint counter0 = BitExtract(out0, 16, 16);
     const uint counter1 = BitExtract(out1, 16, 16);
     const uint counter2 = BitExtract(out2, 16, 16);
     const uint counter3 = BitExtract(out3, 16, 16);
-    if (counter0 == 0 && counter1 == 0 && counter2 == 0 && counter3 == 0 &&
-        msb0 == 0 && msb1 == 0 && msb2 == 0 && msb3 == 0) {
+    if (counter0 == 0 && counter1 == 0 && counter2 == 0 && counter3 == 0) {
         // Nothing written to these pixels
         return;
     }
@@ -65,24 +55,20 @@ void Merge8(uint2 pos) {
     const uint outOffset = inOffset * 4;
     uint fbramValue = fbramOut.Load(outOffset + fbOffset);
     if (counter0 != 0) {
+        fbramValue &= ~0xFFu;
         fbramValue |= BitExtract(out0, 0, 8);
     }
     if (counter1 != 0) {
+        fbramValue &= ~0xFF00u;
         fbramValue |= BitExtract(out1, 0, 8) << 8u;
     }
     if (counter2 != 0) {
+        fbramValue &= ~0xFF0000u;
         fbramValue |= BitExtract(out2, 0, 8) << 16u;
     }
     if (counter3 != 0) {
+        fbramValue &= ~0xFF000000u;
         fbramValue |= BitExtract(out3, 0, 8) << 24u;
-    }
-    const uint msb01 = max(msb0, msb1);
-    if (msb01 > 0 && msb01 >= counter0) {
-        fbramValue |= 0x8000;
-    }
-    const uint msb23 = max(msb2, msb3);
-    if (msb23 > 0 && msb23 >= counter2) {
-        fbramValue |= 0x80000000;
     }
     fbramOut.Store(outOffset + fbOffset, fbramValue);
 }
@@ -93,16 +79,12 @@ void Merge16(uint2 pos) {
     // Read and clear internal outputs
     const uint out0 = internalSpriteOut[inOffset + 0];
     const uint out1 = internalSpriteOut[inOffset + 1];
-    const uint msb0 = internalSpriteMSB[inOffset + 0];
-    const uint msb1 = internalSpriteMSB[inOffset + 1];
     internalSpriteOut[inOffset + 0] = 0;
     internalSpriteOut[inOffset + 1] = 0;
-    internalSpriteMSB[inOffset + 0] = 0;
-    internalSpriteMSB[inOffset + 1] = 0;
 
     const uint counter0 = BitExtract(out0, 16, 16);
     const uint counter1 = BitExtract(out1, 16, 16);
-    if (counter0 == 0 && counter1 == 0 && msb0 == 0 && msb1 == 0) {
+    if (counter0 == 0 && counter1 == 0) {
         // Nothing written to these pixels
         return;
     }
@@ -110,16 +92,12 @@ void Merge16(uint2 pos) {
     const uint outOffset = inOffset * 2;
     uint fbramValue = fbramOut.Load(outOffset + fbOffset);
     if (counter0 != 0) {
+        fbramValue &= ~0xFFFFu;
         fbramValue |= BitExtract(out0, 0, 16);
     }
     if (counter1 != 0) {
+        fbramValue &= ~0xFFFF0000u;
         fbramValue |= BitExtract(out1, 0, 16) << 16u;
-    }
-    if (msb0 != 0 && msb0 >= counter0) {
-        fbramValue |= 0x8000;
-    }
-    if (msb0 != 0 && msb1 >= counter1) {
-        fbramValue |= 0x80000000;
     }
     fbramOut.Store(outOffset + fbOffset, fbramValue);
 }

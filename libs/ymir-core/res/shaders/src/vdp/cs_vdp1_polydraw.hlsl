@@ -7,14 +7,16 @@
 // Shader specialization macros:
 // - POLYSPEC_TEXTURED: 0=solid color; 1=textured
 // - POLYSPEC_TRANSPARENT_MESH: 0=checkerboard mesh; 1=transparent mesh
-// - POLYSPEC_SHADING_GOURAUD  [CMDPMOD.2]: 0=flat shading; 1=gouraud shading
-// - POLYSPEC_SHADING_HALF_SRC [CMDPMOD.1]: 0=don't modify source color; 1=halve source color ("half-luminance")
-// - POLYSPEC_SHADING_HALF_DST [CMDPMOD.0]: 0=don't modify destination color; 1=halve destination color ("shadow")
+// - POLYSPEC_MODE_MSB         [CMDPMOD.15]: 0=normal; 1=MSB (overrides shading options)
+// - POLYSPEC_SHADING_GOURAUD  [CMDPMOD..2]: 0=flat shading; 1=gouraud shading
+// - POLYSPEC_SHADING_HALF_SRC [CMDPMOD..1]: 0=don't modify source color; 1=halve source color ("half-luminance")
+// - POLYSPEC_SHADING_HALF_DST [CMDPMOD..0]: 0=don't modify destination color; 1=halve destination color ("shadow")
 
 // Modify these to adjust IntelliSense highlighting
 #ifdef __INTELLISENSE__
 #define POLYSPEC_TEXTURED         0
 #define POLYSPEC_TRANSPARENT_MESH 0
+#define POLYSPEC_MODE_MSB         1
 #define POLYSPEC_SHADING_GOURAUD  1
 #define POLYSPEC_SHADING_HALF_SRC 1
 #define POLYSPEC_SHADING_HALF_DST 0
@@ -28,8 +30,11 @@ cbuffer CommonRenderParamsBuffer : register(b0) {
 StructuredBuffer<PolySpan> spanParams : register(t1);
 Buffer<uint> spanPrefixSums : register(t2);
 
+#if POLYSPEC_MODE_MSB
+RWByteAddressBuffer fbramOut : register(u0);
+#else
 RWBuffer<uint> internalSpriteOut : register(u0);
-RWBuffer<uint> internalSpriteMSB : register(u1);
+#endif
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Parameters
@@ -501,22 +506,28 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     lineStepper.Setup(span.coord0, span.coord1, span.antialias);
     lineStepper.SetStep(spanStep);
 
-    // Apply MSB bit if enabled
-    // TODO: move MSB to a dedicated shader
-    // - use InterlockedOr to apply bit directly to FBRAM
-    const bool msbOn = BitTest(span.cmdpmod, 15);
-    if (msbOn) {
-        const int2 coord = lineStepper.Coord();
-        const uint outOffset = coord.y * fbSize.x + coord.x;
-        InterlockedMax(internalSpriteMSB[outOffset], spanIndex);
 
-        if (span.antialias) {
-            const int2 aaCoord = lineStepper.AACoord();
-            const uint aaOutOffset = aaCoord.y * fbSize.x + aaCoord.x;
-            InterlockedMax(internalSpriteOut[aaOutOffset], spanIndex);
-        }
-        return;
+#if POLYSPEC_MODE_MSB
+
+#if POLYSPEC_TEXTURED
+    // TODO: fetch texel to check if it is transparent
+#endif
+
+    // TODO: fix offsets
+
+    // Apply MSB bit
+    const int2 coord = lineStepper.Coord();
+    const uint outOffset = coord.y * fbSize.x + coord.x;
+    uint dummy;
+    fbramOut.InterlockedOr(outOffset, 0x8000, dummy);
+
+    if (span.antialias) {
+        const int2 aaCoord = lineStepper.AACoord();
+        const uint aaOutOffset = aaCoord.y * fbSize.x + aaCoord.x;
+        fbramOut.InterlockedOr(aaOutOffset, 0x8000, dummy);
     }
+
+#else // not MSB
 
     uint spriteData;
 #if POLYSPEC_TEXTURED
@@ -572,4 +583,6 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     // TODO: increment shadow writes per pixel with InterlockedAdd
     // - output merger shifts components right by min(N, 5) if the respective MSB is set, then clears counters to zero
 #endif
+
+#endif // POLYSPEC_MODE_MSB
 }
