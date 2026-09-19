@@ -143,7 +143,7 @@ A quad core CPU or better will help with threaded VDP1/VDP2 rendering, threaded 
 Make sure your GPU meets the minimum requirements for Ymir:
 - Direct3D 11: TBD
 - Direct3D 12: Feature level 11.0 and Shader Model 6.0
-- Vulkan: TBD
+- Vulkan: 1.1
 - Metal: Any Metal-capable Mac (GPU family Common1)
 
 Update your GPU drivers:
