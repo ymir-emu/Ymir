@@ -1,5 +1,6 @@
 #include "gfx_context_impl_vulkan.hpp"
 #include "gfx_context_spec_vulkan.hpp"
+#include "gfx_texture_id_manager.hpp"
 
 #include <ymir/gpu/vulkan/vulkan_api.hpp>
 #include <ymir/gpu/vulkan/vulkan_debug.hpp>
@@ -176,6 +177,8 @@ struct VulkanGraphicsContext::Impl {
         // Timeline semaphore value used to indicate when it is safe to delete this texture
         uint64 timeStamp;
     };
+
+    TextureIDManager texIDMgr;
 
     std::unordered_map<TextureID, TextureInstance> textures;
     std::deque<TextureToDelete> texturesToDelete;
@@ -1874,7 +1877,7 @@ util::ValueResult<TextureID> VulkanGraphicsContext::CreateTexture(const Texture2
         return result.Error();
     }
 
-    const TextureID id = GetNextTextureID();
+    const TextureID id = m_impl->texIDMgr.GetNextTextureID();
     m_impl->textures[id] = std::move(result.Value());
 
     return id;
