@@ -32,7 +32,8 @@ namespace ymir::savestate {
 //  13 = 0.3.2
 //  14 = 0.4.0-dev  (f192e30ef2d5bbaa1c3f78de63439a36fc26a423)
 //  15 = 0.4.0
-inline constexpr uint32 kVersion = 15;
+//  16 = SH-2 SCI register state
+inline constexpr uint32 kVersion = 16;
 
 } // namespace ymir::savestate
 
@@ -76,6 +77,8 @@ void serialize(Archive &ar, SystemSaveState &s) {
 
 template <class Archive>
 void serialize(Archive &ar, SH2SaveState &s, const uint32 version) {
+    // v16:
+    // - New field: SH-2 SCI register state
     // v13:
     // - New fields
     //   - uint32 fetchedOpcodes = 0
@@ -102,7 +105,13 @@ void serialize(Archive &ar, SH2SaveState &s, const uint32 version) {
         s.forceFetchOpcodes = true;
         s.wbReg = 0;
     }
-    ar(s.bsc, s.dmac);
+    ar(s.bsc);
+    if (version >= 16) {
+        ar(s.sci);
+    } else {
+        s.sci = {};
+    }
+    ar(s.dmac);
     serialize(ar, s.wdt, version);
     serialize(ar, s.divu, version);
     serialize(ar, s.frt, version);
@@ -115,6 +124,11 @@ void serialize(Archive &ar, SH2SaveState &s, const uint32 version) {
     if (version < 5) {
         s.divu.VCRDIV = s.intc.vectors[12]; // 12 == static_cast<size_t>(sh2::InterruptSource::DIVU_OVFI)
     }
+}
+
+template <class Archive>
+void serialize(Archive &ar, SH2SaveState::SCI &s) {
+    ar(s.SMR, s.BRR, s.SCR, s.TDR, s.SSR, s.RDR, s.observedStatus);
 }
 
 template <class Archive>

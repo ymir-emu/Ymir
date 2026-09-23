@@ -374,6 +374,8 @@ void SH2::Reset(bool hard, bool watchdogInitiated) {
     }
     m_dmacTraced.fill(false);
 
+    SCI.Reset();
+
     WDT.Reset(watchdogInitiated);
 
     SBYCR.u8 = 0x00;
@@ -393,6 +395,29 @@ void SH2::Reset(bool hard, bool watchdogInitiated) {
     m_cache.Reset();
 
     TraceReset(m_tracer, PC, R[15], watchdogInitiated);
+}
+
+void SH2::SCITransmitByte(uint8 value) {
+    m_cbSCITransmit(value);
+    SCI.CompleteTransmit();
+    RecalcInterrupts();
+}
+
+bool SH2::SCIReceiveByte(uint8 value) {
+    const bool accepted = SCI.ReceiveByte(value);
+    if (SCI.SCR & SerialCommunicationInterface::kRE) {
+        RecalcInterrupts();
+    }
+    return accepted;
+}
+
+void SH2::PollSCIReceive() {
+    if (!(SCI.SCR & SerialCommunicationInterface::kRE) || (SCI.SSR & SerialCommunicationInterface::kRDRF)) {
+        return;
+    }
+    if (const auto value = m_cbSCIReceive()) {
+        SCIReceiveByte(*value);
+    }
 }
 
 void SH2::MapMemory(sys::SH2Bus &bus) {
@@ -560,6 +585,14 @@ void SH2::SaveState(savestate::SH2SaveState &state) const {
     state.bsc.RTCNT = RTCNT;
     state.bsc.RTCOR = RTCOR;
 
+    state.sci.SMR = SCI.SMR;
+    state.sci.BRR = SCI.BRR;
+    state.sci.SCR = SCI.SCR;
+    state.sci.TDR = SCI.TDR;
+    state.sci.SSR = SCI.SSR;
+    state.sci.RDR = SCI.RDR;
+    state.sci.observedStatus = SCI.observedStatus;
+
     state.dmac.DMAOR = DMAOR.Read();
     m_dmaChannels[0].SaveState(state.dmac.channels[0]);
     m_dmaChannels[1].SaveState(state.dmac.channels[1]);
@@ -599,6 +632,14 @@ void SH2::LoadState(const savestate::SH2SaveState &state) {
     RTCSR.u16 = state.bsc.RTCSR;
     RTCNT = state.bsc.RTCNT;
     RTCOR = state.bsc.RTCOR;
+
+    SCI.SMR = state.sci.SMR;
+    SCI.BRR = state.sci.BRR;
+    SCI.SCR = state.sci.SCR;
+    SCI.TDR = state.sci.TDR;
+    SCI.SSR = state.sci.SSR;
+    SCI.RDR = state.sci.RDR;
+    SCI.observedStatus = state.sci.observedStatus;
 
     DMAOR.Write<true>(state.dmac.DMAOR);
     m_dmaChannels[0].LoadState(state.dmac.channels[0]);
@@ -1042,7 +1083,20 @@ FORCE_INLINE_EX uint8 SH2::OnChipRegReadByte(uint32 address) {
     }
 
     switch (address) {
-    case 0x04: return 0; // TODO: SCI SSR
+    case 0x00: return SCI.SMR;
+    case 0x01: return SCI.BRR;
+    case 0x02: return SCI.SCR;
+    case 0x03: return SCI.TDR;
+    case 0x04:
+        if constexpr (!peek) {
+            PollSCIReceive();
+        }
+        return SCI.ReadSSR<peek>();
+    case 0x05:
+        if constexpr (!peek) {
+            PollSCIReceive();
+        }
+        return SCI.RDR;
     case 0x10: return FRT.ReadTIER();
     case 0x11:
         if constexpr (!peek) {
@@ -1314,6 +1368,20 @@ FORCE_INLINE_EX void SH2::OnChipRegWriteByte(uint32 address, uint8 value) {
     }
 
     switch (address) {
+    case 0x00: SCI.SMR = value; break;
+    case 0x01: SCI.BRR = value; break;
+    case 0x02:
+        SCI.WriteSCR(value);
+        RecalcInterrupts();
+        break;
+    case 0x03: SCI.TDR = value; break;
+    case 0x04:
+        if (SCI.WriteSSR<poke>(value)) {
+            SCITransmitByte(SCI.TDR);
+        }
+        RecalcInterrupts();
+        break;
+    case 0x05: break; // RDR is read-only
     case 0x10:
         FRT.WriteTIER(value);
         if (FRT.FTCSR.ICF && FRT.TIER.ICIE) {
@@ -1369,34 +1437,6 @@ FORCE_INLINE_EX void SH2::OnChipRegWriteByte(uint32 address, uint8 value) {
         INTC.SetLevel(SCI_RXI, sciIntrLevel);
         INTC.SetLevel(SCI_TXI, sciIntrLevel);
         INTC.SetLevel(SCI_TEI, sciIntrLevel);
-        // TODO: SCI ERI, RXI, TXI, TEI
-        // if (sciIntrLevel > 0) {
-        //     /*if (...) {
-        //         RaiseInterrupt(InterruptSource::SCI_ERI);
-        //     } else {
-        //         LowerInterrupt(InterruptSource::SCI_ERI);
-        //     }*/
-        //     /*if (...) {
-        //         RaiseInterrupt(InterruptSource::SCI_RXI);
-        //     } else {
-        //         LowerInterrupt(InterruptSource::SCI_RXI);
-        //     }*/
-        //     /*if (...) {
-        //         RaiseInterrupt(InterruptSource::SCI_TXI);
-        //     } else {
-        //         LowerInterrupt(InterruptSource::SCI_TXI);
-        //     }*/
-        //     /*if (...) {
-        //         RaiseInterrupt(InterruptSource::SCI_TEI);
-        //     } else {
-        //         LowerInterrupt(InterruptSource::SCI_TEI);
-        //     }*/
-        // } else {
-        //     LowerInterrupt(InterruptSource::SCI_ERI);
-        //     LowerInterrupt(InterruptSource::SCI_RXI);
-        //     LowerInterrupt(InterruptSource::SCI_TXI);
-        //     LowerInterrupt(InterruptSource::SCI_TEI);
-        // }
         if (frtIntrLevel > 0) {
             if (FRT.FTCSR.ICF && FRT.TIER.ICIE) {
                 RaiseInterrupt(InterruptSource::FRT_ICI);
@@ -1412,6 +1452,7 @@ FORCE_INLINE_EX void SH2::OnChipRegWriteByte(uint32 address, uint8 value) {
             LowerInterrupt(InterruptSource::FRT_OCI);
             LowerInterrupt(InterruptSource::FRT_OVI);
         }
+        RecalcInterrupts();
         break;
     }
     case 0x61: /* IPRB bits 7-0 are all reserved */ break;
@@ -1801,8 +1842,16 @@ FORCE_INLINE bool SH2::StepDMAC(uint32 channel) {
     if (!ch.autoRequest) {
         switch (ch.resSelect) {
         case DMAResourceSelect::DREQ: /*TODO*/ return false;
-        case DMAResourceSelect::RXI: /*TODO*/ return false;
-        case DMAResourceSelect::TXI: /*TODO*/ return false;
+        case DMAResourceSelect::RXI:
+            if (!SCI.CanDMAReceive()) {
+                return false;
+            }
+            break;
+        case DMAResourceSelect::TXI:
+            if (!SCI.CanDMATransmit()) {
+                return false;
+            }
+            break;
         case DMAResourceSelect::Reserved: return false;
         }
     }
@@ -1849,6 +1898,16 @@ FORCE_INLINE bool SH2::StepDMAC(uint32 channel) {
         devlog::trace<grp::dma_xfer>(m_logPrefix, "DMAC{} 8-bit transfer from {:08X} to {:08X} -> {:X}", channel,
                                      ch.srcAddress, ch.dstAddress, value);
         MemWriteByte<debug, emulateCache>(ch.dstAddress, value);
+        if (!ch.autoRequest && ch.resSelect == DMAResourceSelect::RXI && ch.srcAddress == 0xFFFF'FE05u) {
+            SCI.SSR &= ~SerialCommunicationInterface::kRDRF;
+            SCI.observedStatus &= ~SerialCommunicationInterface::kRDRF;
+            RecalcInterrupts();
+        }
+        // A TXI module request clears TDRE as part of the DMA write to TDR.
+        if (!ch.autoRequest && ch.resSelect == DMAResourceSelect::TXI &&
+            ch.dstAddress == 0xFFFF'FE03u) {
+            SCITransmitByte(value);
+        }
         TraceDMAXferData<debug>(m_tracer, channel, ch.srcAddress, ch.dstAddress, value, xferSize);
         break;
     }
@@ -1922,6 +1981,7 @@ FORCE_INLINE bool SH2::StepDMAC(uint32 channel) {
 
 template <bool debug, bool emulateCache>
 FORCE_INLINE void SH2::AdvanceDMA(uint64 cycles) {
+    PollSCIReceive();
     for (uint32 i = 0; i < 2; ++i) {
         // HACK: run full transfers to fix sprite glitches in Golden Axe - The Duel
         while (StepDMAC<debug, emulateCache>(i)) {
@@ -2053,12 +2113,19 @@ void SH2::RecalcInterrupts() {
     // TODO: BSC REF CMI
     // RaiseInterruptIf(InterruptSource::BSC_REF_CMI, levelWDT_BSC, [this] { return ...; });
 
-    // TODO: SCI ERI, RXI, TXI, TEI
-    // const uint8 levelSCI = INTC.GetLevel(InterruptSource::SCI_ERI);
-    // RaiseInterruptIf(InterruptSource::SCI_ERI, levelSCI, [this] { return ...; });
-    // RaiseInterruptIf(InterruptSource::SCI_RXI, levelSCI, [this] { return ...; });
-    // RaiseInterruptIf(InterruptSource::SCI_TXI, levelSCI, [this] { return ...; });
-    // RaiseInterruptIf(InterruptSource::SCI_TEI, levelSCI, [this] { return ...; });
+    const uint8 levelSCI = INTC.GetLevel(InterruptSource::SCI_ERI);
+    RaiseInterruptIf(InterruptSource::SCI_ERI, levelSCI, [this] {
+        return (SCI.SCR & SerialCommunicationInterface::kRIE) && (SCI.SSR & 0x38);
+    });
+    RaiseInterruptIf(InterruptSource::SCI_RXI, levelSCI, [this] {
+        return (SCI.SCR & SerialCommunicationInterface::kRIE) && (SCI.SSR & SerialCommunicationInterface::kRDRF);
+    });
+    RaiseInterruptIf(InterruptSource::SCI_TXI, levelSCI, [this] {
+        return (SCI.SCR & SerialCommunicationInterface::kTIE) && (SCI.SSR & SerialCommunicationInterface::kTDRE);
+    });
+    RaiseInterruptIf(InterruptSource::SCI_TEI, levelSCI, [this] {
+        return (SCI.SCR & SerialCommunicationInterface::kTEIE) && (SCI.SSR & SerialCommunicationInterface::kTEND);
+    });
 
     // Free-running timer interrupts
     const uint8 levelFRT = INTC.GetLevel(InterruptSource::FRT_ICI);

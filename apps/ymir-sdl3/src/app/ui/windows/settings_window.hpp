@@ -12,6 +12,7 @@
 #include <app/ui/views/settings/hotkeys_settings_view.hpp>
 #include <app/ui/views/settings/input_settings_view.hpp>
 #include <app/ui/views/settings/ipl_settings_view.hpp>
+#include <app/ui/views/settings/serial_port_settings_view.hpp>
 #include <app/ui/views/settings/system_settings_view.hpp>
 #include <app/ui/views/settings/tweaks_settings_view.hpp>
 #include <app/ui/views/settings/video_settings_view.hpp>
@@ -20,9 +21,10 @@ namespace app::ui {
 
 class SettingsWindow : public WindowBase {
 public:
-    SettingsWindow(SharedContext &context);
+    SettingsWindow(SharedContext &context, services::LinkCableService &linkCableService);
 
     void OpenTab(SettingsTab tab);
+    void EnableLocalAutoLink();
 
 protected:
     void PrepareWindow() override;
@@ -41,6 +43,7 @@ private:
     AudioSettingsView m_audioSettingsView;
     CartridgeSettingsView m_cartSettingsView;
     CDBlockSettingsView m_cdblockSettingsView;
+    SerialPortSettingsView m_serialPortSettingsView;
     TweaksSettingsView m_tweaksSettingsView;
 };
 

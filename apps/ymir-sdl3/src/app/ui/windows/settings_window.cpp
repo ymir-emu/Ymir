@@ -4,7 +4,7 @@ using namespace ymir;
 
 namespace app::ui {
 
-SettingsWindow::SettingsWindow(SharedContext &context)
+SettingsWindow::SettingsWindow(SharedContext &context, services::LinkCableService &linkCableService)
     : WindowBase(context)
     , m_generalSettingsView(context)
     , m_guiSettingsView(context)
@@ -16,6 +16,7 @@ SettingsWindow::SettingsWindow(SharedContext &context)
     , m_audioSettingsView(context)
     , m_cartSettingsView(context)
     , m_cdblockSettingsView(context)
+    , m_serialPortSettingsView(context, linkCableService)
     , m_tweaksSettingsView(context) {
 
     m_windowConfig.name = "Settings";
@@ -25,6 +26,10 @@ void SettingsWindow::OpenTab(SettingsTab tab) {
     Open = true;
     m_selectedTab = tab;
     RequestFocus();
+}
+
+void SettingsWindow::EnableLocalAutoLink() {
+    m_serialPortSettingsView.EnableLocalAuto();
 }
 
 void SettingsWindow::PrepareWindow() {
@@ -87,6 +92,10 @@ void SettingsWindow::DrawContents() {
         }
         if (ImGui::BeginTabItem("CD Block", nullptr, tabFlag(SettingsTab::CDBlock))) {
             m_cdblockSettingsView.Display();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Serial Port", nullptr, tabFlag(SettingsTab::SerialPort))) {
+            m_serialPortSettingsView.Display();
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Tweaks", nullptr, tabFlag(SettingsTab::Tweaks))) {

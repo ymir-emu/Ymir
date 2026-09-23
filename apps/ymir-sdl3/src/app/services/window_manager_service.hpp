@@ -25,10 +25,12 @@
 
 namespace app::services {
 
+class LinkCableService;
+
 /// @brief Manages settings, debugger windows, and modal popups.
 class WindowManagerService {
 public:
-    explicit WindowManagerService(SharedContext &context, Settings &settings);
+    explicit WindowManagerService(SharedContext &context, Settings &settings, LinkCableService &linkCableService);
     ~WindowManagerService() = default;
 
     WindowManagerService(const WindowManagerService &) = delete;

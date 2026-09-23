@@ -39,6 +39,16 @@ struct SH2SaveState {
         uint16 RTCOR;
     } bsc;
 
+    struct SCI {
+        uint8 SMR = 0x00;
+        uint8 BRR = 0xFF;
+        uint8 SCR = 0x00;
+        uint8 TDR = 0xFF;
+        uint8 SSR = 0x84;
+        uint8 RDR = 0x00;
+        uint8 observedStatus = 0x00;
+    } sci;
+
     struct DMAC {
         struct Channel {
             uint32 SAR;

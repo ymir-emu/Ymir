@@ -38,6 +38,8 @@ int main(int argc, char **argv) {
                           cxxopts::value(progOpts.startFastForward)->default_value("false"));
     options.add_options()("D,debug", "Start with debug tracing enabled",
                           cxxopts::value(progOpts.enableDebugTracing)->default_value("false"));
+    options.add_options()("link-local", "Automatically pair with another Ymir instance on this PC",
+                          cxxopts::value(progOpts.autoConnectLocalLink)->default_value("false"));
     options.add_options()("E,exceptions", "Capture all unhandled exceptions",
                           cxxopts::value(enableAllExceptions)->default_value("false"));
     options.parse_positional({"disc"});

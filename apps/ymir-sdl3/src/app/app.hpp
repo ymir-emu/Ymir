@@ -12,6 +12,7 @@
 #include "services/graphics_service.hpp"
 #include "services/input_service.hpp"
 #include "services/midi_service.hpp"
+#include "services/link_cable_service.hpp"
 #include "services/mouse_capture_service.hpp"
 #include "services/persistence_service.hpp"
 #include "services/rom_service.hpp"
@@ -40,6 +41,7 @@ private:
     services::GraphicsService m_graphicsService;
     services::SaveStateService m_saveStateService;
     services::MIDIService m_midiService;
+    services::LinkCableService m_linkCableService;
     services::ScreenshotService m_screenshotService;
     services::UpdateCheckerService m_updateCheckerService;
     Settings m_settings;

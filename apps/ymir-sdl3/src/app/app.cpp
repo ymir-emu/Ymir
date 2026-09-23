@@ -167,7 +167,7 @@ App::App()
                     })
     , m_displayService(m_context, m_settings)
     , m_fileDialogService(m_context, m_settings)
-    , m_windowManagerService(m_context, m_settings)
+    , m_windowManagerService(m_context, m_settings, m_linkCableService)
     , m_inputService(m_context, m_settings,
                      {.openSettings =
                           [this]() {
@@ -1203,6 +1203,16 @@ void App::RunEmulator() {
     m_context.saturn.instance->SMPC.GetPeripheralPort2().SetPeripheralReportCallback(
         util::MakeClassMemberOptionalCallback<&services::InputService::ReadPeripheral<2>>(&m_inputService));
 
+    // The Saturn link-cable games observed so far use the slave SH-2 SCI.
+    // Socket I/O is owned by the service; these callbacks run on the emulation thread.
+    m_context.saturn.instance->slaveSH2.SetSCITransmitCallback(
+        util::MakeClassMemberOptionalCallback<&services::LinkCableService::Transmit>(&m_linkCableService));
+    m_context.saturn.instance->slaveSH2.SetSCIReceiveCallback(
+        util::MakeClassMemberOptionalCallback<&services::LinkCableService::Receive>(&m_linkCableService));
+    if (m_options.autoConnectLocalLink) {
+        m_windowManagerService.SettingsWindow().EnableLocalAutoLink();
+    }
+
     auto &inputContext = m_context.inputContext;
 
     m_context.paused = m_options.startPaused || settings.general.startPaused;
@@ -1361,6 +1371,10 @@ void App::RunEmulator() {
         bool fitWindowToScreenNow = false;
         bool forceScreenScale = false;
         int forcedScreenScale = 1;
+
+        for (const std::string &message : m_linkCableService.TakeNotifications()) {
+            m_context.DisplayMessage(message);
+        }
 
         // Configure video sync
         const bool fullScreen = settings.video.fullScreen;
@@ -2597,6 +2611,9 @@ void App::RunEmulator() {
                     }
                     if (ImGui::MenuItem("CD Block")) {
                         settingsWindow.OpenTab(ui::SettingsTab::CDBlock);
+                    }
+                    if (ImGui::MenuItem("Serial Port")) {
+                        settingsWindow.OpenTab(ui::SettingsTab::SerialPort);
                     }
                     if (ImGui::MenuItem("Tweaks")) {
                         settingsWindow.OpenTab(ui::SettingsTab::Tweaks);

@@ -54,6 +54,20 @@ public:
         m_cbAcknowledgeExternalInterrupt = callback;
     }
 
+    /// @brief Connects the SCI transmitter to an external serial device.
+    void SetSCITransmitCallback(CBSerialTransmit callback) {
+        m_cbSCITransmit = callback;
+    }
+
+    /// @brief Connects the SCI receiver to an external serial device.
+    void SetSCIReceiveCallback(CBSerialReceive callback) {
+        m_cbSCIReceive = callback;
+    }
+
+    /// @brief Delivers one byte to the SCI receiver on the emulation thread.
+    /// @return true if the byte was accepted; false if reception is disabled or full.
+    bool SCIReceiveByte(uint8 value);
+
     void BindGlobalCycleCounter(const uint64 &currCountRef) {
         m_currCount = &currCountRef;
     }
@@ -616,10 +630,17 @@ public:
             case InterruptSource::FRT_OCI:
                 return (m_sh2.FRT.FTCSR.OCFA && m_sh2.FRT.TIER.OCIAE) || (m_sh2.FRT.FTCSR.OCFB && m_sh2.FRT.TIER.OCIBE);
             case InterruptSource::FRT_ICI: return m_sh2.FRT.FTCSR.ICF && m_sh2.FRT.TIER.ICIE;
-            case InterruptSource::SCI_TEI: return false;     // TODO
-            case InterruptSource::SCI_TXI: return false;     // TODO
-            case InterruptSource::SCI_RXI: return false;     // TODO
-            case InterruptSource::SCI_ERI: return false;     // TODO
+            case InterruptSource::SCI_TEI:
+                return (m_sh2.SCI.SCR & SerialCommunicationInterface::kTEIE) &&
+                       (m_sh2.SCI.SSR & SerialCommunicationInterface::kTEND);
+            case InterruptSource::SCI_TXI:
+                return (m_sh2.SCI.SCR & SerialCommunicationInterface::kTIE) &&
+                       (m_sh2.SCI.SSR & SerialCommunicationInterface::kTDRE);
+            case InterruptSource::SCI_RXI:
+                return (m_sh2.SCI.SCR & SerialCommunicationInterface::kRIE) &&
+                       (m_sh2.SCI.SSR & SerialCommunicationInterface::kRDRF);
+            case InterruptSource::SCI_ERI:
+                return (m_sh2.SCI.SCR & SerialCommunicationInterface::kRIE) && (m_sh2.SCI.SSR & 0x38);
             case InterruptSource::BSC_REF_CMI: return false; // TODO
             case InterruptSource::WDT_ITI: return m_sh2.WDT.WTCSR.OVF && !m_sh2.WDT.WTCSR.WT_nIT;
             case InterruptSource::DMAC1_XferEnd:
@@ -835,7 +856,12 @@ private:
 
     // --- SCI module ---
 
-    // TODO
+    SerialCommunicationInterface SCI;
+    CBSerialTransmit m_cbSCITransmit;
+    CBSerialReceive m_cbSCIReceive;
+
+    void SCITransmitByte(uint8 value);
+    void PollSCIReceive();
 
     // --- BSC module ---
 

@@ -76,6 +76,7 @@ Usage:
   -P, --paused        Start paused
   -F, --fast-forward  Start in fast-forward mode
   -D, --debug         Start with debug tracing enabled
+      --link-local    Automatically pair with another Ymir instance on this PC
   -E, --exceptions    Capture all unhandled exceptions
 
 ```
@@ -109,6 +110,14 @@ You can override the selection on Settings > IPL.
 Ymir can load game disc images from MAME CHD, BIN+CUE, IMG+CCD, MDF+MDS or ISO files. It does not support injecting .elf files directly at the moment.
 
 When using low level CD block emulation (LLE), Ymir also requires the CD block ROM to be placed in `roms\cdb`.
+
+### Battle (Taisen) Cable
+
+Run two separate Ymir processes with the same link-cable game and disc version. For a local battle, open **Settings > Serial Port** in both instances, select **Same PC (automatic)** and enable **Battle (Taisen) Cable**. Alternatively, launch both instances with `--link-local` to enable and pair the cable automatically. Both instances must use the same TCP port.
+
+Use different `-p <profile-path>` directories for the two processes so their settings, input bindings and backup data stay independent. Keyboard input goes to the focused window; use separate controllers or configure each profile's bindings if both players need to control their instance at the same time.
+
+For two computers on a LAN, select **LAN host (listen)** on one and **LAN client (connect)** on the other, enter the host's IPv4 address on the client, and use the same TCP port. This mode has not yet been validated across two physical computers. The connection status appears in the Serial Port settings tab. Disconnecting a cable during gameplay may cause the game to return to its title screen; this depends on the game.
 
 
 ## Troubleshooting

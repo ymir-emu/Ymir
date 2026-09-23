@@ -64,6 +64,8 @@ add_executable(ymir-sdl3
     src/app/services/graphics_service.hpp
     src/app/services/midi_service.cpp
     src/app/services/midi_service.hpp
+    src/app/services/link_cable_service.cpp
+    src/app/services/link_cable_service.hpp
     src/app/services/midi_types.hpp
     src/app/services/save_state_service.cpp
     src/app/services/save_state_service.hpp
@@ -256,6 +258,8 @@ add_executable(ymir-sdl3
     src/app/ui/views/settings/ipl_settings_view.hpp
     src/app/ui/views/settings/mission_stick_config_view.cpp
     src/app/ui/views/settings/mission_stick_config_view.hpp
+    src/app/ui/views/settings/serial_port_settings_view.cpp
+    src/app/ui/views/settings/serial_port_settings_view.hpp
     src/app/ui/views/settings/settings_view_base.cpp
     src/app/ui/views/settings/settings_view_base.hpp
     src/app/ui/views/settings/shuttle_mouse_config_view.cpp
@@ -572,6 +576,7 @@ target_link_libraries(ymir-sdl3 PRIVATE
 if (WIN32)
     target_link_libraries(ymir-sdl3 PRIVATE
         Dwmapi
+        ws2_32
 
         WIL::WIL
     )

@@ -11,7 +11,8 @@
 
 namespace app::services {
 
-WindowManagerService::WindowManagerService(SharedContext &context, Settings &settings)
+WindowManagerService::WindowManagerService(SharedContext &context, Settings &settings,
+                                           LinkCableService &linkCableService)
     : m_context(context)
     , m_settings(settings)
     , m_systemStateWindow(m_context)
@@ -23,7 +24,7 @@ WindowManagerService::WindowManagerService(SharedContext &context, Settings &set
     , m_vdpWindowSet(m_context)
     , m_cdblockWindowSet(m_context)
     , m_debugOutputWindow(m_context)
-    , m_settingsWindow(m_context)
+    , m_settingsWindow(m_context, linkCableService)
     , m_periphConfigWindow(m_context)
     , m_messageHistoryWindow(m_context)
     , m_aboutWindow(m_context)

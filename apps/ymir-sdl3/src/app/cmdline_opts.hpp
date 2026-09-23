@@ -12,6 +12,7 @@ struct CommandLineOptions {
     bool startPaused;
     bool startFastForward;
     bool enableDebugTracing;
+    bool autoConnectLocalLink;
 };
 
 } // namespace app
