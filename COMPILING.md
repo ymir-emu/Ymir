@@ -135,14 +135,15 @@ Install required packages:
 
 ```sh
 pkg install cmake evdev-proto git gmake libX11 libXcursor libXext libXfixes libXi \
-    libXrandr libXrender libXScrnSaver libXtst libglvnd libinotify llvm19 ninja patchelf \
+    libXrandr libXrender libXScrnSaver libXtst libglvnd libinotify ninja patchelf \
     pkgconf python3 vulkan-loader zip
 ```
 
 Notes:
 - A default FreeBSD installation provides a stripped-down LLVM toolchain which lacks
-  the required `clang-scan-deps` binary. Therefore it is necessary to install a
-  complete LLVM toolchain package, e.g. `llvm19`.
+  the required `clang-scan-deps` binary on FreeBSD versions below 15.0. Therefore
+  it is necessary to install a complete LLVM toolchain package on such systems,
+  e.g. `llvm19`.
 - The usage of CMake's "Precompile Headers" feature triggers a compiler bug in LLVM
   prior to version 21 for ARM64 builds on FreeBSD. Therefore it is necessary to install
   and use at least `llvm21` for ARM64.
@@ -150,15 +151,14 @@ Notes:
 Configure build:
 
 ```sh
-CXX=clang++19 \
-CC=clang19 \
 cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
 
 Notes:
-- By default vcpkg and CMake will use the stripped-down LLVM toolchain instead of
-  the previously installed complete toolchain. Therefore it is necessary to set
-  the `CXX` and `CC` environment variables to the correct compilers.
+- If a different compiler than the one from the stripped-down LLVM toolchain shall
+  be used, it is necessary to set and export the `CC` and `CXX` environment variables
+  in order for vcpkg and CMake to pick up the requested compiler, e.g. `export CC=clang21`
+  and `export CXX=clang++21`.
 
 Pass additional `-D<option>=<value>` parameters to tune the build. See the [Build configuration](#build-configuration) section above for details.
 
