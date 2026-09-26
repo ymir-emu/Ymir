@@ -232,7 +232,10 @@ private:
 };
 
 // Steps over the pixels of a line.
+template <sint32 t_bits = 13>
 struct LineStepper {
+    static constexpr sint32 kCoordMask = std::max(0x7FF, (1 << (t_bits - 2)) - 1);
+
     FORCE_INLINE LineStepper(CoordS32 coord1, CoordS32 coord2, bool antiAlias = false) {
         auto [x1, y1] = coord1;
         auto [x2, y2] = coord2;
@@ -291,7 +294,7 @@ struct LineStepper {
         }
 
         // NOTE: Shifting counters by this amount forces them to have 13 bits without the need for masking
-        static constexpr sint32 kShift = 32 - 13;
+        static constexpr sint32 kShift = 32 - t_bits;
 
         m_num <<= kShift;
         m_den <<= kShift;
@@ -422,12 +425,12 @@ struct LineStepper {
 
     // Retrieves the current X coordinate.
     FORCE_INLINE sint32 X() const {
-        return m_x & 0x7FF;
+        return m_x & kCoordMask;
     }
 
     // Retrieves the current Y coordinate.
     FORCE_INLINE sint32 Y() const {
-        return m_y & 0x7FF;
+        return m_y & kCoordMask;
     }
 
     // Retrieves the current X and Y coordinates.
@@ -485,6 +488,7 @@ private:
     bool m_antiAlias;
 };
 
+template <sint32 t_bits = 13>
 struct Edge {
     FORCE_INLINE void Setup(CoordS32 coord1, CoordS32 coord2, uint32 delta) {
         auto [x1, y1] = coord1;
@@ -516,8 +520,8 @@ struct Edge {
         m_accum = ~delta;
         m_accumTarget = adx >= ady ? m_yAccumTarget : m_xAccumTarget;
 
-        // NOTE: Shifting counters by this amount forces them to have 13 bits without the need for masking
-        static constexpr sint32 kShift = 32 - 13;
+        // Shift counters to constrain values to the specified number of bits
+        static constexpr sint32 kShift = 32 - t_bits;
 
         m_xNum <<= kShift;
         m_yNum <<= kShift;
@@ -627,6 +631,7 @@ FORCE_INLINE CoordS32 VectorFromPoints(CoordS32 pointA, CoordS32 pointB) {
 //
 // The stepper uses the edges A-D and B-C and steps over each pixel on the longer edge, advancing the position on the
 // other edge proportional to their lengths.
+template <sint32 t_bits = 13>
 struct QuadStepper {
     FORCE_INLINE QuadStepper(CoordS32 coordA, CoordS32 coordB, CoordS32 coordC, CoordS32 coordD) {
         const uint32 deltaLx = abs(bit::sign_extend<13>(coordD.x() - coordA.x()));
@@ -692,12 +697,12 @@ struct QuadStepper {
     }
 
     // Retrieves the left edge.
-    FORCE_INLINE const Edge &LeftEdge() const {
+    FORCE_INLINE const Edge<t_bits> &LeftEdge() const {
         return m_edgeL;
     }
 
     // Retrieves the right edge.
-    FORCE_INLINE const Edge &RightEdge() const {
+    FORCE_INLINE const Edge<t_bits> &RightEdge() const {
         return m_edgeR;
     }
 
@@ -718,8 +723,8 @@ struct QuadStepper {
     }
 
 private:
-    Edge m_edgeL; // left edge (A-D)
-    Edge m_edgeR; // right edge (B-C)
+    Edge<t_bits> m_edgeL; // left edge (A-D)
+    Edge<t_bits> m_edgeR; // right edge (B-C)
 
     uint32 m_dmaj;
     uint32 m_step;
