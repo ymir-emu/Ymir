@@ -4732,7 +4732,7 @@ struct Direct3D12VDPRenderer::Impl {
             .mode = mode,
             .charAddr = charAddr,
             .size = size,
-            .flipH = control.flipH,
+            .flipH = control.flipH != 0,
         };
 
         VDP1PlotTexturedQuad(spanData, cmdAddress, control, coordA, coordB, coordC, coordD);
@@ -4847,7 +4847,7 @@ struct Direct3D12VDPRenderer::Impl {
             .mode = mode,
             .charAddr = charAddr,
             .size = size,
-            .flipH = control.flipH,
+            .flipH = control.flipH != 0,
         };
 
         VDP1PlotTexturedQuad(spanData, cmdAddress, control, coordA, coordB, coordC, coordD);
@@ -4897,7 +4897,7 @@ struct Direct3D12VDPRenderer::Impl {
             .mode = mode,
             .charAddr = charAddr,
             .size = size,
-            .flipH = control.flipH,
+            .flipH = control.flipH != 0,
         };
 
         VDP1PlotTexturedQuad(spanData, cmdAddress, control, coordA, coordB, coordC, coordD);
