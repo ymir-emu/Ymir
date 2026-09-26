@@ -276,8 +276,6 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      # TODO: configure vcpkg cache
-
       - name: Start FreeBSD VM
         uses: cross-platform-actions/action@e0b9770014ba65d5e0815f15b74031c3a635f641
         with:
@@ -290,15 +288,31 @@ jobs:
           sudo pkg upgrade -y
           sudo pkg install -y cmake evdev-proto git gmake libX11 libXcursor libXext \
             libXfixes libXi libXrandr libXrender libXScrnSaver libXtst libglvnd \
-            libinotify ninja patchelf pkgconf python3 vulkan-loader zip
+            libinotify ninja patchelf pkgconf python3 unzip vulkan-loader zip
+
+      - name: Cache vcpkg
+        if: ${{ matrix.build-set.library-only == 'no' }}
+        id: cache-vcpkg
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/vcpkg
+            ${{ github.workspace }}/vcpkg_cache
+          key: freebsd-${{ matrix.arch.name }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-triplets/**') }}
 
       - name: Bootstrap vcpkg
-        if: ${{ matrix.build-set.library-only == 'no' }}
+        if: ${{ matrix.build-set.library-only == 'no' && steps.cache-vcpkg.outputs.cache-hit != 'true' }}
         run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
 
       - name: Configure CMake
+        env:
+          VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/vcpkg_cache,readwrite'
+        shell: cpa.sh {0} --environment-variables VCPKG_BINARY_SOURCES
         run: |
           if [ ${{ matrix.build-set.library-only }} = 'no' ]; then
+            # /usr/bin/unzip is incompatible with unzipping the cache contents,
+            # so prioritize /usr/local/bin/unzip instead.
+            PATH=/usr/local/bin:${PATH} \
             cmake -B ${{ steps.strings.outputs.build-output-dir }} \
               -DCMAKE_BUILD_TYPE=Debug \
               -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
