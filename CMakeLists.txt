@@ -27,8 +27,6 @@ option(Ymir_EXTRA_INLINING "Enable more aggressive inlining (slows down build!)"
 option(Ymir_ENABLE_TESTS "Enable tests for Ymir" "${is_top_level}")
 option(Ymir_ENABLE_SANDBOX "Compile the sandbox app" "${is_top_level}")
 option(Ymir_ENABLE_YMDASM "Compile the disassembly tool" "${is_top_level}")
-option(Ymir_ENABLE_YMIR_HEADLESS "Compile the headless debug worker" "${is_top_level}")
-option(Ymir_ENABLE_YMIR_DBG "Compile the command-line debug frontend" "${is_top_level}")
 option(Ymir_ENABLE_IPO "Enable IPO / LTO for Ymir" ON)
 option(Ymir_ENABLE_DEVLOG "Enable development logs" ${Ymir_DEV_BUILD})
 option(Ymir_ENABLE_DEV_ASSERTIONS "Enable development-time assertions" OFF)
