@@ -9,6 +9,7 @@ Introduces save state file version 14.
 ### New features and improvements
 
 - App: Added Discord Rich Presence support. (#260, #917; @SternXD)
+- App: Added option to File menu to open the screenshots directory.
 - App: Added option to unpause emulator when loading discs. Enabled by default, which changes established behavior.
 - App: Clarified IPL ROM meaning in the Welcome window and IPL settings tab -- it refers to the BIOS.
 - App: Display volume indicator on the top-right corner of the window for a few seconds after adjustments.

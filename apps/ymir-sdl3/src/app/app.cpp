@@ -2341,6 +2341,10 @@ void App::RunEmulator() {
                                         input::ToShortcut(inputContext, actions::general::TakeScreenshot).c_str())) {
                         m_context.EnqueueEvent(events::gui::TakeScreenshot());
                     }
+                    if (ImGui::MenuItem("Open screenshots directory")) {
+                        SDL_OpenURL(
+                            fmt::format("file:///{}", m_context.profile.GetPath(ProfilePath::Screenshots)).c_str());
+                    }
 
                     ImGui::Separator();
 
