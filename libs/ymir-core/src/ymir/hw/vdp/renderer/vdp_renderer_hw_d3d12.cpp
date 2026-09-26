@@ -216,7 +216,7 @@ public:
     /// @param[in] size the size (in bytes) of the upload buffer
     /// @return nothing on success, an error message otherwise
     util::VoidResult<> Create(D3D12Device &device, size_t size) {
-        auto builder = m_buffer.BufferBuilder(kUploadBufferSize);
+        auto builder = m_buffer.BufferBuilder(size);
         builder.HeapType(D3D12_HEAP_TYPE_UPLOAD);
         builder.InitialState(D3D12_RESOURCE_STATE_GENERIC_READ);
         if (HRESULT hr = builder.BuildCommitted(device); FAILED(hr)) {
