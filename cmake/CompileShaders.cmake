@@ -8,7 +8,7 @@
 ##
 ## Requires DXC (DirectX Shader Compiler) on all platforms.
 ## glslc (shaderc) cannot be used as it lacks support for several modern HLSL
-## features, including 64-bit integers, that some shader rely on.
+## features, including 64-bit integers, that some shaders rely on.
 ##
 ## When locating DXC, this script prefers the compiler included with Vulkan SDK
 ## as it supports SPIR-V. It falls back to system-provided DXC otherwise, such
