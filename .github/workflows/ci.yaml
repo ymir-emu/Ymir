@@ -290,22 +290,16 @@ jobs:
           sudo pkg upgrade -y
           sudo pkg install -y cmake evdev-proto git gmake libX11 libXcursor libXext \
             libXfixes libXi libXrandr libXrender libXScrnSaver libXtst libglvnd \
-            libinotify llvm21 ninja patchelf pkgconf python3 vulkan-loader zip
+            libinotify ninja patchelf pkgconf python3 vulkan-loader zip
 
       - name: Bootstrap vcpkg
         if: ${{ matrix.build-set.library-only == 'no' }}
-        env:
-          CC: clang21
-          CXX: clang++21
-        shell: cpa.sh {0} --environment-variables CC CXX
         run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
 
       - name: Configure CMake
         run: |
           if [ ${{ matrix.build-set.library-only }} = 'no' ]; then
             cmake -B ${{ steps.strings.outputs.build-output-dir }} \
-              -DCMAKE_CXX_COMPILER=clang++21 \
-              -DCMAKE_C_COMPILER=clang21 \
               -DCMAKE_BUILD_TYPE=Debug \
               -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
               -DBUILD_SHARED_LIBS=OFF \
@@ -320,8 +314,6 @@ jobs:
               -G Ninja
           else
             cmake -B ${{ steps.strings.outputs.build-output-dir }} \
-              -DCMAKE_CXX_COMPILER=clang++21 \
-              -DCMAKE_C_COMPILER=clang21 \
               -DCMAKE_BUILD_TYPE=Debug \
               -DBUILD_SHARED_LIBS=OFF \
               -DYmir_ENABLE_DEVLOG=OFF \
