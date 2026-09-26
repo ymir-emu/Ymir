@@ -187,7 +187,7 @@ static constexpr size_t kNumFrames = 3;
 
 /// @brief Size of the upload buffers, in bytes.
 /// Should be large enough to fit multiple worst case single transfers, but not waste space needlessly.
-static constexpr UINT64 kUploadBufferSize = 128 * 1024 * 1024;
+static constexpr UINT64 kUploadBufferSize = 16 * 1024 * 1024;
 
 /// @brief A single allocation in an upload buffer.
 struct UploadAllocation {
