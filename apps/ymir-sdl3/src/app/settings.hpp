@@ -502,6 +502,9 @@ struct Settings {
         struct Enhancements {
             util::Observable<bool> deinterlace;
             util::Observable<bool> transparentMeshes;
+            util::Observable<bool> resolutionScaling;
+            util::Observable<bool> resScaleToDisplaySize;
+            util::Observable<uint32> resScaleFactor;
         } enhancements;
     } video;
 

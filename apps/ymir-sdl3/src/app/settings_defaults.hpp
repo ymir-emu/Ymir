@@ -67,4 +67,9 @@ namespace input {
 
 } // namespace input
 
+namespace video {
+    inline constexpr uint32 kDefaultResolutionScalingFactor = 2u;
+    // NOTE: minimum and maximum are defined in vdp2_defs.hpp
+} // namespace video
+
 } // namespace app::config_defaults

@@ -68,6 +68,34 @@ EmuEvent SetTransparentMeshes(bool enable) {
     });
 }
 
+EmuEvent EnableResolutionScalingToTarget(uint32 width, uint32 height) {
+    return RunFunction([=](SharedContext &ctx) {
+        ctx.saturn.instance->VDP.ModifyEnhancements([&](vdp::config::Enhancements &enhancements) {
+            enhancements.scaleResolution = true;
+            enhancements.scaleToTargetResolution = true;
+            enhancements.scaleResTargetWidth = width;
+            enhancements.scaleResTargetHeight = height;
+        });
+    });
+}
+
+EmuEvent EnableResolutionScalingByFactor(uint32 factor) {
+    return RunFunction([=](SharedContext &ctx) {
+        ctx.saturn.instance->VDP.ModifyEnhancements([&](vdp::config::Enhancements &enhancements) {
+            enhancements.scaleResolution = true;
+            enhancements.scaleToTargetResolution = false;
+            enhancements.scaleResFactor = factor;
+        });
+    });
+}
+
+EmuEvent DisableResolutionScaling() {
+    return RunFunction([=](SharedContext &ctx) {
+        ctx.saturn.instance->VDP.ModifyEnhancements(
+            [&](vdp::config::Enhancements &enhancements) { enhancements.scaleResolution = false; });
+    });
+}
+
 EmuEvent UseNullVDPRenderer(util::Event &event) {
     return RunFunction([&event](SharedContext &ctx) {
         auto &vdp = ctx.saturn.instance->VDP;

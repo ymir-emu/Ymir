@@ -264,6 +264,24 @@ struct SharedContext {
         bool doubleResH = false;
         bool doubleResV = false;
 
+        // Native VDP2 resolution
+        uint32 nativeWidth = ymir::vdp::kDefaultResH;
+        uint32 nativeHeight = ymir::vdp::kDefaultResV;
+
+        // Rendered resolution (possibly scaled)
+        uint32 renderWidth = ymir::vdp::kDefaultResH;
+        uint32 renderHeight = ymir::vdp::kDefaultResV;
+
+        // Client area dimensions
+        uint32 clientWidth = ymir::vdp::kDefaultResH;
+        uint32 clientHeight = ymir::vdp::kDefaultResV;
+
+        // Output texture dimensions
+        uint32 targetOutputWidth = ymir::vdp::kMaxResH;
+        uint32 targetOutputHeight = ymir::vdp::kMaxResV;
+        uint32 currOutputWidth = ymir::vdp::kMaxResH;
+        uint32 currOutputHeight = ymir::vdp::kMaxResV;
+
         // Hacky garbage to help automatically resize window on resolution changes
         bool resolutionChanged = false;
         uint32 prevWidth;
@@ -272,8 +290,13 @@ struct SharedContext {
         uint32 prevScaleY;
 
         void SetResolution(uint32 newWidth, uint32 newHeight) {
-            doubleResH = newWidth >= 640;
-            doubleResV = newHeight >= 400;
+            // TODO: remove/replace this
+            if (width == newWidth && height == newHeight) {
+                return;
+            }
+
+            doubleResH = newWidth > ymir::vdp::kMaxNormalResH;
+            doubleResV = newHeight > ymir::vdp::kMaxNormalResV;
 
             prevWidth = width;
             prevHeight = height;
@@ -285,6 +308,28 @@ struct SharedContext {
             scaleX = doubleResV && !doubleResH ? 2 : 1;
             scaleY = doubleResH && !doubleResV ? 2 : 1;
             resolutionChanged = true;
+        }
+
+        void SetNativeResolution(uint32 width, uint32 height) {
+            nativeWidth = width;
+            nativeHeight = height;
+        }
+
+        void SetRenderResolution(uint32 width, uint32 height) {
+            renderWidth = width;
+            renderHeight = height;
+        }
+
+        bool SetClientAreaSize(uint32 width, uint32 height) {
+            const bool changed = clientWidth != width || clientHeight != height;
+            clientWidth = width;
+            clientHeight = height;
+            return changed;
+        }
+
+        void SetOutputResolution(uint32 width, uint32 height) {
+            targetOutputWidth = width;
+            targetOutputHeight = height;
         }
 
         // Display framebuffers -- emu renders to one, GUI displays the other

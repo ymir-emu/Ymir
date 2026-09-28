@@ -59,6 +59,18 @@ void TweaksSettingsView::Display() {
         fmt::format_to(inserter, "### Video\n");
         fmt::format_to(inserter, "- {}\n", checkbox("Deinterlace", enhancements.deinterlace));
         fmt::format_to(inserter, "- {}\n", checkbox("Transparent meshes", enhancements.transparentMeshes));
+        if (enhancements.resolutionScaling) {
+            if (enhancements.resScaleToDisplaySize) {
+                fmt::format_to(inserter, "- {}\n", checkbox("Internal resolution scaling: fit to display", true));
+            } else {
+                fmt::format_to(
+                    inserter, "- {}\n",
+                    checkbox(fmt::format("Internal resolution scaling: {}x", enhancements.resScaleFactor.Get()).c_str(),
+                             true));
+            }
+        } else {
+            fmt::format_to(inserter, "- {}\n", checkbox("Internal resolution scaling", false));
+        }
 
         // =============================================================================================================
 
@@ -149,6 +161,7 @@ void TweaksSettingsView::DisplayEnhancements() {
     if (MakeDirty(ImGui::Button("Recommended##enhancements"))) {
         settings.video.enhancements.deinterlace = false;
         settings.video.enhancements.transparentMeshes = true;
+        settings.video.enhancements.resolutionScaling = false;
     }
     if (ImGui::BeginItemTooltip()) {
         ImGui::TextUnformatted(
@@ -160,6 +173,8 @@ void TweaksSettingsView::DisplayEnhancements() {
     if (MakeDirty(ImGui::Button("Best quality##enhancements"))) {
         settings.video.enhancements.deinterlace = true;
         settings.video.enhancements.transparentMeshes = true;
+        settings.video.enhancements.resScaleToDisplaySize = true;
+        settings.video.enhancements.resolutionScaling = true;
     }
     if (ImGui::BeginItemTooltip()) {
         ImGui::TextUnformatted("Maximizes quality with no regard for performance.");
@@ -170,6 +185,7 @@ void TweaksSettingsView::DisplayEnhancements() {
     if (MakeDirty(ImGui::Button("Best performance##enhancements"))) {
         settings.video.enhancements.deinterlace = false;
         settings.video.enhancements.transparentMeshes = false;
+        settings.video.enhancements.resolutionScaling = false;
     }
     if (ImGui::BeginItemTooltip()) {
         ImGui::TextUnformatted("Maximizes performance with no regard for quality.");
@@ -184,6 +200,7 @@ void TweaksSettingsView::DisplayEnhancements() {
 
     widgets::settings::video::enhancements::Deinterlace(m_context);
     widgets::settings::video::enhancements::TransparentMeshes(m_context);
+    widgets::settings::video::enhancements::ResolutionScaling(m_context);
 }
 
 void TweaksSettingsView::DisplayAccuracyOptions() {

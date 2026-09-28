@@ -35,6 +35,11 @@ inline constexpr uint32 kMaxNormalResV = 256; // Maximum vertical resolution in 
 inline constexpr uint32 kMaxResH = 704; // Maximum horizontal resolution
 inline constexpr uint32 kMaxResV = 512; // Maximum vertical resolution
 
+inline constexpr uint32 kMinResScaleFactor = 2u;  // Minimum resolution scaling factor
+inline constexpr uint32 kMaxResScaleFactor = 12u; // Maximum resolution scaling factor
+inline constexpr uint32 kMaxScaledResH = 8192u;   // Maximum scaled horizontal resolution (in pixels)
+inline constexpr uint32 kMaxScaledResV = 4096u;   // Maximum scaled vertical resolution (in pixels)
+
 // -----------------------------------------------------------------------------
 // Memory
 

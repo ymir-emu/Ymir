@@ -231,11 +231,23 @@ struct DisplayTextureSpec {
     /// @brief The texture's identifier.
     TextureID id;
 
-    /// @brief The width of the display contained in the texture.
-    uint32 width;
+    /// @brief The width of the texture.
+    uint32 textureWidth;
 
-    /// @brief The height of the display contained in the texture.
-    uint32 height;
+    /// @brief The height of the texture.
+    uint32 textureHeight;
+
+    /// @brief The width of the rendered display area contained in the texture.
+    uint32 renderWidth;
+
+    /// @brief The height of the renderer display area contained in the texture.
+    uint32 renderHeight;
+
+    /// @brief The native VDP2 resolution width.
+    uint32 nativeWidth;
+
+    /// @brief The native VDP2 resolution height.
+    uint32 nativeHeight;
 };
 
 } // namespace app::gfx

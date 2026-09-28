@@ -66,6 +66,8 @@ private:
     void StopEmulatorThread();
     void EmulatorThread();
 
+    void UpdateResolutionScaling();
+
     void EnableRewindBuffer(bool enable);
     void ToggleRewindBuffer();
 

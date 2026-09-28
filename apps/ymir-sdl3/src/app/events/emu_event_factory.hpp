@@ -102,6 +102,10 @@ EmuEvent SetAreaCode(uint8 areaCode);
 
 EmuEvent SetDeinterlace(bool enable);
 EmuEvent SetTransparentMeshes(bool enable);
+EmuEvent EnableResolutionScaling(uint32 width, uint32 height);
+EmuEvent EnableResolutionScalingToTarget(uint32 width, uint32 height);
+EmuEvent EnableResolutionScalingByFactor(uint32 factor);
+EmuEvent DisableResolutionScaling();
 
 EmuEvent UseNullVDPRenderer(util::Event &event);
 EmuEvent SwitchVDPRenderer(bool verbose = true);

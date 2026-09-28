@@ -89,8 +89,12 @@ static_assert(sizeof(HLSLint3) == sizeof(HLSLint) * 3);
 // Common rendering parameters
 
 struct EnhancementsParams {
-    HLSLuint deinterlace : 1;       //     0  Deinterlace
-    HLSLuint transparentMeshes : 1; //     1  Render mesh sprites as transparent
+    HLSLuint deinterlace : 1;           //     0  Deinterlace
+    HLSLuint transparentMeshes : 1;     //     1  Render mesh sprites as transparent
+    HLSLuint : 4;                       //   2-5  (reserved)
+    HLSLuint scaleResolution : 1;       //     6  Scale internal resolution
+    HLSLuint scaleResTargetWidth : 13;  //  7-19  Target internal resolution width   (x + 1)
+    HLSLuint scaleResTargetHeight : 12; // 20-31  Target internal resolution height  (y + 1)
 };
 static_assert(sizeof(EnhancementsParams) == sizeof(HLSLuint));
 
@@ -120,6 +124,8 @@ struct alignas(16) VDP1CommonRenderParams {
         HLSLuint dblInterlaceDrawLine : 1; //     5  Double interlace line                0=even; 1=odd
         HLSLuint evenOddCoordSelect : 1;   //     6  Even/odd coordinate select (HSS)     0=even; 1=odd
         HLSLuint drawFB : 1;               //     7  Current draw framebuffer index
+        HLSLuint hresMode : 3;             //  8-10  Horizontal resolution mode (VDP2 TVMD.HRESO2-0)
+        HLSLuint vresMode : 2;             // 11-12  Vertical resolution mode   (VDP2 TVMD.VRESO1-0)
     } displayParams;
     static_assert(sizeof(DisplayParams) == sizeof(HLSLuint));
 

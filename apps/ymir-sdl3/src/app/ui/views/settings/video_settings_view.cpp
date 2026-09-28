@@ -54,6 +54,7 @@ void VideoSettingsView::Display() {
 
     widgets::settings::video::enhancements::Deinterlace(m_context);
     widgets::settings::video::enhancements::TransparentMeshes(m_context);
+    widgets::settings::video::enhancements::ResolutionScaling(m_context);
 
     // -----------------------------------------------------------------------------------------------------------------
 

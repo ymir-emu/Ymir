@@ -12,8 +12,6 @@
 
 #include <ymir/hw/vdp/vdp.hpp>
 
-#include <SDL3/SDL_video.h>
-
 #include <imgui.h>
 
 #include <cassert>
@@ -32,15 +30,24 @@ GraphicsService::GraphicsService(Settings &settings)
 GraphicsService::~GraphicsService() {}
 
 void GraphicsService::RegisterHardwareRendererCallbacks(ymir::vdp::VDP &vdp) {
+    using namespace ymir::vdp;
 #if YMIR_PLATFORM_HAS_DIRECT3D
+    vdp.SetDirect3D12FrameBeginCallback({this, [](Dimensions nativeRes, void *ctx) {
+                                             // TODO: adjust target resolution if scaling resolution to target
+                                         }});
+
     vdp.SetDirect3D12FrameCopyRequestCallback(
-        {this, [](ID3D12Fence *fence, uint64 fenceValue, uint32 width, uint32 height, void *ctx) -> ID3D12Resource * {
+        {this,
+         [](ID3D12Fence *fence, uint64 fenceValue, Dimensions requestedSize, Dimensions renderArea,
+            Dimensions nativeRes, void *ctx) -> ID3D12Resource * {
              auto &graphicsService = *static_cast<GraphicsService *>(ctx);
              auto *graphicsContext = graphicsService.GetGraphicsContext().As<Direct3D12GraphicsContext>();
              if (graphicsContext == nullptr) {
                  return nullptr;
              }
-             return graphicsContext->GetNextDisplayOutputTexture(fence, fenceValue, width, height);
+             return graphicsContext->GetNextDisplayOutputTexture(fence, fenceValue, requestedSize.width,
+                                                                 requestedSize.height, renderArea.width,
+                                                                 renderArea.height, nativeRes.width, nativeRes.height);
          }});
 #endif
 }

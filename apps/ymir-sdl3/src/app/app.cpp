@@ -85,8 +85,10 @@
 
 #include <ymir/media/host_cd.hpp>
 
+#include <ymir/util/fmt_ratio.hpp>
 #include <ymir/util/lsn_denormals.hpp>
 #include <ymir/util/process.hpp>
+#include <ymir/util/ratio.hpp>
 #include <ymir/util/scope_guard.hpp>
 #include <ymir/util/string.hpp>
 #include <ymir/util/thread_name.hpp>
@@ -127,6 +129,8 @@
 #include <stb_image.h>
 
 #include <rtmidi/RtMidi.h>
+
+#include <fmt/format.h>
 
 #include <clocale>
 #include <mutex>
@@ -337,6 +341,9 @@ int App::Run(const CommandLineOptions &options) {
             [&](bool value) { m_context.EnqueueEvent(events::emu::SetDeinterlace(value)); });
         videoSettings.enhancements.transparentMeshes.Observe(
             [&](bool value) { m_context.EnqueueEvent(events::emu::SetTransparentMeshes(value)); });
+        videoSettings.enhancements.resolutionScaling.Observe([&](bool) { UpdateResolutionScaling(); });
+        videoSettings.enhancements.resScaleToDisplaySize.Observe([&](bool) { UpdateResolutionScaling(); });
+        videoSettings.enhancements.resScaleFactor.Observe([&](bool) { UpdateResolutionScaling(); });
     }
 
     // Profile priority:
@@ -747,6 +754,7 @@ void App::RunEmulator() {
 
             devlog::info<grp::base>("Primary display resolution: {}x{}", displayRect.w, displayRect.h);
 
+            // TODO(disp): avoid all doubles
             const double screenW = horzDisplay ? screen.width : screen.height;
             const double screenH = horzDisplay ? screen.height : screen.width;
 
@@ -933,6 +941,7 @@ void App::RunEmulator() {
     auto renderDispTexture = [&](double targetWidth, double targetHeight) {
         auto &videoSettings = settings.video;
         const bool forceAspectRatio = videoSettings.forceAspectRatio;
+        // TODO(disp): use targetWidth/Height directly, no maths needed here
         const Ratio forcedAspect = videoSettings.forcedAspect;
         const double dispWidth =
             (forceAspectRatio ? forcedAspect.MulCeil(screen.height) : screen.width) / screen.scaleY;
@@ -942,38 +951,49 @@ void App::RunEmulator() {
         const double dispScale = std::min(dispScaleX, dispScaleY);
         const uint32 scale = std::max(1.0, ceil(dispScale));
 
+        if (screen.SetClientAreaSize(targetWidth, targetHeight) && videoSettings.enhancements.resolutionScaling &&
+            videoSettings.enhancements.resScaleToDisplaySize) {
+            UpdateResolutionScaling();
+        }
+
         assert(m_graphicsService.IsTextureHandleValid(dispTexture));
         assert(m_graphicsService.IsTextureHandleValid(swFbTexture));
 
-        // Recreate render target texture if scale changed
-        if (scale != screen.fbScale) {
+        // Recreate render target texture if scale or dimensions changed
+        if (screen.fbScale != scale || screen.currOutputWidth != screen.targetOutputWidth ||
+            screen.currOutputHeight != screen.targetOutputHeight) {
             screen.fbScale = scale;
-            auto result = m_graphicsService.ResizeTexture(dispTexture, vdp::kMaxResH * screen.fbScale,
-                                                          vdp::kMaxResV * screen.fbScale);
+            screen.currOutputWidth = screen.targetOutputWidth;
+            screen.currOutputHeight = screen.targetOutputHeight;
+            auto result = m_graphicsService.ResizeTexture(dispTexture, screen.currOutputWidth * screen.fbScale,
+                                                          screen.currOutputHeight * screen.fbScale);
             if (!result) {
                 devlog::warn<grp::base>("Failed to resize framebuffer texture: {}", result.Error().message);
             }
         }
 
         // Render scaled framebuffer into display texture
-        gfx::FRect dstRect{.x = 0.0f,
-                           .y = 0.0f,
-                           .w = (float)screen.width * screen.fbScale,
-                           .h = (float)screen.height * screen.fbScale};
-
         if (videoSettings.useHardwareAcceleration) {
             gfx::IGraphicsContext &gfxCtx = m_graphicsService.GetGraphicsContext();
             const std::optional<gfx::DisplayTextureSpec> hwFbTexture = gfxCtx.AcquireCurrentDisplayOutputTexture();
             if (hwFbTexture) {
-                screen.SetResolution(hwFbTexture->width, hwFbTexture->height);
+                screen.SetResolution(hwFbTexture->renderWidth, hwFbTexture->renderHeight);
 
                 const gfx::TextureID dispTextureID = m_graphicsService.GetTextureID(dispTexture);
                 gfx::FRect srcRect{.x = 0.0f, .y = 0.0f, .w = (float)screen.width, .h = (float)screen.height};
+                gfx::FRect dstRect{.x = 0.0f,
+                                   .y = 0.0f,
+                                   .w = (float)screen.width * screen.fbScale,
+                                   .h = (float)screen.height * screen.fbScale};
                 gfxCtx.RenderToTexture(hwFbTexture->id, dispTextureID, srcRect, dstRect);
                 gfxCtx.ReleaseCurrentDisplayOutputTexture();
             }
         } else {
             gfx::FRect srcRect{.x = 0.0f, .y = 0.0f, .w = (float)screen.width, .h = (float)screen.height};
+            gfx::FRect dstRect{.x = 0.0f,
+                               .y = 0.0f,
+                               .w = (float)screen.width * screen.fbScale,
+                               .h = (float)screen.height * screen.fbScale};
             m_graphicsService.RenderToTexture(swFbTexture, dispTexture, srcRect, dstRect);
         }
     };
@@ -1093,9 +1113,9 @@ void App::RunEmulator() {
                 auto &sharedCtx = app.m_context;
                 auto &screen = sharedCtx.screen;
                 auto &settings = app.m_settings;
-                if (width != screen.width || height != screen.height) {
-                    screen.SetResolution(width, height);
-                }
+                screen.SetNativeResolution(width, height);
+                screen.SetRenderResolution(width, height);
+                screen.SetResolution(width, height);
 
                 if (sharedCtx.emuSpeed.limitSpeed && screen.videoSync) {
                     screen.frameRequestEvent.Wait();
@@ -2803,7 +2823,7 @@ void App::RunEmulator() {
             /*if (ImGui::Begin("Audio buffer")) {
                 ImGui::SetNextItemWidth(-1);
                 ImGui::ProgressBar((float)m_context.audioSystem.GetBufferCount() /
-            m_context.audioSystem.GetBufferCapacity());
+                                   m_context.audioSystem.GetBufferCapacity());
             }
             ImGui::End();*/
 
@@ -3223,6 +3243,8 @@ void App::RunEmulator() {
         // Draw Saturn screen
         if (!settings.video.displayVideoOutputInWindow) {
             const auto &videoSettings = settings.video;
+            const auto &videoEnh = videoSettings.enhancements;
+            const bool forceIntegerScaling = videoSettings.forceIntegerScaling;
             const bool forceAspectRatio = videoSettings.forceAspectRatio;
             const Ratio forcedAspect = videoSettings.forcedAspect;
             const bool aspectRatioChanged = forceAspectRatio && forcedAspect != prevForcedAspect;
@@ -3366,7 +3388,10 @@ void App::RunEmulator() {
             m_mouseCaptureService.SetMouseRect(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
         }
 
-        screen.resolutionChanged = false;
+        if (screen.resolutionChanged) {
+            screen.resolutionChanged = false;
+            UpdateResolutionScaling();
+        }
 
         // Render ImGui widgets
         m_graphicsService.ImGuiRenderFrame();
@@ -3642,6 +3667,22 @@ void App::EmulatorThread() {
             break;
         }
         }
+    }
+}
+
+void App::UpdateResolutionScaling() {
+    auto &enhSettings = m_settings.video.enhancements;
+
+    if (enhSettings.resolutionScaling) {
+        const auto &screen = m_context.screen;
+        if (enhSettings.resScaleToDisplaySize) {
+            m_context.EnqueueEvent(
+                events::emu::EnableResolutionScalingToTarget(screen.clientWidth, screen.clientHeight));
+        } else {
+            m_context.EnqueueEvent(events::emu::EnableResolutionScalingByFactor(enhSettings.resScaleFactor));
+        }
+    } else {
+        m_context.EnqueueEvent(events::emu::DisableResolutionScaling());
     }
 }
 

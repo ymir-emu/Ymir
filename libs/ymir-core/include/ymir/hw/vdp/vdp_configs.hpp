@@ -25,12 +25,35 @@ struct Enhancements {
     /// with half-transparency on top of other graphics.
     bool transparentMeshes = false;
 
+    /// @brief Enable or disable internal resolution scaling.
+    /// Not all renderers implement this feature.
+    bool scaleResolution = false;
+
+    /// @brief Whether to scale resolution by a specific factor (`false`) or to a target resolution (`true`).
+    bool scaleToTargetResolution = false;
+
+    /// @brief Resolution scaling factor.
+    /// The value is constrained to the range [2..12].
+    /// Used when `scaleToTargetResolution == false`.
+    uint32 scaleResFactor = 2;
+
+    /// @brief Target resolution width for internal resolution scaling.
+    /// The value is constrained to the range [320..8192].
+    /// Used when `scaleToTargetResolution == true`.
+    uint32 scaleResTargetWidth = vdp::kMinResH;
+
+    /// @brief Target resolution height for internal resolution scaling.
+    /// The value is constrained to the range [224..4096]
+    /// Used when `scaleToTargetResolution == true`.
+    uint32 scaleResTargetHeight = vdp::kMinResV;
+
     /// @brief Determines if any enhancement is enabled:
     /// - `deinterlace` is set to `true`
     /// - `transparentMeshes` is set to `true`
+    /// - `scaleResolution` is set to `true`
     /// @return `true` if any enhancement is active, `false` otherwise
     bool AnyEnabled() const {
-        return deinterlace || transparentMeshes;
+        return deinterlace || transparentMeshes || scaleResolution;
     }
 };
 

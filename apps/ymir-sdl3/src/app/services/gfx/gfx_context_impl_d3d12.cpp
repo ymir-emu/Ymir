@@ -204,8 +204,12 @@ struct Direct3D12GraphicsContext::Impl {
         void *readbackTexturePtr = nullptr;
         size_t readbackTextureSize = 0;
 
-        uint32 width;
-        uint32 height;
+        uint32 textureWidth;
+        uint32 textureHeight;
+        uint32 renderWidth;
+        uint32 renderHeight;
+        uint32 nativeWidth;
+        uint32 nativeHeight;
 
         std::atomic<ID3D12Fence *> computeFence; // Compute fence to be waited on
         std::atomic<UINT64> computeFenceValue;   // Value to wait for
@@ -1609,7 +1613,9 @@ struct Direct3D12GraphicsContext::Impl {
         return computeDisplayFrame;
     }
 
-    ID3D12Resource *GetNextDisplayOutputTexture(ID3D12Fence *fence, uint64 fenceValue, uint32 width, uint32 height) {
+    ID3D12Resource *GetNextDisplayOutputTexture(ID3D12Fence *fence, uint64 fenceValue, uint32 textureWidth,
+                                                uint32 textureHeight, uint32 renderWidth, uint32 renderHeight,
+                                                uint32 nativeWidth, uint32 nativeHeight) {
         const size_t nextIndex = GetDisplayFrameIndexForCompute();
         DisplayFrameContext &frameCtx = displayFrames[nextIndex];
 
@@ -1618,10 +1624,15 @@ struct Direct3D12GraphicsContext::Impl {
             return nullptr; // Shouldn't happen
         }
 
+        // TODO: resize texture if needed
         frameCtx.computeFence.store(fence, std::memory_order_release);
         frameCtx.computeFenceValue.store(fenceValue, std::memory_order_release);
-        frameCtx.width = width;
-        frameCtx.height = height;
+        frameCtx.textureWidth = textureWidth;
+        frameCtx.textureHeight = textureHeight;
+        frameCtx.renderWidth = renderWidth;
+        frameCtx.renderHeight = renderHeight;
+        frameCtx.nativeWidth = nativeWidth;
+        frameCtx.nativeHeight = nativeHeight;
         return texture->resource.GetPointer();
     }
 
@@ -1785,8 +1796,12 @@ struct Direct3D12GraphicsContext::Impl {
 
         return DisplayTextureSpec{
             .id = frameCtx.textureID,
-            .width = frameCtx.width,
-            .height = frameCtx.height,
+            .textureWidth = frameCtx.textureWidth,
+            .textureHeight = frameCtx.textureHeight,
+            .renderWidth = frameCtx.renderWidth,
+            .renderHeight = frameCtx.renderHeight,
+            .nativeWidth = frameCtx.nativeWidth,
+            .nativeHeight = frameCtx.nativeHeight,
         };
     }
 
@@ -2051,8 +2066,11 @@ ID3D12Device *Direct3D12GraphicsContext::GetDevice() const {
 }
 
 ID3D12Resource *Direct3D12GraphicsContext::GetNextDisplayOutputTexture(ID3D12Fence *fence, uint64 fenceValue,
-                                                                       uint32 width, uint32 height) {
-    return m_impl->GetNextDisplayOutputTexture(fence, fenceValue, width, height);
+                                                                       uint32 textureWidth, uint32 textureHeight,
+                                                                       uint32 renderWidth, uint32 renderHeight,
+                                                                       uint32 nativeWidth, uint32 nativeHeight) {
+    return m_impl->GetNextDisplayOutputTexture(fence, fenceValue, textureWidth, textureHeight, renderWidth,
+                                               renderHeight, nativeWidth, nativeHeight);
 }
 
 } // namespace app::gfx

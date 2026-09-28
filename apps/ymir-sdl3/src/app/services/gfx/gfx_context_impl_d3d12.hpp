@@ -68,12 +68,26 @@ public:
     ID3D12Device *GetDevice() const;
 
     /// @brief Retrieves a pointer to the next free display output texture, or `nullptr` if no slots are available.
+    /// The frame also stores three sizes:
+    /// - The internal display texture size, tracking the maximum supported resolution at the given scale:
+    ///   - 704x512 when not scaling
+    ///   - a multiple of 352x256 when scaling by a factor
+    ///   - the target resolution when scaling to a fixed resolution
+    /// - The rendering area size, which drawn to the top-left corner of the internal display texture
+    /// - The native VDP2 resolution, for aspect ratio calculations
+    ///
     /// @param[in] fence the compute fence to wait for
     /// @param[in] fenceValue the fence value to wait for
-    /// @param[in] width the display width
-    /// @param[in] height the display height
+    /// @param[in] textureWidth the requested display texture width
+    /// @param[in] textureHeight the requested display texture height
+    /// @param[in] renderWidth the render area width
+    /// @param[in] renderHeight the render area height
+    /// @param[in] nativeWidth the native VDP2 resolution width
+    /// @param[in] nativeHeight the native VDP2 resolution height
     /// @return a pointer to the next free display output frame, or `nullptr` if no frame is available
-    ID3D12Resource *GetNextDisplayOutputTexture(ID3D12Fence *fence, uint64 fenceValue, uint32 width, uint32 height);
+    ID3D12Resource *GetNextDisplayOutputTexture(ID3D12Fence *fence, uint64 fenceValue, uint32 textureWidth,
+                                                uint32 textureHeight, uint32 renderWidth, uint32 renderHeight,
+                                                uint32 nativeWidth, uint32 nativeHeight);
 
 private:
     std::unique_ptr<Impl> m_impl;

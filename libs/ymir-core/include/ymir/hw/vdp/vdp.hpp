@@ -155,6 +155,20 @@ public:
         return UseRenderer<Direct3D12VDPRenderer>(m_state, vdp2DebugRenderOptions, vdp2AccessPatternsConfig, device);
     }
 
+    /// @brief Configures the Direct3D 12 renderer frame begin callback to use whenever the Direct3D 12 renderer is in
+    /// use.
+    ///
+    /// @param[in] callback the callback to register
+    void SetDirect3D12FrameBeginCallback(CBDirect3D12FrameBeginCallback callback) {
+        if (auto *hwRenderer = m_renderer->As<VDPRendererType::Direct3D12>()) {
+            // Apply directly to renderer
+            hwRenderer->HwCallbacks.FrameBegin = callback;
+        } else {
+            // Remember for next instantiation.
+            m_d3d12RendererCallbacks.FrameBegin = callback;
+        }
+    }
+
     /// @brief Configures the Direct3D 12 renderer frame request callback to use whenever the Direct3D 12 renderer is in
     /// use.
     ///

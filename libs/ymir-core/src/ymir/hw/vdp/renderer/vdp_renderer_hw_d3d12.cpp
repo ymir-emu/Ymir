@@ -34,6 +34,7 @@
 
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <concepts>
 #include <vector>
 
@@ -173,6 +174,34 @@ struct Direct3D12VDPRenderer::Impl {
     VDPState &vdpState;
     const config::Enhancements &enhancements;
 
+    struct ResolutionScaling {
+        /// @brief Time point when resolution scaling parameters can be updated.
+        /// Used to rate limit certain changes that could be flooded from the frontend.
+        std::chrono::steady_clock::time_point nextUpdate{};
+
+        /// @brief Latest applied resolution scaling parameters.
+        /// Updated by `UpdateResolutionScaling()` when `nextResScaleUpdate` is reached.
+        struct Parameters {
+            bool enabled = false;
+            bool scaleToTargetRes = false;
+            uint32 factor = 2u;
+            uint32 width = kDefaultResH;
+            uint32 height = kDefaultResV;
+        } params;
+
+        /// @brief Resolution scaling dimensions currently applied to resources.
+        /// Clamped to 704x512..8192x4096
+        Dimensions current{kMaxResH, kMaxResV};
+
+        /// @brief Desired resolution scaling dimensions to be applied to resources.
+        /// Clamped to 704x512..8192x4096
+        Dimensions desired{kMaxResH, kMaxResV};
+
+        /// @brief Current scaled display resolution, passed to shaders.
+        /// Clamped to 320x224..8192x4096
+        Dimensions display{kDefaultResH, kDefaultResV};
+    } resScale;
+
     const Direct3D12RendererCallbacks &hwCallbacks;
 
     D3D12Device device;
@@ -242,6 +271,13 @@ struct Direct3D12VDPRenderer::Impl {
         /// @brief FBRAM buffer UAV (offline).
         DescriptorRange fbramUAV;
 
+        /// @brief Scaled FBRAM buffer.
+        D3D12Resource fbramScaledBuffer;
+        /// @brief Scaled FBRAM buffer SRV (offline).
+        DescriptorRange fbramScaledSRV;
+        /// @brief Scaled FBRAM buffer UAV (offline).
+        DescriptorRange fbramScaledUAV;
+
         /// @brief FBRAM dirty bitmap.
         util::DirtyBitmap<kVDP1FBRAMSize> fbramDirty;
         /// @brief FBRAM writes buffer.
@@ -286,6 +322,11 @@ struct Direct3D12VDPRenderer::Impl {
         gpu::ComputeShader eraseShader;
         /// @brief Root signature for erasing the framebuffer.
         D3D12RootSignature eraseRootSig;
+
+        /// @brief Internal sprite data output buffer.
+        D3D12Resource internalSpriteOutBuffer;
+        /// @brief Internal sprite data output buffer UAV (offline).
+        DescriptorRange internalSpriteOutUAV;
 
         // The polygon drawing shader operates on consecutive polygons span batches that share the same properties:
         // - System and user clipping areas
@@ -548,6 +589,21 @@ struct Direct3D12VDPRenderer::Impl {
 
     BarrierTracker barrierTracker;
 
+    struct DescToDelete {
+        UINT baseIndex;
+        UINT count;
+
+        explicit DescToDelete(const DescriptorRange &desc)
+            : baseIndex(desc.baseIndex)
+            , count(desc.count) {}
+    };
+
+    struct DeleteQueues {
+        std::vector<DescToDelete> offlineDescs;
+        std::vector<DescToDelete> onlineDescs;
+        std::vector<wil::com_ptr_nothrow<ID3D12Resource>> resources;
+    } deleteQueues;
+
     /// @brief Resources for a single frame.
     struct FrameContext {
         D3D12CommandAllocator cmdAlloc;
@@ -582,11 +638,6 @@ struct Direct3D12VDPRenderer::Impl {
         std::array<VDP1CommandParams, kMaxVDP1Commands> cpuCmdParams{};
         /// @brief Number of commands allocated so far.
         size_t cpuCmdCount = 0;
-
-        /// @brief Internal sprite data output buffer.
-        D3D12Resource internalSpriteOutBuffer;
-        /// @brief Internal sprite data output buffer UAV (offline).
-        DescriptorRange internalSpriteOutUAV;
 
         /// @brief Internal OIT fragments list heads buffer.
         D3D12Resource oitListHeadsBuffer;
@@ -714,11 +765,7 @@ struct Direct3D12VDPRenderer::Impl {
 
         // ---------------------------------------------------------------------
 
-        struct DeleteQueues {
-            std::vector<DescriptorRange> offlineDescs;
-            std::vector<DescriptorRange> onlineDescs;
-            std::vector<D3D12Resource> resources;
-        } deleteQueues;
+        DeleteQueues deleteQueues;
 
         void Reset() {
             cmdAlloc->Reset();
@@ -785,10 +832,10 @@ struct Direct3D12VDPRenderer::Impl {
             nextFrame.Reset();
 
             // Free all resources pending for deletion from the frame
-            for (DescriptorRange &range : nextFrame.deleteQueues.offlineDescs) {
+            for (DescToDelete &range : nextFrame.deleteQueues.offlineDescs) {
                 offlineHeapAlloc.Free(range.baseIndex, range.count);
             }
-            for (DescriptorRange &range : nextFrame.deleteQueues.onlineDescs) {
+            for (DescToDelete &range : nextFrame.deleteQueues.onlineDescs) {
                 onlineHeapAlloc.Free(range.baseIndex, range.count);
             }
             nextFrame.deleteQueues.offlineDescs.clear();
@@ -953,22 +1000,31 @@ struct Direct3D12VDPRenderer::Impl {
             flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         }
 
-        auto builder = buffer.BufferBuilder(size);
-        builder.Flags(flags);
-        if (HRESULT hr = builder.BuildCommitted(device); FAILED(hr)) {
+        FrameContext &currFrame = frames.GetCurrentFrame();
+
+        wil::com_ptr_nothrow<ID3D12Resource> oldResource = buffer.GetPointer();
+        if (HRESULT hr = buffer.BufferBuilder(size).Flags(flags).BuildCommitted(device); FAILED(hr)) {
             return util::ErrorMessage{fmt::format("Could not create {} buffer \"{}\", error code {:X}", bufferTypeName,
                                                   spec.bufferSpec.name, (uint32)hr)};
         }
         buffer->SetName(util::StringToWString(spec.bufferSpec.name).c_str());
+        if (oldResource != nullptr) {
+            currFrame.deleteQueues.resources.push_back(oldResource);
+            barrierTracker.DeleteBuffer(oldResource.get());
+        }
 
         const DXGI_FORMAT format = raw         ? DXGI_FORMAT_R32_TYPELESS
                                    : primitive ? spec.primitive.format
                                                : DXGI_FORMAT_UNKNOWN;
 
         if (spec.bufferSpec.srv != nullptr) {
+            DescToDelete descToDelete{*spec.bufferSpec.srv};
             if (!offlineHeapAlloc.Allocate(*spec.bufferSpec.srv)) {
                 return util::ErrorMessage{
                     fmt::format("Could not allocate {} buffer \"{}\" SRV", bufferTypeName, spec.bufferSpec.name)};
+            }
+            if (descToDelete.count > 0) {
+                currFrame.deleteQueues.offlineDescs.push_back(descToDelete);
             }
             const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{
                 .Format = format,
@@ -985,9 +1041,13 @@ struct Direct3D12VDPRenderer::Impl {
             device->CreateShaderResourceView(buffer.GetPointer(), &srvDesc, spec.bufferSpec.srv->cpuHandle);
         }
         if (spec.bufferSpec.uav != nullptr) {
+            DescToDelete descToDelete{*spec.bufferSpec.uav};
             if (!offlineHeapAlloc.Allocate(*spec.bufferSpec.uav)) {
                 return util::ErrorMessage{
                     fmt::format("Could not allocate {} buffer \"{}\" UAV", bufferTypeName, spec.bufferSpec.name)};
+            }
+            if (descToDelete.count > 0) {
+                currFrame.deleteQueues.offlineDescs.push_back(descToDelete);
             }
             const D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{
                 .Format = format,
@@ -1094,18 +1154,27 @@ struct Direct3D12VDPRenderer::Impl {
             flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         }
 
-        auto builder = texture.Texture2DBuilder(width, height);
-        builder.Format(format);
-        builder.Flags(flags);
-        if (HRESULT hr = builder.BuildCommitted(device); FAILED(hr)) {
+        FrameContext &currFrame = frames.GetCurrentFrame();
+
+        wil::com_ptr_nothrow<ID3D12Resource> oldResource = texture.GetPointer();
+        if (HRESULT hr = texture.Texture2DBuilder(width, height).Format(format).Flags(flags).BuildCommitted(device);
+            FAILED(hr)) {
             return util::ErrorMessage{
                 fmt::format("Could not create 2D texture \"{}\", error code {:X}", spec.name, (uint32)hr)};
         }
         texture->SetName(util::StringToWString(spec.name).c_str());
+        if (oldResource != nullptr) {
+            currFrame.deleteQueues.resources.push_back(oldResource);
+            barrierTracker.DeleteTexture(oldResource.get());
+        }
 
         if (spec.srv != nullptr) {
+            DescToDelete descToDelete{*spec.srv};
             if (!offlineHeapAlloc.Allocate(*spec.srv)) {
                 return util::ErrorMessage{fmt::format("Could not allocate 2D texture \"{}\" SRV", spec.name)};
+            }
+            if (descToDelete.count > 0) {
+                currFrame.deleteQueues.offlineDescs.push_back(descToDelete);
             }
             const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{
                 .Format = format,
@@ -1123,8 +1192,12 @@ struct Direct3D12VDPRenderer::Impl {
         }
 
         if (spec.uav != nullptr) {
+            DescToDelete descToDelete{*spec.uav};
             if (!offlineHeapAlloc.Allocate(*spec.uav)) {
                 return util::ErrorMessage{fmt::format("Could not allocate 2D texture \"{}\" UAV", spec.name)};
+            }
+            if (descToDelete.count > 0) {
+                currFrame.deleteQueues.offlineDescs.push_back(descToDelete);
             }
             const D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{
                 .Format = format,
@@ -1157,18 +1230,28 @@ struct Direct3D12VDPRenderer::Impl {
             flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         }
 
-        auto builder = texture.Texture2DBuilder(width, height, arraySize);
-        builder.Format(format);
-        builder.Flags(flags);
-        if (HRESULT hr = builder.BuildCommitted(device); FAILED(hr)) {
+        FrameContext &currFrame = frames.GetCurrentFrame();
+
+        wil::com_ptr_nothrow<ID3D12Resource> oldResource = texture.GetPointer();
+        if (HRESULT hr =
+                texture.Texture2DBuilder(width, height, arraySize).Format(format).Flags(flags).BuildCommitted(device);
+            FAILED(hr)) {
             return util::ErrorMessage{
                 fmt::format("Could not create 2D texture array \"{}\", error code {:X}", spec.name, (uint32)hr)};
         }
         texture->SetName(util::StringToWString(spec.name).c_str());
+        if (oldResource != nullptr) {
+            currFrame.deleteQueues.resources.push_back(oldResource);
+            barrierTracker.DeleteTexture(oldResource.get());
+        }
 
         if (spec.srv != nullptr) {
+            DescToDelete descToDelete{*spec.srv};
             if (!offlineHeapAlloc.Allocate(*spec.srv)) {
                 return util::ErrorMessage{fmt::format("Could not allocate 2D texture array \"{}\" SRV", spec.name)};
+            }
+            if (descToDelete.count > 0) {
+                currFrame.deleteQueues.offlineDescs.push_back(descToDelete);
             }
             const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{
                 .Format = format,
@@ -1188,8 +1271,12 @@ struct Direct3D12VDPRenderer::Impl {
         }
 
         if (spec.uav != nullptr) {
+            DescToDelete descToDelete{*spec.uav};
             if (!offlineHeapAlloc.Allocate(*spec.uav)) {
                 return util::ErrorMessage{fmt::format("Could not allocate 2D texture array \"{}\" UAV", spec.name)};
+            }
+            if (descToDelete.count > 0) {
+                currFrame.deleteQueues.offlineDescs.push_back(descToDelete);
             }
             const D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{
                 .Format = format,
@@ -1241,7 +1328,7 @@ struct Direct3D12VDPRenderer::Impl {
         {
             D3D12_DESCRIPTOR_HEAP_DESC desc{
                 .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                .NumDescriptors = 256 * kNumFrames,
+                .NumDescriptors = 1024 + 1024 * kNumFrames,
                 .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
             };
             if (HRESULT hr = resourceHeap.Create(device, desc); FAILED(hr)) {
@@ -1252,7 +1339,7 @@ struct Direct3D12VDPRenderer::Impl {
             resourceHeapAlloc.Bind(resourceHeap);
 
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            desc.NumDescriptors = 128 * kNumFrames;
+            desc.NumDescriptors = 512 + 512 * kNumFrames;
             if (HRESULT hr = offlineHeap.Create(device, desc); FAILED(hr)) {
                 return util::ErrorMessage{
                     fmt::format("Could not create VDP renderer offline CBV/SRV/UAV heap, error code {:X}", (uint32)hr)};
@@ -1357,6 +1444,26 @@ struct Direct3D12VDPRenderer::Impl {
                     fmt::format("Could not map VDP1 FBRAM download buffer, error code {:X}", (uint32)hr)};
             }
         }
+
+        // Internal sprite data output buffer
+        if (auto result = CreateStructuredBuffer<HLSLuint>( //
+                vdp1.internalSpriteOutBuffer,
+                // Each entry in this buffer represents a logical output pixel.
+                // Entries are 32-bit, holding the sprite data in the 8 or 16 LSBs and the span index in the 16
+                // MSBs to enable parallel rendering with guaranteed pixel ordering.
+                // *2 for deinterlace alternate field
+                // *2 for transparent mesh buffer
+                kVDP1FBRAMSize * 2 * 2,
+                {
+                    .uav = &vdp1.internalSpriteOutUAV,
+                    .name = "[Ymir-VDP1] Internal sprite data output buffer",
+                });
+            !result) {
+            return result;
+        }
+        barrierTracker.InitializeBuffer(vdp1.internalSpriteOutBuffer.GetPointer(),
+                                        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_BARRIER_SYNC_COMPUTE_SHADING,
+                                        D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
 
         // -------------------------------------------------------------------------------------------------------------
         // Shaders and root signatures
@@ -1523,26 +1630,6 @@ struct Direct3D12VDPRenderer::Impl {
                                             D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
                                             D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
 
-            // Internal sprite data output buffer
-            if (auto result = CreateStructuredBuffer<HLSLuint>(
-                    frameCtx.internalSpriteOutBuffer,
-                    // Each entry in this buffer represents a logical output pixel.
-                    // Entries are 32-bit, holding the sprite data in the 8 or 16 LSBs and the span index in the 16
-                    // MSBsto enable parallel rendering with guaranteed pixel ordering.
-                    // *2 for deinterlace alternate field
-                    // *2 for transparent mesh buffer
-                    kVDP1FBRAMSize * 2 * 2,
-                    {
-                        .uav = &frameCtx.internalSpriteOutUAV,
-                        .name = fmt::format("[Ymir-VDP1] Internal sprite data output buffer #{}", i),
-                    });
-                !result) {
-                return result;
-            }
-            barrierTracker.InitializeBuffer(frameCtx.internalSpriteOutBuffer.GetPointer(),
-                                            D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_BARRIER_SYNC_COMPUTE_SHADING,
-                                            D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
-
             // OIT fragments list heads buffer
             if (auto result = CreateStructuredBuffer<HLSLuint>(
                     frameCtx.oitListHeadsBuffer,
@@ -1617,7 +1704,7 @@ struct Direct3D12VDPRenderer::Impl {
 
             // Polygon drawing descriptors (Copy and Shift variants)
             frameCtx.polyDrawDescs.Bind(&frameCtx.spanParamsSRV, &frameCtx.spanPrefixSumsSRV, &frameCtx.cmdParamsSRV,
-                                        &vdp1.vramSRV, &frameCtx.internalSpriteOutUAV);
+                                        &vdp1.vramSRV, &vdp1.internalSpriteOutUAV);
             if (!frameCtx.polyDrawDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
                 return util::ErrorMessage{fmt::format("Could not allocate VDP1 polygon drawing descriptors #{}", i)};
             }
@@ -1651,7 +1738,7 @@ struct Direct3D12VDPRenderer::Impl {
                     return result;
                 }
             }
-            frameCtx.outputMergerDescs.Bind(&vdp1.fbramUAV, &frameCtx.internalSpriteOutUAV);
+            frameCtx.outputMergerDescs.Bind(&vdp1.fbramUAV, &vdp1.internalSpriteOutUAV);
             if (!frameCtx.outputMergerDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
                 return util::ErrorMessage{fmt::format("Could not allocate VDP1 output merger descriptors #{}", i)};
             }
@@ -2055,12 +2142,241 @@ struct Direct3D12VDPRenderer::Impl {
         return {};
     }
 
-    void UpdateEnhancements() {
-        VDP1CommonRenderParams &params1 = vdp1.cpuCommonRenderParams;
-        params1.enhancements.deinterlace = enhancements.deinterlace;
-        params1.enhancements.transparentMeshes = enhancements.transparentMeshes;
+    /// @brief Updates the current scaled resolution, updating enhancement settings if necessary.
+    void UpdateResolutionScaling() {
+        resScale.params.enabled = enhancements.scaleResolution;
+        if (!resScale.params.enabled) {
+            // Internal resolution scaling is disabled.
+            // Use current/maximum display resolution.
+            resScale.desired = {kMaxResH, kMaxResV};
+            resScale.display = {HRes, VRes};
+            return;
+        }
 
-        vdp2.cpuCommonRenderParams.enhancements = params1.enhancements;
+        // At this point, internal resolution scaling is enabled
+
+        // Rate-limit resolution updates
+        using namespace std::chrono_literals;
+        const auto now = std::chrono::steady_clock::now();
+        const bool update = now >= resScale.nextUpdate;
+        if (update) {
+            static constexpr auto kUpdateInterval = 100ms;
+            resScale.nextUpdate = now + kUpdateInterval;
+        }
+
+        resScale.params.scaleToTargetRes = enhancements.scaleToTargetResolution;
+        if (resScale.params.scaleToTargetRes) {
+            // Scale internal resolution to target resolution
+            if (update) {
+                resScale.params.width = enhancements.scaleResTargetWidth;
+                resScale.params.height = enhancements.scaleResTargetHeight;
+            }
+            resScale.desired = {
+                std::clamp(resScale.params.width, kMaxResH, kMaxScaledResH),
+                std::clamp(resScale.params.height, kMaxResV, kMaxScaledResV),
+            };
+            resScale.display = {
+                std::clamp(resScale.params.width, HRes, kMaxScaledResH),
+                std::clamp(resScale.params.height, VRes, kMaxScaledResV),
+            };
+        } else {
+            // Scale internal resolution by a static factor
+            if (update) {
+                resScale.params.factor =
+                    std::clamp(enhancements.scaleResFactor, kMinResScaleFactor, kMaxResScaleFactor);
+            }
+
+            // Normalize hi-res dimensions back to normal res before applying scaling
+            const uint32 factor = resScale.params.factor;
+            const uint32 hres = HRes > kMaxNormalResH ? (HRes >> 1u) : HRes;
+            const uint32 vres = VRes > kMaxNormalResV ? (VRes >> 1u) : VRes;
+            resScale.desired = {
+                std::clamp(kMaxNormalResH * factor, kMaxResH, kMaxScaledResH),
+                std::clamp(kMaxNormalResV * factor, kMaxResV, kMaxScaledResV),
+            };
+            resScale.display = {
+                std::min(hres * factor, kMaxScaledResH),
+                std::min(vres * factor, kMaxScaledResV),
+            };
+        }
+    }
+
+    [[nodiscard]] util::VoidResult<> RecreateScaledObjects() {
+        if (resScale.current == resScale.desired) {
+            // No need to recreate objects, already at the target resolution
+            return {};
+        }
+        resScale.current = resScale.desired;
+
+        // TODO: scaled VDP1 command and span lists need to be tracked separately on the CPU side, but can reuse the
+        // same span and command buffers. VDP1 will always have to render at normal resolution in addition to the
+        // enhanced/scaled version regardless of resolution scaling because of visible FBRAM effects
+
+        // Recreate all objects whose size depend on resolution scaling
+        FrameContext &currFrame = frames.GetCurrentFrame();
+
+        const auto [width, height] = resScale.current;
+
+        uint64 fbSize = kVDP1FBRAMSize;
+        if (resScale.params.enabled) {
+            if (resScale.params.scaleToTargetRes) {
+                fbSize = fbSize * resScale.display.width * resScale.display.height;
+                fbSize = (fbSize + HRes - 1) / HRes;
+                fbSize = (fbSize + VRes - 1) / VRes;
+            } else {
+                // This overshoots the target size at higher scaling factors, but saves the trouble of properly
+                // computing the scaling factor based on the current resolution
+                fbSize = fbSize * resScale.params.factor * resScale.params.factor;
+            }
+        }
+
+        // VDP1 FBRAM buffer
+        if (resScale.params.enabled) {
+            if (auto result = CreateRawBuffer(vdp1.fbramScaledBuffer,
+                                              // kVDP1FBRAMSize is the size of a single framebuffer.
+                                              // *2 for the the two framebuffers in VDP1 FBRAM.
+                                              // *2 for deinterlace alternate field buffers.
+                                              // *2 for transparent mesh buffers.
+                                              fbSize * 2 * 2 * 2,
+                                              {
+
+                                                  .srv = &vdp1.fbramScaledSRV,
+                                                  .uav = &vdp1.fbramScaledUAV,
+                                                  .name = "[Ymir-VDP1] Scaled FBRAM buffer",
+                                              });
+                !result) {
+                return result;
+            }
+            barrierTracker.InitializeBuffer(vdp1.fbramScaledBuffer.GetPointer(),
+                                            D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+                                            D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
+        } else {
+            currFrame.deleteQueues.resources.push_back(vdp1.fbramScaledBuffer.GetPointer());
+            barrierTracker.DeleteBuffer(vdp1.fbramScaledBuffer.GetPointer());
+            offlineHeapAlloc.Free(vdp1.fbramScaledSRV.baseIndex, vdp1.fbramScaledSRV.count);
+            offlineHeapAlloc.Free(vdp1.fbramScaledUAV.baseIndex, vdp1.fbramScaledUAV.count);
+            vdp1.fbramScaledBuffer.Destroy();
+            vdp1.fbramScaledSRV.Reset();
+            vdp1.fbramScaledUAV.Reset();
+        }
+
+        // Composited VDP2 output texture
+        if (auto result = Create2DTexture(vdp2.compositeOutTexture, DXGI_FORMAT_R8G8B8A8_UNORM, width, height,
+                                          {
+                                              .uav = &vdp2.compositeOutUAV,
+                                              .name = "[Ymir-VDP2] Composited output texture",
+                                          });
+            !result) {
+            return result;
+        }
+
+        barrierTracker.InitializeTexture(vdp2.compositeOutTexture.GetPointer(), D3D12_RESOURCE_STATE_COMMON,
+                                         D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE,
+                                         D3D12_BARRIER_LAYOUT_COMMON);
+
+        // Internal sprite data output buffer
+        if (auto result = CreateStructuredBuffer<HLSLuint>( //
+                vdp1.internalSpriteOutBuffer,
+                // Each entry in this buffer represents a logical output pixel.
+                // Entries are 32-bit, holding the sprite data in the 8 or 16 LSBs and the span index in the 16
+                // MSBs to enable parallel rendering with guaranteed pixel ordering.
+                // *2 for deinterlace alternate field
+                // *2 for transparent mesh buffer
+                fbSize * 2 * 2,
+                {
+                    .uav = &vdp1.internalSpriteOutUAV,
+                    .name = "[Ymir-VDP1] Internal sprite data output buffer",
+                });
+            !result) {
+            return result;
+        }
+        barrierTracker.InitializeBuffer(vdp1.internalSpriteOutBuffer.GetPointer(),
+                                        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_BARRIER_SYNC_COMPUTE_SHADING,
+                                        D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
+
+        for (size_t i = 0; i < frames.Count(); ++i) {
+            FrameContext &frameCtx = frames.frames[i];
+
+            // VDP2 sprite attributes 2D texture array
+            if (auto result =
+                    Create2DTextureArray(frameCtx.spriteAttrsTexture, DXGI_FORMAT_R8_UINT, width, height, 2,
+                                         {
+                                             .srv = &frameCtx.spriteAttrsSRV,
+                                             .uav = &frameCtx.spriteAttrsUAV,
+                                             .name = fmt::format("[Ymir-VDP2] Sprite attributes texture array #{}", i),
+                                         });
+                !result) {
+                return result;
+            }
+            barrierTracker.InitializeTexture(
+                frameCtx.spriteAttrsTexture.GetPointer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+                D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE, D3D12_BARRIER_LAYOUT_COMMON);
+
+            // Layer outputs 2D texture array
+            if (auto result =
+                    Create2DTextureArray(frameCtx.layerOutTexture, DXGI_FORMAT_R8G8B8A8_UINT, width, height,
+                                         // The array contains:
+                                         //   [0..3] NBG0-3
+                                         //   [4..5] RBG0-1
+                                         //      [6] Sprite
+                                         //      [7] Transparent meshes
+                                         // The alpha channel is used for pixel attributes:
+                                         //   [0..2] Priority
+                                         //      [6] Color format (0=RGB, 1=Palette)
+                                         //      [7] Special color calculation flag
+                                         4 + 2 + 1 + 1,
+                                         {
+                                             .srv = &frameCtx.layerOutSRV,
+                                             .uav = &frameCtx.layerOutUAV,
+                                             .name = fmt::format("[Ymir-VDP2] Layer outputs texture array #{}", i),
+                                         });
+                !result) {
+                return result;
+            }
+            barrierTracker.InitializeTexture(
+                frameCtx.layerOutTexture.GetPointer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+                D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE, D3D12_BARRIER_LAYOUT_COMMON);
+
+            // Recreate all affected online descriptor tables
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.eraseDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.polyDrawDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.polyDrawOITDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.polyDrawMSBDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.outputMergerDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.outputMergerOITDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.drawSpriteDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.drawBGsDescs.Descriptors()});
+            currFrame.deleteQueues.onlineDescs.push_back(DescToDelete{frameCtx.composeDescs.Descriptors()});
+            if (!frameCtx.eraseDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.polyDrawDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.polyDrawOITDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.polyDrawMSBDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.outputMergerDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.outputMergerOITDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.drawSpriteDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.drawBGsDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+            if (!frameCtx.composeDescs.Rebuild(device, resourceHeapAlloc, resourceHeap.GetHeapType())) {
+                YMIR_DEV_CHECK();
+            }
+        }
+
+        return {};
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -2515,7 +2831,7 @@ struct Direct3D12VDPRenderer::Impl {
                                         D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
         barrierTracker.TransitionBuffer(vdp1.vramBuffer.GetPointer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
                                         D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
-        barrierTracker.TransitionBuffer(frameCtx.internalSpriteOutBuffer.GetPointer(),
+        barrierTracker.TransitionBuffer(vdp1.internalSpriteOutBuffer.GetPointer(),
                                         D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_BARRIER_SYNC_COMPUTE_SHADING,
                                         D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
 
@@ -2576,7 +2892,7 @@ struct Direct3D12VDPRenderer::Impl {
             }
             barrierTracker.TransitionBuffer(vdp1.fbramBuffer.GetPointer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                                             D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
-            barrierTracker.UAVBuffer(frameCtx.internalSpriteOutBuffer.GetPointer());
+            barrierTracker.UAVBuffer(vdp1.internalSpriteOutBuffer.GetPointer());
             barrierTracker.Flush(cmdList);
 
             // Set up parameters
@@ -2618,6 +2934,8 @@ struct Direct3D12VDPRenderer::Impl {
         displayParams.dblInterlaceDrawLine = regs1.dblInterlaceDrawLine;
         displayParams.evenOddCoordSelect = regs1.evenOddCoordSelect;
         displayParams.drawFB = vdpState.fbIndex.draw;
+        displayParams.hresMode = regs2.TVMD.HRESOn;
+        displayParams.vresMode = regs2.TVMD.VRESOn;
     }
 
     void VDP1SelectPolyDrawShader(VDP1Command::DrawMode mode) {
@@ -4192,6 +4510,12 @@ struct Direct3D12VDPRenderer::Impl {
         vdp2.nextLayerRenderLine = 0;
         vdp2.nextComposeLine = 0;
 
+        // Notify frontend of the start of a new frame
+        const Dimensions nativeRes = {HRes, VRes};
+        hwCallbacks.FrameBegin(nativeRes);
+
+        UpdateFrameParameters();
+
         VDP2CalcAccessPatterns();
         VDP2InitNBGs();
 
@@ -4394,8 +4718,13 @@ struct Direct3D12VDPRenderer::Impl {
 
         // Request a frame from the frontend
         // TODO: consider adding support for GPU waits
+        ID3D12Fence *fencePtr = computeFence.GetPointer();
+        const UINT64 fenceValue = frames.GetNextFenceValue();
+        const Dimensions requestedSize = resScale.current;
+        const Dimensions renderArea = resScale.display;
+        const Dimensions nativeRes = {HRes, VRes};
         ID3D12Resource *copyTarget =
-            hwCallbacks.FrameCopyRequest(computeFence.GetPointer(), frames.GetNextFenceValue(), HRes, VRes);
+            hwCallbacks.FrameCopyRequest(fencePtr, fenceValue, requestedSize, renderArea, nativeRes);
         if (copyTarget != nullptr) {
             // Transition composited output texture to copy source
             barrierTracker.TransitionTexture(vdp2.compositeOutTexture.GetPointer(), D3D12_RESOURCE_STATE_COPY_SOURCE,
@@ -4444,6 +4773,24 @@ struct Direct3D12VDPRenderer::Impl {
         ID3D12DescriptorHeap *heaps[] = {resourceHeap.GetPointer()};
         cmdList->Reset(nextFrame.cmdAlloc.GetPointer(), nullptr);
         cmdList->SetDescriptorHeaps(std::size(heaps), heaps);
+    }
+
+    void UpdateFrameParameters() {
+        UpdateResolutionScaling();
+
+        EnhancementsParams &enh1 = vdp1.cpuCommonRenderParams.enhancements;
+        enh1.deinterlace = enhancements.deinterlace;
+        enh1.transparentMeshes = enhancements.transparentMeshes;
+        enh1.scaleResolution = enhancements.scaleResolution;
+        enh1.scaleResTargetWidth = resScale.display.width - 1u;
+        enh1.scaleResTargetHeight = resScale.display.height - 1u;
+
+        vdp2.cpuCommonRenderParams.enhancements = enh1;
+
+        if (auto result = RecreateScaledObjects(); !result) {
+            devlog::warn<grp::dx12_base>("Failed to recreate scaled objects: {}", result.Error().message);
+            YMIR_DEV_CHECK();
+        }
     }
 
     /// @brief Submits the command list as is and restarts it in the same frame.
@@ -4496,13 +4843,6 @@ Direct3D12VDPRenderer::Create(VDPState &state, const config::VDP2DebugRender &vd
         return result.Error();
     }
     return renderer;
-}
-
-// -----------------------------------------------------------------------------
-// Configuration
-
-void Direct3D12VDPRenderer::UpdateEnhancements() {
-    m_impl->UpdateEnhancements();
 }
 
 // -----------------------------------------------------------------------------

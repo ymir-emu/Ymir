@@ -292,6 +292,46 @@ namespace settings::video {
                 "When enabled, meshes (checkerboard patterns) will be rendered as transparent polygons instead.");
         }
 
+        void ResolutionScaling(SharedContext &ctx) {
+            using namespace app::config_defaults::video;
+            auto &settings = ctx.serviceLocator.GetRequired<Settings>();
+            auto &videoSettings = settings.video;
+
+            bool resolutionScaling = videoSettings.enhancements.resolutionScaling.Get();
+            if (settings.MakeDirty(ImGui::Checkbox("Internal resolution scaling", &resolutionScaling))) {
+                videoSettings.enhancements.resolutionScaling = resolutionScaling;
+            }
+            widgets::ExplanationTooltip(
+                "When enabled, the emulator will render VDP1 and VDP2 graphics at an increased resolution.");
+            if (!videoSettings.useHardwareAcceleration) {
+                widgets::WarningTooltip("Requires hardware-accelerated VDP1/VDP2 rendering to work.");
+            }
+
+            ImGui::Indent();
+            {
+                bool nativeRes = videoSettings.enhancements.resScaleToDisplaySize.Get();
+                if (settings.MakeDirty(ImGui::Checkbox("Scale to native resolution", &nativeRes))) {
+                    videoSettings.enhancements.resScaleToDisplaySize = nativeRes;
+                }
+                widgets::ExplanationTooltip("When enabled, the VDP2 framebuffer will be scaled to match the display "
+                                            "size in the user interface.\n"
+                                            "Overrides the resolution factor option below if enabled.");
+
+                uint32 scaleFactor = videoSettings.enhancements.resScaleFactor;
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted("Resolution factor:");
+                if (nativeRes) {
+                    widgets::WarningTooltip("Overridden by the \"Scale to native resolution\" option above.");
+                }
+                ImGui::SameLine();
+                if (ImGui::SliderScalar("##res_factor", ImGuiDataType_U32, &scaleFactor, &vdp::kMinResScaleFactor,
+                                        &vdp::kMaxResScaleFactor, "%ux", ImGuiSliderFlags_AlwaysClamp)) {
+                    videoSettings.enhancements.resScaleFactor = scaleFactor;
+                }
+            }
+            ImGui::Unindent();
+        }
+
     } // namespace enhancements
 
 } // namespace settings::video
