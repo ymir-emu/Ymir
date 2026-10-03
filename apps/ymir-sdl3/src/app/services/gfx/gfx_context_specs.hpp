@@ -11,7 +11,7 @@
 #endif
 
 #if YMIR_PLATFORM_HAS_VULKAN
-// #include "gfx_context_spec_vulkan.hpp"
+    #include "gfx_context_spec_vulkan.hpp"
 #endif
 
 #if YMIR_PLATFORM_HAS_METAL
