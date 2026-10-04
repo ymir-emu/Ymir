@@ -2208,10 +2208,6 @@ struct Direct3D12VDPRenderer::Impl {
         }
         resScale.current = resScale.desired;
 
-        // TODO: scaled VDP1 command and span lists need to be tracked separately on the CPU side, but can reuse the
-        // same span and command buffers. VDP1 will always have to render at normal resolution in addition to the
-        // enhanced/scaled version regardless of resolution scaling because of visible FBRAM effects
-
         // Recreate all objects whose size depend on resolution scaling
         FrameContext &currFrame = frames.GetCurrentFrame();
 
@@ -2260,20 +2256,6 @@ struct Direct3D12VDPRenderer::Impl {
             vdp1.fbramScaledUAV.Reset();
         }
 
-        // Composited VDP2 output texture
-        if (auto result = Create2DTexture(vdp2.compositeOutTexture, DXGI_FORMAT_R8G8B8A8_UNORM, width, height,
-                                          {
-                                              .uav = &vdp2.compositeOutUAV,
-                                              .name = "[Ymir-VDP2] Composited output texture",
-                                          });
-            !result) {
-            return result;
-        }
-
-        barrierTracker.InitializeTexture(vdp2.compositeOutTexture.GetPointer(), D3D12_RESOURCE_STATE_COMMON,
-                                         D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE,
-                                         D3D12_BARRIER_LAYOUT_COMMON);
-
         // Internal sprite data output buffer
         if (auto result = CreateStructuredBuffer<HLSLuint>( //
                 vdp1.internalSpriteOutBuffer,
@@ -2293,6 +2275,20 @@ struct Direct3D12VDPRenderer::Impl {
         barrierTracker.InitializeBuffer(vdp1.internalSpriteOutBuffer.GetPointer(),
                                         D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_BARRIER_SYNC_COMPUTE_SHADING,
                                         D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
+
+        // Composited VDP2 output texture
+        if (auto result = Create2DTexture(vdp2.compositeOutTexture, DXGI_FORMAT_R8G8B8A8_UNORM, width, height,
+                                          {
+                                              .uav = &vdp2.compositeOutUAV,
+                                              .name = "[Ymir-VDP2] Composited output texture",
+                                          });
+            !result) {
+            return result;
+        }
+
+        barrierTracker.InitializeTexture(vdp2.compositeOutTexture.GetPointer(), D3D12_RESOURCE_STATE_COMMON,
+                                         D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE,
+                                         D3D12_BARRIER_LAYOUT_COMMON);
 
         for (size_t i = 0; i < frames.Count(); ++i) {
             FrameContext &frameCtx = frames.frames[i];
@@ -2335,6 +2331,29 @@ struct Direct3D12VDPRenderer::Impl {
             }
             barrierTracker.InitializeTexture(
                 frameCtx.layerOutTexture.GetPointer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+                D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE, D3D12_BARRIER_LAYOUT_COMMON);
+
+            // RBG0-1 line color outputs 2D texture array
+            uint32 rbgLnclWidth, rbgLnclHeight;
+            if (resScale.params.enabled) {
+                rbgLnclWidth = width;
+                rbgLnclHeight = height;
+            } else {
+                rbgLnclWidth = kMaxNormalResH;
+                rbgLnclHeight = kMaxNormalResV;
+            }
+            if (auto result = Create2DTextureArray(
+                    frameCtx.rbgLineColorOutTexture, DXGI_FORMAT_R8G8B8A8_UINT, width, height, 2,
+                    {
+                        .srv = &frameCtx.rbgLineColorOutSRV,
+                        .uav = &frameCtx.rbgLineColorOutUAV,
+                        .name = fmt::format("[Ymir-VDP2] RBG line color outputs texture array #{}", i),
+                    });
+                !result) {
+                return result;
+            }
+            barrierTracker.InitializeTexture(
+                frameCtx.rbgLineColorOutTexture.GetPointer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
                 D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE, D3D12_BARRIER_LAYOUT_COMMON);
 
             // Recreate all affected online descriptor tables
@@ -2744,6 +2763,10 @@ struct Direct3D12VDPRenderer::Impl {
     };
 
     util::ValueResult<bool> VDP1SubmitSpans() {
+        // TODO: scaled VDP1 command and span lists need to be tracked separately on the CPU side, but can reuse the
+        // same span and command buffers. VDP1 will always have to render at normal resolution in addition to the
+        // enhanced/scaled version regardless of resolution scaling because of visible FBRAM effects
+
         FrameContext &frameCtx = frames.GetCurrentFrame();
         if (frameCtx.cpuSpanCount == 0) {
             // No spans to dispatch

@@ -939,6 +939,8 @@ void App::RunEmulator() {
     const gfx::GUITextureHandle dispTexture = dispTextureResult.Value();
 
     auto renderDispTexture = [&](double targetWidth, double targetHeight) {
+        assert(m_graphicsService.IsTextureHandleValid(dispTexture));
+
         auto &videoSettings = settings.video;
         const bool forceAspectRatio = videoSettings.forceAspectRatio;
         // TODO(disp): use targetWidth/Height directly, no maths needed here
@@ -955,9 +957,6 @@ void App::RunEmulator() {
             videoSettings.enhancements.resScaleToDisplaySize) {
             UpdateResolutionScaling();
         }
-
-        assert(m_graphicsService.IsTextureHandleValid(dispTexture));
-        assert(m_graphicsService.IsTextureHandleValid(swFbTexture));
 
         // Recreate render target texture if scale or dimensions changed
         if (screen.fbScale != scale || screen.currOutputWidth != screen.targetOutputWidth ||
@@ -979,6 +978,13 @@ void App::RunEmulator() {
             if (hwFbTexture) {
                 screen.SetResolution(hwFbTexture->renderWidth, hwFbTexture->renderHeight);
 
+                // TODO(disp): rework screen layout, scaling, etc.
+                // - renderer is the source of truth
+                // - frames must include the dimensions
+                //   - same applies to software renderer frames
+                // - there must be one source of truth for the screen layout
+                // TODO(disp): fbScale should be computed at this point
+
                 const gfx::TextureID dispTextureID = m_graphicsService.GetTextureID(dispTexture);
                 gfx::FRect srcRect{.x = 0.0f, .y = 0.0f, .w = (float)screen.width, .h = (float)screen.height};
                 gfx::FRect dstRect{.x = 0.0f,
@@ -989,6 +995,8 @@ void App::RunEmulator() {
                 gfxCtx.ReleaseCurrentDisplayOutputTexture();
             }
         } else {
+            assert(m_graphicsService.IsTextureHandleValid(swFbTexture));
+
             gfx::FRect srcRect{.x = 0.0f, .y = 0.0f, .w = (float)screen.width, .h = (float)screen.height};
             gfx::FRect dstRect{.x = 0.0f,
                                .y = 0.0f,
