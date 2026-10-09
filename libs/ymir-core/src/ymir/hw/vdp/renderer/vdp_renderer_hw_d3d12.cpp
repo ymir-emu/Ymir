@@ -25,6 +25,7 @@
 #include <ymir/util/dev_assert.hpp>
 #include <ymir/util/dev_log.hpp>
 #include <ymir/util/dirty_bitmap.hpp>
+#include <ymir/util/inline.hpp>
 #include <ymir/util/scope_guard.hpp>
 #include <ymir/util/string.hpp>
 
@@ -909,7 +910,7 @@ struct Direct3D12VDPRenderer::Impl {
             return util::ErrorMessage{
                 fmt::format("Could not build root signature \"{}\", error code {:X}", spec.name, (uint32)hr)};
         }
-        vdp1.fbramWriteRootSig->SetName(util::StringToWString(spec.name).c_str());
+        rootSig->SetName(util::StringToWString(spec.name).c_str());
         return {};
     }
 
@@ -940,7 +941,7 @@ struct Direct3D12VDPRenderer::Impl {
             return util::ErrorMessage{
                 fmt::format("Could not build pipeline state object \"{}\", error code {:X}", name, (uint32)hr)};
         }
-        vdp1.fbramWritePSO->SetName(util::StringToWString(name).c_str());
+        pso->SetName(util::StringToWString(name).c_str());
         return {};
     }
 
@@ -2084,6 +2085,36 @@ struct Direct3D12VDPRenderer::Impl {
         }
         auto file = g_fsShaders.open(path);
         return std::vector<char>{file.begin(), file.end()};
+    }
+
+    template <std::integral T>
+    FORCE_INLINE T ScaleUpFloor(T value, T num, T den) const {
+        return (value * num) / den;
+    }
+
+    template <std::integral T>
+    FORCE_INLINE T ScaleUpCeil(T value, T num, T den) const {
+        return (value * num + num - 1) / den;
+    }
+
+    template <std::integral T>
+    FORCE_INLINE T HScaleUpFloor(T value) const {
+        return ScaleUpFloor(value, resScale.display.width, HRes);
+    }
+
+    template <std::integral T>
+    FORCE_INLINE T HScaleUpCeil(T value) const {
+        return ScaleUpCeil(value, resScale.display.width, HRes);
+    }
+
+    template <std::integral T>
+    FORCE_INLINE T VScaleUpFloor(T value) const {
+        return ScaleUpFloor(value, resScale.display.height, VRes);
+    }
+
+    template <std::integral T>
+    FORCE_INLINE T VScaleUpCeil(T value) const {
+        return ScaleUpCeil(value, resScale.display.height, VRes);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -4575,6 +4606,9 @@ struct Direct3D12VDPRenderer::Impl {
         // Determine how many lines to draw and update next scanline counter
         const uint32 baseNumLines = y - startY + 1;
         const uint32 numLines = baseNumLines << yShift;
+        const uint32 baseNumScaledLines =
+            resScale.params.enabled ? VScaleUpCeil(y) - VScaleUpFloor(startY) + 1 : baseNumLines;
+        const uint32 numScaledLines = baseNumScaledLines << yShift;
         vdp2.nextLayerRenderLine = y + 1;
 
         vdp2.cpuCommonRenderParams.startY = startY << yShift;
@@ -4620,7 +4654,7 @@ struct Direct3D12VDPRenderer::Impl {
         cmdList->SetComputeRoot32BitConstants(0, sizeof(vdp2.cpuCommonRenderParams) / sizeof(uint32),
                                               &vdp2.cpuCommonRenderParams, 0);
         cmdList->SetComputeRootDescriptorTable(1, frameCtx.drawSpriteDescs.GetGPUHandle());
-        cmdList->Dispatch((HRes + 31) / 32, numLines, enhancements.transparentMeshes ? 2 : 1);
+        cmdList->Dispatch((resScale.display.width + 31) / 32, numScaledLines, enhancements.transparentMeshes ? 2 : 1);
 
         // ---------------------------------------------------------------------
 
@@ -4653,7 +4687,7 @@ struct Direct3D12VDPRenderer::Impl {
         cmdList->SetComputeRoot32BitConstants(0, sizeof(vdp2.cpuCommonRenderParams) / sizeof(uint32),
                                               &vdp2.cpuCommonRenderParams, 0);
         cmdList->SetComputeRootDescriptorTable(1, frameCtx.drawBGsDescs.GetGPUHandle());
-        cmdList->Dispatch(HRes / 32, numLines, 1);
+        cmdList->Dispatch((resScale.display.width + 31) / 32, numScaledLines, 1);
     }
 
     void VDP2ComposeLines(uint32 y) {
@@ -4700,7 +4734,7 @@ struct Direct3D12VDPRenderer::Impl {
         cmdList->SetComputeRoot32BitConstants(0, sizeof(vdp2.cpuCommonRenderParams) / sizeof(uint32),
                                               &vdp2.cpuCommonRenderParams, 0);
         cmdList->SetComputeRootDescriptorTable(1, frameCtx.composeDescs.GetGPUHandle());
-        cmdList->Dispatch((HRes + 31) / 32, numLines, 1);
+        cmdList->Dispatch((resScale.display.width + 31) / 32, VScaleUpCeil(numLines), 1);
     }
 
     void VDP2RenderLine(uint32 y) {

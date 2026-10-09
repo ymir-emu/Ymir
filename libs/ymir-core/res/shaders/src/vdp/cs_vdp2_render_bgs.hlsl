@@ -42,6 +42,7 @@ static const uint coeffDataAccess = BitExtract(g_commonParams.rotParams, 1, 4);
 static const bool coeffDataPerDot = BitTest(g_commonParams.rotParams, 5);
 
 static const bool deinterlace = BitTest(g_commonParams.enhancements, 0);
+static const bool scaleResolution = BitTest(g_commonParams.enhancements, 6);
 
 static const uint colorRAMMode = BitExtract(g_commonParams.displayParams, 6, 2);
 static const uint kCRAMAddressMask = colorRAMMode == 1 ? 0x7FF : 0x3FF;
@@ -1121,8 +1122,25 @@ bool InsideColorCalcWindow(uint2 pos) {
 
 [numthreads(32, 1, 7)]
 void CSMain(uint3 id : SV_DispatchThreadID) {
-    const uint2 drawCoord = uint2(id.x, id.y + g_commonParams.startY);
+    uint startY = g_commonParams.startY;
+    if (scaleResolution) {
+        const uint targetResV = BitExtract(g_commonParams.enhancements, 20, 12) + 1;
+        startY = startY * targetResV / displayRes.y;
+    }
+    float2 drawCoord = uint2(id.x, id.y + startY);
     const uint3 outCoord = uint3(drawCoord.x, GetY(drawCoord.y, false), id.z);
+    if (scaleResolution) {
+        const uint2 targetRes = uint2(
+            BitExtract(g_commonParams.enhancements, 7, 13) + 1,
+            BitExtract(g_commonParams.enhancements, 20, 12) + 1
+        );
+        drawCoord = drawCoord * displayRes / targetRes;
+        // TODO: consume float coordinates where applicable
+    }
+    if (any(drawCoord >= displayRes)) {
+        // Skip out of bounds pixels
+        return;
+    }
     if (id.z <= 3) {
         g_layerOut[outCoord] = DrawNBG(drawCoord, id.z);
     } else if (id.z <= 5) {
