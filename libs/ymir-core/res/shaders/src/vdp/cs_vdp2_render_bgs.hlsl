@@ -51,9 +51,9 @@ static const uint kCRAMAddressMask = colorRAMMode == 1 ? 0x7FF : 0x3FF;
 // ---------------------------------------------------------------------------------------------------------------------
 // Utilities
 
-uint GetInputY(uint y) {
+uint GetInputY(float y) {
     if (!deinterlace && interlaceMode >= kInterlaceModeDoubleDensity && !exclusiveMonitor) {
-        return (y << 1u) | oddField;
+        return y * 2 + oddField;
     } else {
         return y;
     }
@@ -395,7 +395,7 @@ RotCoefficient ReadRotCoefficient(const uint coeffDataSize, const uint coeffData
 // ---------------------------------------------------------------------------------------------------------------------
 // Rotation parameter calculation
 
-uint2 CalcRotationScreenCoords(uint2 pos, uint index) {
+uint2 CalcRotationScreenCoords(float2 pos, uint index) {
     const RotParamBase base = g_rotParamBases[index * kMaxNormalResV + pos.y];
     const uint coeffParamsOffset = 6 + index * 5;
     const bool coeffTableEnable = BitTest(g_commonParams.rotParams, coeffParamsOffset + 0);
@@ -486,7 +486,7 @@ uint2 CalcRotationScreenCoords(uint2 pos, uint index) {
     );
 }
 
-RotCoefficient CalcRotationCoefficient(uint2 pos, uint index) {
+RotCoefficient CalcRotationCoefficient(float2 pos, uint index) {
     const RotParamBase base = g_rotParamBases[index * kMaxNormalResV + pos.y];
     const uint coeffParamsOffset = 6 + index * 5;
     const bool coeffTableEnable = BitTest(g_commonParams.rotParams, coeffParamsOffset + 0);
@@ -798,7 +798,7 @@ uint4 FetchScrollRBGPixel(const BaseBGParams params, uint2 scrollPos, uint2 page
 // ---------------------------------------------------------------------------------------------------------------------
 // NBG drawing
 
-uint4 DrawNBG(uint2 pos, // pixel coordinates
+uint4 DrawNBG(float2 pos, // pixel coordinates
               uint index // NBG index (0 to 3)
              ) {
     const NBGParams params = g_layerRenderParams[0].nbg[index];
@@ -808,7 +808,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
 
     pos.y = GetInputY(pos.y);
     if (deinterlace && interlaceMode == kInterlaceModeSingleDensity) {
-        pos.y >>= 1;
+        pos.y *= 0.5;
     }
 
     if (InsideWindows(params.base.windowParams, pos)) {
@@ -851,7 +851,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
             lineScrollTableInc += 4;
         }
 
-        const uint baseTableAddr = lineScrollTableAddress + (pos.y >> lineScrollIntervalShift) * lineScrollTableInc;
+        const uint baseTableAddr = lineScrollTableAddress + (uint(pos.y) >> lineScrollIntervalShift) * lineScrollTableInc;
         if (lineScrollXEnable) {
             const uint tableAddr = baseTableAddr + lineScrollXOffset;
             baseFracScroll.x = BitExtract(Read32(g_vram, tableAddr), 8, 19);
@@ -859,7 +859,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
         if (lineScrollYEnable) {
             const uint tableAddr = baseTableAddr + lineScrollYOffset;
             baseFracScroll.y = BitExtract(Read32(g_vram, tableAddr), 8, 19);
-            pos.y &= (1u << lineScrollIntervalShift) - 1u; // reset cumulative scrollIncV increment
+            pos.y %= (1u << lineScrollIntervalShift); // reset cumulative scrollIncV increment
         }
         if (lineZoomEnable) {
             const uint tableAddr = baseTableAddr + lineZoomOffset;
@@ -873,7 +873,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
         const bool vcellScrollRepeat = params.vcellScrollRepeat;
 
         const uint scrollX = baseFracScroll.x >> 8;
-        int offset = (pos.x + (scrollX & 7)) >> 3;
+        int offset = (uint(pos.x) + (scrollX & 7)) >> 3;
         if (vcellScrollRepeat && offset > 0) {
             --offset;
         }
@@ -931,7 +931,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
 // ---------------------------------------------------------------------------------------------------------------------
 // RBG drawing
 
-uint SelectRotationParameter(const RBGParams params, uint2 pos) {
+uint SelectRotationParameter(const RBGParams params, float2 pos) {
     const uint rotParamMode = BitExtract(g_commonParams.layerParams, 22, 2);
     switch (rotParamMode) {
         case kRotParamModeA:
@@ -1072,7 +1072,7 @@ uint4 DrawBitmapRBG(uint2 pos, uint index, uint rotSel, uint2 scrollPos) {
     return kTransparentPixel;
 }
 
-uint4 DrawRBG(uint2 pos, // pixel coordinates
+uint4 DrawRBG(float2 pos, // pixel coordinates
               uint index // RBG index (0 to 1)
              ) {
     const RBGParams params = g_layerRenderParams[0].rbg[index];
@@ -1081,10 +1081,10 @@ uint4 DrawRBG(uint2 pos, // pixel coordinates
     }
 
     if (hiResH) {
-        pos.x >>= 1;
+        pos.x *= 0.5;
     }
     if (deinterlace && interlaceMode >= kInterlaceModeSingleDensity) {
-        pos.y >>= 1;
+        pos.y *= 0.5;
     }
 
     if (InsideWindows(params.base.windowParams, pos)) {
