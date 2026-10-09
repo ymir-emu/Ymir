@@ -32,9 +32,10 @@ static const bool hiResH = BitTest(g_commonParams.displayParams, 8);
 static const bool palMode = BitTest(g_commonParams.displayParams, 9);
 static const uint hreso = BitExtract(g_commonParams.displayParams, 10, 3);
 static const uint vreso = BitExtract(g_commonParams.displayParams, 13, palMode ? 2 : 1);
+static const uint vresShift = !exclusiveMonitor && interlaceMode >= kInterlaceModeSingleDensity ? 1u : 0u;
 static const uint2 displayRes = uint2(
     kResolutionsH[hreso & 3u], // 3rd bit intentionally ignored
-    exclusiveMonitor ? 480 : kResolutionsV[vreso]
+    (exclusiveMonitor ? 480 : kResolutionsV[vreso]) << vresShift
 );
 
 static const bool coeffTableCRAM = BitTest(g_commonParams.rotParams, 0);
@@ -50,13 +51,17 @@ static const uint kCRAMAddressMask = colorRAMMode == 1 ? 0x7FF : 0x3FF;
 // ---------------------------------------------------------------------------------------------------------------------
 // Utilities
 
-uint GetY(uint y, bool doubleDensityOnly) {
-    const bool interlaced = doubleDensityOnly
-        ? interlaceMode == kInterlaceModeDoubleDensity
-        : interlaceMode >= kInterlaceModeSingleDensity;
+uint GetInputY(uint y) {
+    if (!deinterlace && interlaceMode >= kInterlaceModeDoubleDensity && !exclusiveMonitor) {
+        return (y << 1u) | oddField;
+    } else {
+        return y;
+    }
+}
 
-    if (!deinterlace && interlaced && !exclusiveMonitor) {
-        return (y << 1) | oddField;
+uint GetOutputY(uint y) {
+    if (!deinterlace && interlaceMode >= kInterlaceModeSingleDensity && !exclusiveMonitor) {
+        return (y << 1u) | oddField;
     } else {
         return y;
     }
@@ -801,7 +806,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
         return kTransparentPixel;
     }
 
-    pos.y = GetY(pos.y, true);
+    pos.y = GetInputY(pos.y);
     if (deinterlace && interlaceMode == kInterlaceModeSingleDensity) {
         pos.y >>= 1;
     }
@@ -1127,8 +1132,9 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
         const uint targetResV = BitExtract(g_commonParams.enhancements, 20, 12) + 1;
         startY = startY * targetResV / displayRes.y;
     }
-    float2 drawCoord = uint2(id.x, id.y + startY);
-    const uint3 outCoord = uint3(drawCoord.x, GetY(drawCoord.y, false), id.z);
+    const uint2 inCoord = uint2(id.x, id.y + startY);
+    const uint3 outCoord = uint3(inCoord.x, GetOutputY(inCoord.y), id.z);
+    float2 drawCoord = inCoord;
     if (scaleResolution) {
         const uint2 targetRes = uint2(
             BitExtract(g_commonParams.enhancements, 7, 13) + 1,
