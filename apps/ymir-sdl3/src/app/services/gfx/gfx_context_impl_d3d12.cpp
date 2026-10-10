@@ -210,6 +210,7 @@ struct Direct3D12GraphicsContext::Impl {
         std::atomic<ID3D12Fence *> computeFence; // Compute fence to be waited on
         std::atomic<UINT64> computeFenceValue;   // Value to wait for
         std::atomic<UINT64> graphicsFenceValue;  // Graphics fence value on which this frame is being used
+        UINT64 lastComputeFenceValue = 0;
     };
     std::array<DisplayFrameContext, kFrameCount + 1> displayFrames;
 
@@ -1678,8 +1679,12 @@ struct Direct3D12GraphicsContext::Impl {
         }
 
         const UINT64 computeFenceValue = frameCtx.computeFenceValue.load(std::memory_order_acquire);
-        ID3D12Fence *computeFence = frameCtx.computeFence.load(std::memory_order_acquire);
-        const bool changed = computeFenceValue != computeFence->GetCompletedValue();
+        const bool changed = computeFenceValue != frameCtx.lastComputeFenceValue;
+        frameCtx.lastComputeFenceValue = computeFenceValue;
+
+        // Wait for compute fence
+        assert(frameCtx.computeFence != nullptr);
+        cmdQueue->Wait(frameCtx.computeFence, frameCtx.computeFenceValue);
 
         // Download texture to readback buffer if changed
         // TODO: mark dirty, copy on screen requests only
@@ -1781,10 +1786,6 @@ struct Direct3D12GraphicsContext::Impl {
             };
             cmdListFrame->ResourceBarrier(1, &barrier);
         }
-
-        // Wait for compute fence
-        assert(frameCtx.computeFence != nullptr);
-        cmdQueue->Wait(frameCtx.computeFence, frameCtx.computeFenceValue);
 
         return DisplayTextureSpec{
             .id = frameCtx.textureID,
