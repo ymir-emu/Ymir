@@ -24,19 +24,20 @@ void VDP1RegistersView::Display() {
 
     auto checkbox = [](const char *name, bool value) { ImGui::Checkbox(name, &value); };
 
-    checkbox(fmt::format("[TVMR.TVM:0] Pixel data: {} bits", regs1.pixel8Bits ? 8u : 16u).c_str(), regs1.pixel8Bits);
+    checkbox(fmt::format("[TVMR.TVM:0] Pixel data: {} bits", regs1.tvmr.pixel8Bits ? 8u : 16u).c_str(),
+             regs1.tvmr.pixel8Bits);
     ImGui::Text("VDP2 sprite data readout size: %u bits", (regs2.spriteParams.type >= 8 ? 8u : 16u));
-    checkbox("[TVMR.TVM:1] Rotation mode", regs1.fbRotEnable);
-    checkbox("[TVMR.TVM:2] HDTV mode", regs1.hdtvEnable);
+    checkbox("[TVMR.TVM:1] Rotation mode", regs1.tvmr.fbRotEnable);
+    checkbox("[TVMR.TVM:2] HDTV mode", regs1.tvmr.hdtvEnable);
     checkbox("[FBCR.DIE] Double interlace enable", regs1.dblInterlaceEnable);
     checkbox("[FBCR.DIL] Double interlace draw even/odd line", regs1.dblInterlaceDrawLine);
-    ImGui::Text("Framebuffer size: %ux%u", regs1.fbSizeH, regs1.fbSizeV);
+    ImGui::Text("Framebuffer size: %ux%u", regs1.tvmr.fbSizeH, regs1.tvmr.fbSizeV);
     ImGui::Text("VDP2 resolution: %ux%u %s", reso.width, reso.height, kInterlaceNames[static_cast<uint8>(interlace)]);
 
     ImGui::Separator();
 
     ImGui::Text("Current display framebuffer: %u", probe.GetSpriteDisplayFB());
-    checkbox("[TVMR.VBE] VBlank Erase", regs1.vblankErase);
+    checkbox("[TVMR.VBE] VBlank Erase", regs1.tvmr.vblankErase);
     checkbox("[FBCR.FCT] Framebuffer swap trigger", regs1.fbSwapTrigger);
     checkbox("[FBCR.FCM] Framebuffer swap mode", regs1.fbSwapMode);
     ImGui::Indent();

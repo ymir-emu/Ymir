@@ -345,7 +345,7 @@ struct Direct3D12VDPRenderer::Impl {
         if (mode.msbOn) {
             // MSB -> mode 3 (MSB)
             bit::deposit_into<1, 2>(value, 3);
-        } else if (vdpState.regs1.pixel8Bits) {
+        } else if (vdpState.regs1.tvmr.pixel8Bits) {
             // 8-bit sprite data -> mode 0 (Copy) -- shading modes not supported
             bit::deposit_into<1, 2>(value, 0);
         } else if (mode.colorCalcBits == 3) {
@@ -402,7 +402,7 @@ struct Direct3D12VDPRenderer::Impl {
     size_t MakeVDP1OutputMergerShaderIndex(VDP1Command::DrawMode mode) const {
         size_t value = 0;
         bit::deposit_into<0>(value, enhancements.transparentMeshes);
-        if (vdpState.regs1.pixel8Bits) {
+        if (vdpState.regs1.tvmr.pixel8Bits) {
             // 8-bit sprite data -> mode 0 (Copy) -- shading modes not supported
             bit::deposit_into<1, 2>(value, 0);
         } else if (mode.colorCalcBits == 1) {
@@ -2301,7 +2301,7 @@ struct Direct3D12VDPRenderer::Impl {
         vdp1.cpuEraseParams.coords.scaleV = scaleV;
 
         vdp1.cpuEraseParams.erase.writeValue = bit::byte_swap<uint16>(regs1.eraseWriteValueLatch);
-        vdp1.cpuEraseParams.erase.addressShift = regs1.eraseOffsetShift - 8;
+        vdp1.cpuEraseParams.erase.addressShift = regs1.tvmr.eraseOffsetShift - 8;
 
         vdp1.cpuEraseParams.vblank.enable = cycles != 0;
         if (vdp1.cpuEraseParams.vblank.enable) {
@@ -2584,9 +2584,9 @@ struct Direct3D12VDPRenderer::Impl {
             const DescriptorTable &tbl = isMergerOIT ? frameCtx.outputMergerOITDescs : frameCtx.outputMergerDescs;
             const VDP1Regs &regs1 = vdpState.regs1;
             const VDP2Regs &regs2 = vdpState.regs2;
-            const uint32 pixelsPerEntry = regs1.pixel8Bits ? 4u : 2u; // each entry is 32 bits
-            const uint32 mergeW = regs1.fbSizeH / pixelsPerEntry;
-            const uint32 mergeH = regs1.fbSizeV;
+            const uint32 pixelsPerEntry = regs1.tvmr.pixel8Bits ? 4u : 2u; // each entry is 32 bits
+            const uint32 mergeW = regs1.tvmr.fbSizeH / pixelsPerEntry;
+            const uint32 mergeH = regs1.tvmr.fbSizeV;
             const uint32 mergeZ = regs2.TVMD.IsInterlaced() && enhancements.deinterlace ? 2 : 1;
 
             // Dispatch output merger shader
@@ -2610,9 +2610,9 @@ struct Direct3D12VDPRenderer::Impl {
         const bool doubleDensity = regs2.TVMD.LSMDn == InterlaceMode::DoubleDensity;
 
         auto &displayParams = params.displayParams;
-        displayParams.fbSizeH = std::countr_zero(regs1.fbSizeH) - 9u;
-        displayParams.fbSizeV = std::countr_zero(regs1.fbSizeV) - 8u;
-        displayParams.pixel8Bits = regs1.pixel8Bits;
+        displayParams.fbSizeH = std::countr_zero(regs1.tvmr.fbSizeH) - 9u;
+        displayParams.fbSizeV = std::countr_zero(regs1.tvmr.fbSizeV) - 8u;
+        displayParams.pixel8Bits = regs1.tvmr.pixel8Bits;
         displayParams.doubleDensity = doubleDensity;
         displayParams.dblInterlaceEnable = regs1.dblInterlaceEnable;
         displayParams.dblInterlaceDrawLine = regs1.dblInterlaceDrawLine;
@@ -3709,15 +3709,15 @@ struct Direct3D12VDPRenderer::Impl {
         params.rotParams.coeffBDataSize = rotParamsB.coeffDataSize;
         params.rotParams.coeffBDataMode = static_cast<HLSLuint>(rotParamsB.coeffDataMode);
 
-        params.spriteParams.rotate = regs1.fbRotEnable;
-        params.spriteParams.pixel8Bits = regs1.pixel8Bits;
+        params.spriteParams.rotate = regs1.tvmr.fbRotEnable;
+        params.spriteParams.pixel8Bits = regs1.tvmr.pixel8Bits;
         params.spriteParams.type = regs2.spriteParams.type;
-        params.spriteParams.fbSizeH = std::countr_zero(regs1.fbSizeH) - 9;
-        params.spriteParams.fbSizeV = std::countr_zero(regs1.fbSizeV) - 8;
+        params.spriteParams.fbSizeH = std::countr_zero(regs1.tvmr.fbSizeH) - 9;
+        params.spriteParams.fbSizeV = std::countr_zero(regs1.tvmr.fbSizeV) - 8;
         params.spriteParams.inHalfResH = false;
         params.spriteParams.outHalfResH = false;
-        if (!regs1.hdtvEnable && !regs1.fbRotEnable) {
-            if (regs1.pixel8Bits) {
+        if (!regs1.tvmr.hdtvEnable && !regs1.tvmr.fbRotEnable) {
+            if (regs1.tvmr.pixel8Bits) {
                 params.spriteParams.inHalfResH = (regs2.TVMD.HRESOn & 0b110) == 0b000;
             } else {
                 params.spriteParams.outHalfResH = (regs2.TVMD.HRESOn & 0b110) == 0b010;

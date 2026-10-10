@@ -104,6 +104,7 @@ Introduces save state file version 14.
 - VDP2: Restrict color calculations in certain video modes. Fixes Sound Test screen text blending in with the background in Dark Savior.
     - In high resolution modes with color RAM modes other than 0, color calculations can only be applied on top of RGB layers, but not palette layers.
 - VDP2-SW: Fix out of bounds access when the display resolution is changed mid-frame while drawing an RBG.
+- VDP2-SW: Fix race condition reading VDP1 TVMR on VDP2 thread. Fixes single frame glitch in Virtua Fighter 2 after selecting characters.
 - VDP2-SW: Stop updating LNCL/BACK screen once DISP is disabled for the remainder of the frame.
 
 

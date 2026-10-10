@@ -372,9 +372,9 @@ FORCE_INLINE void VDP::VDP1WriteReg(uint32 address, uint16 value) {
         if constexpr (!poke) {
             switch (address) {
             case 0x00: // TVMR
-                devlog::trace<grp::vdp1_regs>("Write to TVM={:d}{:d}{:d}", m_state.regs1.hdtvEnable,
-                                              m_state.regs1.fbRotEnable, m_state.regs1.pixel8Bits);
-                devlog::trace<grp::vdp1_regs>("Write to VBE={:d}", m_state.regs1.vblankErase);
+                devlog::trace<grp::vdp1_regs>("Write to TVM={:d}{:d}{:d}", m_state.regs1.tvmr.hdtvEnable,
+                                              m_state.regs1.tvmr.fbRotEnable, m_state.regs1.tvmr.pixel8Bits);
+                devlog::trace<grp::vdp1_regs>("Write to VBE={:d}", m_state.regs1.tvmr.vblankErase);
                 break;
             case 0x02: // FBCR
                 devlog::trace<grp::vdp1_regs>("Write to DIE={:d} DIL={:d}", m_state.regs1.dblInterlaceEnable,
@@ -790,9 +790,9 @@ void VDP::BeginHPhaseRightBorder() {
 
     // Start erasing if we just entered VBlank IN
     if (m_state.regs2.VCNT == m_VTimings[m_VTimingField][static_cast<uint32>(VerticalPhase::Active)]) {
-        devlog::trace<grp::intr>("## HBlank IN + VBlank IN  VBE={:d}", m_state.regs1.vblankErase);
+        devlog::trace<grp::intr>("## HBlank IN + VBlank IN  VBE={:d}", m_state.regs1.tvmr.vblankErase);
 
-        m_VDP1CtlState.doVBlankErase = m_state.regs1.vblankErase;
+        m_VDP1CtlState.doVBlankErase = m_state.regs1.tvmr.vblankErase;
 
         // If we just entered the bottom blanking vertical phase, switch fields
         if (m_state.regs2.TVMD.LSMDn != InterlaceMode::None) {
@@ -825,7 +825,7 @@ void VDP::BeginHPhaseLeftBorder() {
         auto &ctx1 = m_VDP1CtlState;
 
         devlog::trace<grp::intr>("## HBlank end + VBlank OUT  FCM={:d} FCT={:d} VBE={:d} PTM={:d} changed={}",
-                                 m_state.regs1.fbSwapMode, m_state.regs1.fbSwapTrigger, m_state.regs1.vblankErase,
+                                 m_state.regs1.fbSwapMode, m_state.regs1.fbSwapTrigger, m_state.regs1.tvmr.vblankErase,
                                  m_state.regs1.plotTrigger, m_state.regs1.fbParamsChanged);
 
         bool erase = false;
