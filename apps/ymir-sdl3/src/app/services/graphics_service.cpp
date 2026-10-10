@@ -25,8 +25,9 @@ using namespace app::gfx;
 
 namespace app::services {
 
-GraphicsService::GraphicsService(Settings &settings)
-    : m_settings(settings)
+GraphicsService::GraphicsService(SharedContext &context, Settings &settings)
+    : m_context(context)
+    , m_settings(settings)
     , m_gfxContext(std::make_unique<NullGraphicsContext>()) {}
 
 GraphicsService::~GraphicsService() {}
@@ -36,6 +37,10 @@ void GraphicsService::RegisterHardwareRendererCallbacks(ymir::vdp::VDP &vdp) {
     vdp.SetDirect3D12FrameCopyRequestCallback(
         {this, [](ID3D12Fence *fence, uint64 fenceValue, uint32 width, uint32 height, void *ctx) -> ID3D12Resource * {
              auto &graphicsService = *static_cast<GraphicsService *>(ctx);
+             SharedContext &sharedCtx = graphicsService.m_context;
+             if (sharedCtx.screen.videoSync) {
+                 sharedCtx.screen.frameReadyEvent.Set();
+             }
              auto *graphicsContext = graphicsService.GetGraphicsContext().As<Direct3D12GraphicsContext>();
              if (graphicsContext == nullptr) {
                  return nullptr;

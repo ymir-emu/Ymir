@@ -1,6 +1,7 @@
 #pragma once
 
 #include <app/settings.hpp>
+#include <app/shared_context.hpp>
 
 #include "gfx/gfx_context.hpp"
 #include "gfx/gfx_gui_types.hpp"
@@ -46,7 +47,7 @@ struct GraphicsContextSpec {
 /// @brief Provides services for managing graphics resources.
 class GraphicsService {
 public:
-    GraphicsService(Settings &settings);
+    GraphicsService(SharedContext &context, Settings &settings);
     ~GraphicsService();
 
     /// @brief Registers hardware renderer callbacks with the given VDP instance.
@@ -193,6 +194,7 @@ public:
     util::ValueResult<gfx::PresentResult> Present();
 
 private:
+    SharedContext &m_context;
     Settings &m_settings;
     std::unique_ptr<gfx::IGraphicsContext> m_gfxContext;
 

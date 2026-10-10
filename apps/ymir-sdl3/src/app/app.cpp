@@ -150,7 +150,7 @@ static void ShowStartupFailure(fmt::format_string<TArgs...> fmt, TArgs &&...args
 }
 
 App::App()
-    : m_graphicsService(m_settings)
+    : m_graphicsService(m_context, m_settings)
     , m_saveStateService(m_context, m_settings)
     , m_midiService(m_context.serviceLocator)
     , m_settings(m_context)
@@ -1368,7 +1368,7 @@ void App::RunEmulator() {
         // Configure video sync
         const bool fullScreen = settings.video.fullScreen;
         const bool videoSync =
-            !vdp.GetRenderer().IsHardwareRenderer() && // TODO: fix video sync with hardware renderers
+            //! vdp.GetRenderer().IsHardwareRenderer() && // TODO: fix video sync with hardware renderers
             (fullScreen ? settings.video.syncInFullscreenMode : settings.video.syncInWindowedMode);
         screen.videoSync = videoSync && !m_context.paused && m_context.emuSpeed.limitSpeed;
 

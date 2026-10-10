@@ -1687,7 +1687,7 @@ struct Direct3D12GraphicsContext::Impl {
         cmdQueue->Wait(frameCtx.computeFence, frameCtx.computeFenceValue);
 
         // Download texture to readback buffer if changed
-        // TODO: mark dirty, copy on screen requests only
+        // TODO: mark dirty, copy on screenshot requests only
         if (changed) {
             // Transition texture to copy source
             if (auto *enhCmdList = GetCommandListForEnhancedBarriers(cmdListFrame)) {
