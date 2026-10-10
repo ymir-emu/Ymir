@@ -945,30 +945,10 @@ void App::RunEmulator() {
         const bool forceAspectRatio = videoSettings.forceAspectRatio;
         // TODO(disp): use targetWidth/Height directly, no maths needed here
         const Ratio forcedAspect = videoSettings.forcedAspect;
-        const double dispWidth =
-            (forceAspectRatio ? forcedAspect.MulCeil(screen.height) : screen.width) / screen.scaleY;
-        const double dispHeight = (double)screen.height / screen.scaleX;
-        const double dispScaleX = (double)targetWidth / dispWidth;
-        const double dispScaleY = (double)targetHeight / dispHeight;
-        const double dispScale = std::min(dispScaleX, dispScaleY);
-        const uint32 scale = std::max(1.0, ceil(dispScale));
 
         if (screen.SetClientAreaSize(targetWidth, targetHeight) && videoSettings.enhancements.resolutionScaling &&
             videoSettings.enhancements.resScaleToDisplaySize) {
             UpdateResolutionScaling();
-        }
-
-        // Recreate render target texture if scale or dimensions changed
-        if (screen.fbScale != scale || screen.currOutputWidth != screen.targetOutputWidth ||
-            screen.currOutputHeight != screen.targetOutputHeight) {
-            screen.fbScale = scale;
-            screen.currOutputWidth = screen.targetOutputWidth;
-            screen.currOutputHeight = screen.targetOutputHeight;
-            auto result = m_graphicsService.ResizeTexture(dispTexture, screen.currOutputWidth * screen.fbScale,
-                                                          screen.currOutputHeight * screen.fbScale);
-            if (!result) {
-                devlog::warn<grp::base>("Failed to resize framebuffer texture: {}", result.Error().message);
-            }
         }
 
         // Render scaled framebuffer into display texture
@@ -977,6 +957,28 @@ void App::RunEmulator() {
             const std::optional<gfx::DisplayTextureSpec> hwFbTexture = gfxCtx.AcquireCurrentDisplayOutputTexture();
             if (hwFbTexture) {
                 screen.SetResolution(hwFbTexture->renderWidth, hwFbTexture->renderHeight);
+                screen.SetOutputResolution(hwFbTexture->renderWidth, hwFbTexture->renderHeight);
+
+                const double dispWidth =
+                    (forceAspectRatio ? forcedAspect.MulCeil(screen.height) : screen.width) / screen.scaleY;
+                const double dispHeight = (double)screen.height / screen.scaleX;
+                const double dispScaleX = (double)targetWidth / dispWidth;
+                const double dispScaleY = (double)targetHeight / dispHeight;
+                const double dispScale = std::min(dispScaleX, dispScaleY);
+                const uint32 scale = std::max(1.0, ceil(dispScale));
+
+                // Recreate render target texture if scale or dimensions changed
+                if (screen.fbScale != scale || screen.currOutputWidth != screen.targetOutputWidth ||
+                    screen.currOutputHeight != screen.targetOutputHeight) {
+                    screen.fbScale = scale;
+                    screen.currOutputWidth = screen.targetOutputWidth;
+                    screen.currOutputHeight = screen.targetOutputHeight;
+                    auto result = m_graphicsService.ResizeTexture(dispTexture, screen.currOutputWidth * screen.fbScale,
+                                                                  screen.currOutputHeight * screen.fbScale);
+                    if (!result) {
+                        devlog::warn<grp::base>("Failed to resize framebuffer texture: {}", result.Error().message);
+                    }
+                }
 
                 // TODO(disp): rework screen layout, scaling, etc.
                 // - renderer is the source of truth
@@ -997,6 +999,26 @@ void App::RunEmulator() {
         } else {
             assert(m_graphicsService.IsTextureHandleValid(swFbTexture));
 
+            const double dispWidth =
+                (forceAspectRatio ? forcedAspect.MulCeil(screen.height) : screen.width) / screen.scaleY;
+            const double dispHeight = (double)screen.height / screen.scaleX;
+            const double dispScaleX = (double)targetWidth / dispWidth;
+            const double dispScaleY = (double)targetHeight / dispHeight;
+            const double dispScale = std::min(dispScaleX, dispScaleY);
+            const uint32 scale = std::max(1.0, ceil(dispScale));
+
+            // Recreate render target texture if scale or dimensions changed
+            if (screen.fbScale != scale || screen.currOutputWidth != screen.targetOutputWidth ||
+                screen.currOutputHeight != screen.targetOutputHeight) {
+                screen.fbScale = scale;
+                screen.currOutputWidth = screen.targetOutputWidth;
+                screen.currOutputHeight = screen.targetOutputHeight;
+                auto result = m_graphicsService.ResizeTexture(dispTexture, screen.currOutputWidth * screen.fbScale,
+                                                              screen.currOutputHeight * screen.fbScale);
+                if (!result) {
+                    devlog::warn<grp::base>("Failed to resize framebuffer texture: {}", result.Error().message);
+                }
+            }
             gfx::FRect srcRect{.x = 0.0f, .y = 0.0f, .w = (float)screen.width, .h = (float)screen.height};
             gfx::FRect dstRect{.x = 0.0f,
                                .y = 0.0f,

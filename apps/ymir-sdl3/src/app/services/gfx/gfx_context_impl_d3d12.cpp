@@ -18,6 +18,8 @@
 
 #include <ymir/hw/vdp/vdp_defs.hpp>
 
+#include <ymir/util/event.hpp>
+#include <ymir/util/scope_guard.hpp>
 #include <ymir/util/string.hpp>
 
 #include <backends/imgui_impl_dx12.h>
@@ -182,8 +184,10 @@ struct Direct3D12GraphicsContext::Impl {
 
         void Destroy(DescriptorHeapAllocator &resourceHeapAlloc, DescriptorHeapAllocator &rtvHeapAlloc) {
             for (int i = 0; i < kFrameCount; ++i) {
-                stagingBuffers[i]->Unmap(0, nullptr);
-                stagingBuffers[i].Destroy();
+                if (stagingBuffers[i].IsValid()) {
+                    stagingBuffers[i]->Unmap(0, nullptr);
+                    stagingBuffers[i].Destroy();
+                }
             }
             texture.Destroy();
             resourceHeapAlloc.Free(srvIndex);
@@ -381,71 +385,15 @@ struct Direct3D12GraphicsContext::Impl {
             static constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
             DisplayFrameContext &frameCtx = displayFrames[n];
-
-            // Create the hardware texture
-            const Texture2DSpec spec{
-                .width = ymir::vdp::kMaxResH,
-                .height = ymir::vdp::kMaxResV,
-                .format = PixelFormat::R8G8B8A8_UNORM,
-                .access = TextureAccess::Static,
-                .filterMode = TextureFilterMode::Nearest,
-                .name = fmt::format("[Ymir-GCtx] Display output #{}", n),
-            };
-            auto textureResult = CreateTexture(spec, true);
-            if (!textureResult) {
-                return util::ErrorMessage{
-                    fmt::format("Failed to create display output #{} texture: {}", n, textureResult.Error().message)};
-            }
             frameCtx.textureID = texIDMgr.GetNextTextureID();
-            auto [itDispTex, ok] = textures.insert({frameCtx.textureID, textureResult.Value()});
+
+            auto result = CreateDisplayOutputTexture(n, ymir::vdp::kMaxResH, ymir::vdp::kMaxResV);
+            if (!result) {
+                return result.Error();
+            }
+
+            auto [itDispTex, ok] = textures.insert({frameCtx.textureID, result.Value()});
             assert(ok);
-
-            // Create the readback texture
-            auto builder = frameCtx.readbackTexture.BufferBuilder(itDispTex->second.uploadBufferSize);
-            builder.HeapType(D3D12_HEAP_TYPE_READBACK);
-            builder.InitialState(D3D12_RESOURCE_STATE_COPY_DEST);
-            if (HRESULT hr = builder.BuildCommitted(device); FAILED(hr)) {
-                return util::ErrorMessage{fmt::format(
-                    "Failed to create display output readback texture #{}, error code {:X}", n, (uint32)hr)};
-            }
-            if (HRESULT hr = frameCtx.readbackTexture->Map(0, nullptr, &frameCtx.readbackTexturePtr); FAILED(hr)) {
-                return util::ErrorMessage{
-                    fmt::format("Failed to map display output readback texture #{}, error code {:X}", n, (uint32)hr)};
-            }
-            frameCtx.readbackTextureSize = itDispTex->second.uploadBufferSize;
-            if (!spec.name.empty()) {
-                frameCtx.readbackTexture->SetName(
-                    fmt::format(L"[Ymir-GCtx] Display output readback texture #{}", n).c_str());
-            }
-
-            // Transition hardware texture to COPY_DEST if using enhanced barriers
-            if (auto *enhCmdList = GetCommandListForEnhancedBarriers(cmdListOps)) {
-                D3D12_TEXTURE_BARRIER barrier{
-                    .SyncBefore = D3D12_BARRIER_SYNC_NONE,
-                    .SyncAfter = D3D12_BARRIER_SYNC_NONE,
-                    .AccessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS,
-                    .AccessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS,
-                    .LayoutBefore = D3D12_BARRIER_LAYOUT_COMMON,
-                    .LayoutAfter = D3D12_BARRIER_LAYOUT_COPY_DEST,
-                    .pResource = textures[frameCtx.textureID].resource.GetPointer(),
-                    .Subresources =
-                        {
-                            .IndexOrFirstMipLevel = 0,
-                            .NumMipLevels = 0,
-                            .FirstArraySlice = 0,
-                            .NumArraySlices = 0,
-                            .FirstPlane = 0,
-                            .NumPlanes = 0,
-                        },
-                    .Flags = D3D12_TEXTURE_BARRIER_FLAG_NONE,
-                };
-                const D3D12_BARRIER_GROUP group{
-                    .Type = D3D12_BARRIER_TYPE_TEXTURE,
-                    .NumBarriers = 1,
-                    .pTextureBarriers = &barrier,
-                };
-                enhCmdList->Barrier(1, &group);
-            }
 
             // These come from the VDP renderer callback
             frameCtx.computeFence.store(nullptr, std::memory_order_release);
@@ -754,6 +702,121 @@ struct Direct3D12GraphicsContext::Impl {
         return device.IsValid();
     }
 
+    util::ValueResult<TextureInstance> CreateDisplayOutputTexture(size_t index, UINT width, UINT height) {
+        // Create the hardware texture
+        const Texture2DSpec spec{
+            .width = width,
+            .height = height,
+            .format = PixelFormat::R8G8B8A8_UNORM,
+            .access = TextureAccess::Static,
+            .filterMode = TextureFilterMode::Nearest,
+            .name = fmt::format("[Ymir-GCtx] Display output #{}", index),
+        };
+        auto textureResult = CreateTexture(spec, true);
+        if (!textureResult) {
+            return util::ErrorMessage{
+                fmt::format("Failed to create display output #{} texture: {}", index, textureResult.Error().message)};
+        }
+        TextureInstance texture = textureResult.Value();
+
+        // Create the readback texture
+        DisplayFrameContext &frameCtx = displayFrames[index];
+        frameCtx.readbackTextureSize = texture.uploadBufferSize;
+        auto builder = frameCtx.readbackTexture.BufferBuilder(frameCtx.readbackTextureSize);
+        builder.HeapType(D3D12_HEAP_TYPE_READBACK);
+        builder.InitialState(D3D12_RESOURCE_STATE_COPY_DEST);
+        if (HRESULT hr = builder.BuildCommitted(device); FAILED(hr)) {
+            return util::ErrorMessage{fmt::format(
+                "Failed to create display output readback texture #{}, error code {:X}", index, (uint32)hr)};
+        }
+        if (HRESULT hr = frameCtx.readbackTexture->Map(0, nullptr, &frameCtx.readbackTexturePtr); FAILED(hr)) {
+            return util::ErrorMessage{
+                fmt::format("Failed to map display output readback texture #{}, error code {:X}", index, (uint32)hr)};
+        }
+        if (!spec.name.empty()) {
+            frameCtx.readbackTexture->SetName(
+                fmt::format(L"[Ymir-GCtx] Display output readback texture #{}", index).c_str());
+        }
+
+        // Transition hardware texture to COPY_DEST if using enhanced barriers
+        if (auto *enhCmdList = GetCommandListForEnhancedBarriers(cmdListOps)) {
+            D3D12_TEXTURE_BARRIER barrier{
+                .SyncBefore = D3D12_BARRIER_SYNC_NONE,
+                .SyncAfter = D3D12_BARRIER_SYNC_NONE,
+                .AccessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS,
+                .AccessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS,
+                .LayoutBefore = D3D12_BARRIER_LAYOUT_COMMON,
+                .LayoutAfter = D3D12_BARRIER_LAYOUT_COPY_DEST,
+                .pResource = texture.resource.GetPointer(),
+                .Subresources =
+                    {
+                        .IndexOrFirstMipLevel = 0,
+                        .NumMipLevels = 0,
+                        .FirstArraySlice = 0,
+                        .NumArraySlices = 0,
+                        .FirstPlane = 0,
+                        .NumPlanes = 0,
+                    },
+                .Flags = D3D12_TEXTURE_BARRIER_FLAG_NONE,
+            };
+            const D3D12_BARRIER_GROUP group{
+                .Type = D3D12_BARRIER_TYPE_TEXTURE,
+                .NumBarriers = 1,
+                .pTextureBarriers = &barrier,
+            };
+            enhCmdList->Barrier(1, &group);
+        }
+
+        return texture;
+    }
+
+    std::atomic_bool dispTexRecreatePending{false};
+    size_t dispTexRecreateIndex;
+    UINT dispTexRecreateWidth;
+    UINT dispTexRecreateHeight;
+    util::Event dispTexRecreateEvent{false};
+
+    void RequestRecreateDisplayOutputTexture(size_t index, UINT width, UINT height) {
+        dispTexRecreateIndex = index;
+        dispTexRecreateWidth = width;
+        dispTexRecreateHeight = height;
+        dispTexRecreatePending.store(true, std::memory_order_release);
+        dispTexRecreateEvent.Wait();
+        dispTexRecreateEvent.Reset();
+    }
+
+    util::VoidResult<> RecreateDisplayOutputTexture() {
+        bool expected = true;
+        if (dispTexRecreatePending.compare_exchange_strong(expected, false, std::memory_order_acq_rel)) {
+            util::ScopeGuard sgSetEvent{[&] { dispTexRecreateEvent.Set(); }};
+
+            if (HRESULT hr = cmdAllocOps->Reset(); FAILED(hr)) {
+                return util::ErrorMessage{
+                    fmt::format("Failed to reset command allocator, error code {:X}", (uint32)hr)};
+            }
+            if (HRESULT hr = cmdListOps->Reset(cmdAllocOps.GetPointer(), nullptr); FAILED(hr)) {
+                return util::ErrorMessage{
+                    fmt::format("Failed to reset operations command list, error code {:X}", (uint32)hr)};
+            }
+
+            auto result = CreateDisplayOutputTexture(dispTexRecreateIndex, dispTexRecreateWidth, dispTexRecreateHeight);
+            if (!result) {
+                return result.Error();
+            }
+            const DisplayFrameContext &frameCtx = displayFrames[dispTexRecreateIndex];
+            textures[frameCtx.textureID] = result.Value();
+
+            cmdListOps->Close();
+            cmdQueue->ExecuteCommandLists(1, cmdListOps.GetAddressOfBase());
+            if (FAILED(fenceOps.Signal(cmdQueue, fenceValueOps))) {
+                return util::ErrorMessage{"Failed to signal fence before executing operations"};
+            }
+            fenceOps.Wait(INFINITE, fenceValueOps);
+            ++fenceValueOps;
+        }
+        return {};
+    }
+
     util::VoidResult<> ResizeFramebuffer(uint32 width, uint32 height) {
         if (auto result = EndFrame(); !result) {
             return util::ErrorMessage{fmt::format("Could not end frame: {}", result.Error().message)};
@@ -877,6 +940,7 @@ struct Direct3D12GraphicsContext::Impl {
         drawTextureConstants.renderTargetSize.y = viewport.Height;
 
         DeletePendingTextures(false);
+        RecreateDisplayOutputTexture();
 
         return {};
     }
@@ -1104,9 +1168,6 @@ struct Direct3D12GraphicsContext::Impl {
             return util::ErrorMessage{"Texture does not exist"};
         }
         TextureInstance &texture = it->second;
-        if (texture.isReserved) {
-            return util::ErrorMessage{"Cannot resize reserved texture"};
-        }
 
         // First, try creating new texture using the existing texture's specifications
         Texture2DSpec newSpec = texture.spec;
@@ -1624,7 +1685,11 @@ struct Direct3D12GraphicsContext::Impl {
             return nullptr; // Shouldn't happen
         }
 
-        // TODO: resize texture if needed
+        // Request recreation of the texture if needed and wait for it to be processed by the graphics context
+        if (texture->spec.width != textureWidth || texture->spec.height != textureHeight) {
+            RequestRecreateDisplayOutputTexture(nextIndex, textureWidth, textureHeight);
+        }
+
         frameCtx.computeFence.store(fence, std::memory_order_release);
         frameCtx.computeFenceValue.store(fenceValue, std::memory_order_release);
         frameCtx.textureWidth = textureWidth;
@@ -1673,6 +1738,7 @@ struct Direct3D12GraphicsContext::Impl {
 
     std::optional<DisplayTextureSpec> AcquireCurrentDisplayOutputTexture() {
         // TODO: return changed flag to allow frontend to redraw the frame only if needed
+        // TODO: stay on PIXEL_SHADER_RESOURCE state if not changed
 
         // Get latest completed frame index
         const size_t frameIndex = GetDisplayFrameIndexForGraphics();

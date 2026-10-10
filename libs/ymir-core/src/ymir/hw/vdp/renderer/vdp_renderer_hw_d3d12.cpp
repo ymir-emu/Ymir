@@ -4633,11 +4633,9 @@ struct Direct3D12VDPRenderer::Impl {
         // ---------------------------------------------------------------------
 
         // Transition resources for drawing the sprite layer
-        if (vdp2.cpuCommonRenderParams.spriteParams.rotate) {
-            barrierTracker.TransitionBuffer(frameCtx.rotParamBasesBuffer.GetPointer(),
-                                            D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
-                                            D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
-        }
+        barrierTracker.TransitionBuffer(frameCtx.rotParamBasesBuffer.GetPointer(),
+                                        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+                                        D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
         barrierTracker.TransitionTexture(frameCtx.layerOutTexture.GetPointer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                                          D3D12_BARRIER_SYNC_COMPUTE_SHADING, D3D12_BARRIER_ACCESS_UNORDERED_ACCESS,
                                          D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS);
@@ -4809,8 +4807,8 @@ struct Direct3D12VDPRenderer::Impl {
                     .left = 0,
                     .top = 0,
                     .front = 0,
-                    .right = HRes,
-                    .bottom = VRes,
+                    .right = renderArea.width,
+                    .bottom = renderArea.height,
                     .back = 1,
                 };
                 cmdList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, &srcBox);
