@@ -1670,16 +1670,19 @@ struct Direct3D12GraphicsContext::Impl {
             return std::nullopt;
         }
         DisplayFrameContext &frameCtx = displayFrames[frameIndex];
-        const UINT64 graphicsFenceValue = GetCurrentFrameContext().fenceValue;
-        const bool changed = frameCtx.graphicsFenceValue.load(std::memory_order_acquire) != graphicsFenceValue;
-        frameCtx.graphicsFenceValue = graphicsFenceValue;
+        frameCtx.graphicsFenceValue = GetCurrentFrameContext().fenceValue;
 
         TextureInstance *texture = GetTexture(frameCtx.textureID);
         if (texture == nullptr) {
             return std::nullopt; // Shouldn't happen
         }
 
+        const UINT64 computeFenceValue = frameCtx.computeFenceValue.load(std::memory_order_acquire);
+        ID3D12Fence *computeFence = frameCtx.computeFence.load(std::memory_order_acquire);
+        const bool changed = computeFenceValue != computeFence->GetCompletedValue();
+
         // Download texture to readback buffer if changed
+        // TODO: mark dirty, copy on screen requests only
         if (changed) {
             // Transition texture to copy source
             if (auto *enhCmdList = GetCommandListForEnhancedBarriers(cmdListFrame)) {
