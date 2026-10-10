@@ -4057,7 +4057,7 @@ struct Direct3D12VDPRenderer::Impl {
     void VDP2DrawLineColorBackScreens(uint32 y) {
         const VDP2Regs &regs = vdpState.regs2;
 
-        if (regs.displayEnabledLatch || y == 0) {
+        if (regs.displayEnabledLatch) {
             // Read line color screen color
             const LineBackScreenParams &lineParams = regs.lineScreenParams;
             const uint32 lnclY = lineParams.perLine ? y : 0;
@@ -4075,7 +4075,7 @@ struct Direct3D12VDPRenderer::Impl {
             vdp2.cpuLnclBack[1][y].g = color8.g;
             vdp2.cpuLnclBack[1][y].b = color8.b;
             vdp2.cpuLnclBack[1][y].a = color8.msb;
-        } else {
+        } else if (y > 0) {
             vdp2.cpuLnclBack[0][y] = vdp2.cpuLnclBack[0][y - 1];
             vdp2.cpuLnclBack[1][y] = vdp2.cpuLnclBack[1][y - 1];
         }
@@ -4519,10 +4519,13 @@ void Direct3D12VDPRenderer::Reset(bool hard) {
 // -----------------------------------------------------------------------------
 // Save states
 
-void Direct3D12VDPRenderer::PreSaveStateSync() {}
+void Direct3D12VDPRenderer::PreSaveStateSync() {
+    m_impl->VDP1SyncFB();
+}
 
 void Direct3D12VDPRenderer::PostLoadStateSync() {
     m_impl->vdp1.vramDirty.SetAll();
+    m_impl->vdp1.fbramDirty.SetAll();
     if (auto result = m_impl->VDP1UploadFBRAM(); !result) {
         devlog::warn<grp::dx12_base>("Failed to upload VDP1 FBRAM: {}", result.Error().message);
     }
