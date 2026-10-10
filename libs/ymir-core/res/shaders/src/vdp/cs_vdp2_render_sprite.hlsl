@@ -252,6 +252,31 @@ SpriteData FetchSpriteData(uint fbAddr, uint field, bool meshLayer) {
     }
 
     // Sprite types 0-7 are 16-bit, 8-15 are 8-bit
+    //  type |15  14  13  12  11  10   9   8   7   6   5   4   3   2   1   0|
+    //    0  |PR1-0  |CC2-0      |DC10-0                                    |
+    //    1  |PR2-0      |CC1-0  |DC10-0                                    |
+    //    2  |SD |PR0|CC2-0      |DC10-0                                    |
+    //    3  |SD |PR1-0  |CC1-0  |DC10-0                                    |
+    //    4  |SD |PR1-0  |CC2-0      |DC9-0                                 |
+    //    5  |SD |PR2-0      |CC0|DC10-0                                    |
+    //    6  |SD |PR2-0      |CC1-0  |DC9-0                                 |
+    //    7  |SD |PR2-0      |CC2-0      |DC8-0                             |
+    //  type                                 | 7   6   5   4   3   2   1   0|
+    //    8                                  |PR0|DC6-0                     |
+    //    9                                  |PR0|CC0|DC5-0                 |
+    //    A                                  |PR1-0  |DC5-0                 |
+    //    B                                  |CC1-0  |DC5-0                 |
+    //    C                                  |SP0|DC6-0                     |
+    //    D                                  |SP0|SC0|DC5-0                 |
+    //    E                                  |SP1-0  |DC5-0                 |
+    //    F                                  |SC1-0  |DC5-0                 |
+    //
+    // SD: shadow/sprite window
+    // PR: priority
+    // CC: color calculation ratio
+    // DC: dot color data
+    // SP: shared PR+DC
+    // SC: shared CC+DC
 
     SpriteData data;
     switch (type) {
@@ -266,7 +291,7 @@ SpriteData FetchSpriteData(uint fbAddr, uint field, bool meshLayer) {
         case 0x1:
             data.colorData = BitExtract(rawData, 0, 11);
             data.colorCalcRatio = BitExtract(rawData, 11, 2);
-            data.priority = BitExtract(rawData, 13, 33);
+            data.priority = BitExtract(rawData, 13, 3);
             data.shadowOrWindow = false;
             data.special = GetSpecialPattern(rawData, 11);
             break;
