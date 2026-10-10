@@ -862,7 +862,7 @@ uint4 DrawNBG(uint2 pos, // pixel coordinates
     }
 
     if (vcellScrollEnable && !mosaicEnable) {
-        const uint vcellScrollOffset = params.vcellScrollOffset << 2;
+        const uint vcellScrollOffset = params.vcellScrollOffset;
         const bool vcellScrollDelay = params.vcellScrollDelay;
         const bool vcellScrollRepeat = params.vcellScrollRepeat;
 
