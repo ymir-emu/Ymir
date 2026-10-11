@@ -294,7 +294,7 @@ private:
 
         void Clear(uint8 partitionIndex);
 
-        uint32 CalculateSize(uint8 partitionIndex, uint32 start, uint32 end) const;
+        uint32 CalculateSize(uint8 partitionIndex, uint32 start, uint32 end, uint32 getLength) const;
 
         // -------------------------------------------------------------------------
         // Save states

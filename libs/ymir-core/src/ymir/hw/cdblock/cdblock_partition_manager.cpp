@@ -155,13 +155,22 @@ void CDBlock::PartitionManager::Clear(uint8 partitionIndex) {
     TracePartitionClear(m_tracer, partitionIndex);
 }
 
-uint32 CDBlock::PartitionManager::CalculateSize(uint8 partitionIndex, uint32 start, uint32 end) const {
+uint32 CDBlock::PartitionManager::CalculateSize(uint8 partitionIndex, uint32 start, uint32 end,
+                                                uint32 getLength) const {
     assert(partitionIndex < m_partitions.size());
     auto &partition = m_partitions[partitionIndex];
     start = std::min<uint32>(start, partition.size() - 1);
     end = std::min<uint32>(end, partition.size() - 1);
     const uint32 size = std::accumulate(partition.begin() + start, partition.begin() + end + 1, 0u,
-                                        [](const uint32 lhs, const Buffer &rhs) { return lhs + rhs.size; });
+                                        [getLength](const uint32 lhs, const Buffer &rhs) {
+                                            // Adjust size to requested get length and extend 2048 bytes to 2324 bytes
+                                            // on Mode 2 Form 2 sectors
+                                            const bool mode2 = rhs.data[0xF] == 0x02;
+                                            const bool mode2form2 = mode2 && bit::test<5>(rhs.data[0x12]);
+                                            const uint16 getSize = mode2form2 ? std::max(2324u, getLength) : getLength;
+                                            uint32 size = std::min(rhs.size, getSize);
+                                            return lhs + size;
+                                        });
     devlog::trace<grp::part_mgr>("Calculated partition {} size from {} to {} = {} bytes", partitionIndex, start, end,
                                  size);
     return size;

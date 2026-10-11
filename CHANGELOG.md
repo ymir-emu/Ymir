@@ -51,6 +51,7 @@ Introduces save state file version 14.
 - App: Reset window geometry if it matches the bounds of a display to prevent "remember window geometry" from loading full screen coordinates.
 - Backup RAM: Fix crash when attempting to load a backup RAM cartridge with the default path.
 - Backup RAM: Remove strict language check when importing files. Fixes importing save files from Kronos's backup RAM cartridges. (#942)
+- CD Block (HLE): Adjust calculated sector sizes to requested get length.
 - CD Block (HLE): Report current CD status and raise CMOK HIRQ signal when processing unimplemented commands.
 - CD Block (HLE): Report wait status when attempting to calculate actual size of more sectors than available in a partition.
 - CD Block (HLE): Read reset position flag correctly from parameters.
