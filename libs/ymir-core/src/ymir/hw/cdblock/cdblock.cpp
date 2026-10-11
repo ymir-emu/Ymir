@@ -2683,12 +2683,13 @@ void CDBlock::CmdCalculateActualSize() {
     const uint16 sectorNumber = m_CR[3];
 
     bool reject = false;
+    bool wait = false;
     if (partitionNumber > kNumPartitions) [[unlikely]] {
         reject = true;
     } else {
         const uint8 bufferCount = m_partitionManager.GetBufferCount(partitionNumber);
         if (sectorOffset != 0xFFFF && sectorOffset >= bufferCount) [[unlikely]] {
-            reject = true;
+            wait = true;
         } else {
             uint16 startSector;
             uint16 endSector;
@@ -2713,11 +2714,17 @@ void CDBlock::CmdCalculateActualSize() {
     // Output structure: standard CD status data
     if (reject) [[unlikely]] {
         ReportCDStatus(kStatusReject);
+    } else if (wait) [[unlikely]] {
+        ReportCDStatus(GetStatusCode() | kStatusFlagWait);
     } else {
         ReportCDStatus();
     }
 
-    SetInterrupt(kHIRQ_CMOK | kHIRQ_ESEL);
+    uint16 hirq = kHIRQ_CMOK;
+    if (!reject && !wait) {
+        hirq |= kHIRQ_ESEL;
+    }
+    SetInterrupt(hirq);
 }
 
 void CDBlock::CmdGetActualSize() {
