@@ -372,6 +372,7 @@ void CDBlock::SaveState(savestate::CDBlockSaveState &state) const {
         state.buffers[pos].codingInfo = scratchBuffer.subheader.codingInfo;
         ++pos;
     }
+    // Play buffer doesn't need to be stored, it's just temporary storage for a sector during disc playback
 
     state.scratchBufferPutIndex = m_scratchBufferPutIndex;
 
@@ -1048,7 +1049,7 @@ void CDBlock::ProcessDriveStatePlay() {
             return;
         }
 
-        Buffer &buffer = m_scratchBuffers[0];
+        Buffer &buffer = m_playBuffer;
         media::DiscPosition discPos{};
 
         // Sanity check: is the track valid?
