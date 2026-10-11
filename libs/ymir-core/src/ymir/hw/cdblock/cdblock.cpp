@@ -730,7 +730,7 @@ bool CDBlock::SetupGenericPlayback(uint32 startParam, uint32 endParam, uint16 re
     const bool resetPos = !keepRepeatParam && !bit::test<7>(repeatParam);
 
     // Sanity check: both must be FADs or tracks, not a mix
-    if (isStartFAD != isEndFAD) {
+    if (isStartFAD != isEndFAD && endParam != 0) {
         devlog::debug<grp::play_init>("Start/End FAD type mismatch: {:06X} {:06X}", startParam, endParam);
         return false; // reject
     }
@@ -751,7 +751,11 @@ bool CDBlock::SetupGenericPlayback(uint32 startParam, uint32 endParam, uint16 re
         // Frame address range
         m_playStartPos = startParam & 0x7FFFFF;
         if (!keepEndParam) {
-            m_playEndPos = m_playStartPos + (endParam & 0x7FFFFF) - 1;
+            if (endParam == 0) {
+                m_playEndPos = toc.GetEndFrameAddress();
+            } else {
+                m_playEndPos = m_playStartPos + (endParam & 0x7FFFFF) - 1;
+            }
         }
 
         devlog::debug<grp::play_init>("FAD range {:06X} to {:06X}", m_playStartPos, m_playEndPos);

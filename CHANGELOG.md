@@ -54,6 +54,7 @@ Introduces save state file version 14.
 - CD Block (HLE): Adjust calculated sector sizes to requested get length.
 - CD Block (HLE): Create a dedicated scratch buffer for disc playback. Fixes crashes on replays in Virtual On - Cyber Troopers. (#246)
 - CD Block (HLE): Get/Calculate Actual Size nuances.
+- CD Block (HLE): Handle default end of disc parameter in Play Disc. Fixes Gunbird song not resuming after pausing. (#625)
 - CD Block (HLE): Report current CD status and raise CMOK HIRQ signal when processing unimplemented commands.
 - CD Block (HLE): Report wait status when attempting to calculate actual size of more sectors than available in a partition.
 - CD Block (HLE): Read reset position flag correctly from parameters.
