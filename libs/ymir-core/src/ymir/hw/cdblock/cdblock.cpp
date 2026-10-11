@@ -2678,9 +2678,9 @@ void CDBlock::CmdCalculateActualSize() {
     // sector offset
     // partition number   <blank>
     // sector number
-    const uint16 sectorOffset = m_CR[1];
+    uint16 sectorOffset = m_CR[1];
     const uint8 partitionNumber = bit::extract<8, 15>(m_CR[2]);
-    const uint16 sectorNumber = m_CR[3];
+    uint16 sectorNumber = m_CR[3];
 
     bool reject = false;
     bool wait = false;
@@ -2688,22 +2688,17 @@ void CDBlock::CmdCalculateActualSize() {
         reject = true;
     } else {
         const uint8 bufferCount = m_partitionManager.GetBufferCount(partitionNumber);
-        if (sectorOffset != 0xFFFF && sectorOffset >= bufferCount) [[unlikely]] {
+        if (sectorOffset == 0xFFFF) {
+            sectorOffset = bufferCount - 1u;
+        }
+        if (sectorNumber == 0xFFFF) {
+            sectorNumber = bufferCount - sectorOffset;
+        }
+        if (sectorOffset >= bufferCount || sectorNumber == 0 || sectorOffset + sectorNumber > bufferCount) {
             wait = true;
         } else {
-            uint16 startSector;
-            uint16 endSector;
-            if (sectorOffset == 0xFFFF) {
-                startSector = bufferCount - 1;
-                if (sectorNumber < bufferCount) {
-                    endSector = startSector - sectorNumber + 1;
-                } else {
-                    endSector = 0;
-                }
-            } else {
-                startSector = sectorOffset;
-                endSector = std::min<uint16>(startSector + sectorNumber - 1, bufferCount - 1);
-            }
+            const uint16 startSector = sectorOffset;
+            const uint16 endSector = sectorOffset + sectorNumber - 1u;
             m_calculatedPartitionSize =
                 m_partitionManager.CalculateSize(partitionNumber, startSector, endSector, m_getSectorLength) /
                 sizeof(uint16);
@@ -2747,7 +2742,7 @@ void CDBlock::CmdGetActualSize() {
     m_RR[2] = 0x0000;
     m_RR[3] = 0x0000;
 
-    SetInterrupt(kHIRQ_CMOK | kHIRQ_ESEL);
+    SetInterrupt(kHIRQ_CMOK);
 }
 
 void CDBlock::CmdGetSectorInfo() {
