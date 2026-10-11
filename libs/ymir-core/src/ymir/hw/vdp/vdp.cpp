@@ -213,10 +213,11 @@ void VDP::MapMemory(sys::SH2Bus &bus) {
     // VDP2 registers
     bus.MapNormal(
         0x5F8'0000, 0x5FB'FFFF, this,
-        [](uint32 address, void * /*ctx*/) -> uint8 {
+        [](uint32 address, void *ctx) -> uint8 {
             address &= 0x1FF;
-            devlog::debug<grp::vdp1_regs>("Illegal 8-bit VDP2 register read from {:05X}", address);
-            return 0;
+            devlog::trace<grp::vdp2_regs>("Illegal 8-bit VDP2 register read from {:05X}", address);
+            uint16 value = cast(ctx).VDP2ReadReg<false>(address & ~1u);
+            return value >> ((~address & 1u) * 8u);
         },
         [](uint32 address, void *ctx) -> uint16 { return cast(ctx).VDP2ReadReg<false>(address); },
         [](uint32 address, void *ctx) -> uint32 {
@@ -226,7 +227,8 @@ void VDP::MapMemory(sys::SH2Bus &bus) {
         },
         [](uint32 address, uint8 value, void * /*ctx*/) {
             address &= 0x1FF;
-            devlog::debug<grp::vdp1_regs>("Illegal 8-bit VDP2 register write to {:05X} = {:02X}", address, value);
+            devlog::debug<grp::vdp2_regs>("Illegal 8-bit VDP2 register write to {:05X} = {:02X}", address, value);
+            // TODO: should these go through anyway?
         },
         [](uint32 address, uint16 value, void *ctx) { cast(ctx).VDP2WriteReg<false>(address, value); },
         [](uint32 address, uint32 value, void *ctx) {
