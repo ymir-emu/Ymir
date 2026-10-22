@@ -1,8 +1,10 @@
 #include "hotkeys_settings_view.hpp"
 
 #include <app/imgui_data.hpp>
+#include <app/ui/i18n.hpp>
 
 namespace app::ui {
+
 
 HotkeysSettingsView::HotkeysSettingsView(SharedContext &context)
     : SettingsViewBase(context)
@@ -13,19 +15,19 @@ void HotkeysSettingsView::Display() {
     const YmirImGuiData *imguiData = GetYmirImGuiData();
     auto &settings = GetSettings();
 
-    if (ImGui::Button("Restore defaults")) {
+    if (ImGui::Button(_("Restore defaults"))) {
         m_unboundActionsWidget.Capture(settings.ResetHotkeys());
         MakeDirty();
     }
 
-    ImGui::TextUnformatted("Left-click a button to assign a hotkey. Right-click to clear.");
+    ImGui::TextUnformatted(_("Left-click a button to assign a hotkey. Right-click to clear."));
     m_unboundActionsWidget.Display();
     if (ImGui::BeginTable("hotkeys", 2 + input::kNumBindsPerInput,
                           ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY)) {
-        ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 80.0f * imguiData->displayScale);
-        ImGui::TableSetupColumn("Command", ImGuiTableColumnFlags_WidthFixed, 200.0f * imguiData->displayScale);
+        ImGui::TableSetupColumn(_("Type"), ImGuiTableColumnFlags_WidthFixed, 80.0f * imguiData->displayScale);
+        ImGui::TableSetupColumn(_("Command"), ImGuiTableColumnFlags_WidthFixed, 200.0f * imguiData->displayScale);
         for (size_t i = 0; i < input::kNumBindsPerInput; i++) {
-            ImGui::TableSetupColumn(fmt::format("Hotkey {}", i + 1).c_str(), ImGuiTableColumnFlags_WidthStretch, 1.0f);
+            ImGui::TableSetupColumn(fmt::format(fmt::runtime(_("Hotkey {}")), i + 1).c_str(), ImGuiTableColumnFlags_WidthStretch, 1.0f);
         }
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();

@@ -1,6 +1,7 @@
 #include "tweaks_settings_view.hpp"
 
 #include <app/ui/widgets/settings_widgets.hpp>
+#include <app/ui/i18n.hpp>
 
 #include <app/events/emu_event_factory.hpp>
 
@@ -12,6 +13,7 @@
 
 namespace app::ui {
 
+
 TweaksSettingsView::TweaksSettingsView(SharedContext &context)
     : SettingsViewBase(context) {}
 
@@ -20,11 +22,7 @@ void TweaksSettingsView::Display() {
     const float availWidth = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
 
     ImGui::PushTextWrapPos(availWidth);
-    ImGui::TextUnformatted("The options listed in this tab affect emulation accuracy.\n"
-                           "If you encounter an issue running some games, try using the recommended or maximum "
-                           "quality/accuracy/compatibility presets below.\n"
-                           "The performance presets may cause issues with some games.\n"
-                           "When reporting issues, make sure to include this list:");
+    ImGui::TextUnformatted(_("The options listed in this tab affect emulation accuracy.\nIf you encounter an issue running some games, try using the recommended or maximum quality/accuracy/compatibility presets below.\nThe performance presets may cause issues with some games.\nWhen reporting issues, make sure to include this list:"));
     ImGui::PopTextWrapPos();
 
     std::string tweaksList{};
@@ -126,7 +124,7 @@ void TweaksSettingsView::Display() {
     ImGui::InputTextMultiline("##tweaks_list", &tweaksList, ImVec2(availWidth, 0),
                               ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_AutoSelectAll);
     ImGui::PopFont();
-    if (ImGui::Button("Copy to clipboard")) {
+    if (ImGui::Button(_("Copy to clipboard"))) {
         SDL_SetClipboardText(tweaksList.c_str());
     }
 
@@ -140,46 +138,45 @@ void TweaksSettingsView::DisplayEnhancements() {
     auto &settings = GetSettings();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.xlarge);
-    ImGui::SeparatorText("Enhancements");
+    ImGui::SeparatorText(_("Enhancements"));
     ImGui::PopFont();
 
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Presets:");
+    ImGui::TextUnformatted(_("Presets:"));
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Recommended##enhancements"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Recommended", "enhancements")))) {
         settings.video.enhancements.deinterlace = false;
         settings.video.enhancements.transparentMeshes = true;
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted(
-            "Strikes a good balance between quality and performance without compromising compatibility.");
+        ImGui::TextUnformatted(_("Strikes a good balance between quality and performance without compromising compatibility."));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Best quality##enhancements"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Best quality", "enhancements")))) {
         settings.video.enhancements.deinterlace = true;
         settings.video.enhancements.transparentMeshes = true;
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Maximizes quality with no regard for performance.");
+        ImGui::TextUnformatted(_("Maximizes quality with no regard for performance."));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Best performance##enhancements"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Best performance", "enhancements")))) {
         settings.video.enhancements.deinterlace = false;
         settings.video.enhancements.transparentMeshes = false;
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Maximizes performance with no regard for quality.");
+        ImGui::TextUnformatted(_("Maximizes performance with no regard for quality."));
         ImGui::EndTooltip();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Video");
+    ImGui::SeparatorText(_("Video"));
     ImGui::PopFont();
 
     widgets::settings::video::enhancements::Deinterlace(m_context);
@@ -191,13 +188,13 @@ void TweaksSettingsView::DisplayAccuracyOptions() {
     auto &settings = GetSettings();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.xlarge);
-    ImGui::SeparatorText("Accuracy");
+    ImGui::SeparatorText(_("Accuracy"));
     ImGui::PopFont();
 
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Presets:");
+    ImGui::TextUnformatted(_("Presets:"));
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Recommended##accuracy"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Recommended", "accuracy")))) {
         m_context.EnqueueEvent(events::emu::SetEmulateSH2Cache(false));
 
         settings.system.emulateSH2Cache = false;
@@ -211,13 +208,12 @@ void TweaksSettingsView::DisplayAccuracyOptions() {
         m_context.EnqueueEvent(events::emu::SetCDBlockLLE(false));
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted(
-            "Strikes a good balance between accuracy and performance without compromising compatibility.");
+        ImGui::TextUnformatted(_("Strikes a good balance between accuracy and performance without compromising compatibility."));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Best accuracy##accuracy"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Best accuracy", "accuracy")))) {
         m_context.EnqueueEvent(events::emu::SetEmulateSH2Cache(true));
 
         settings.system.emulateSH2Cache = true;
@@ -235,12 +231,12 @@ void TweaksSettingsView::DisplayAccuracyOptions() {
         m_context.EnqueueEvent(events::emu::SetCDBlockLLE(hasCDBlockROMs));
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Maximizes accuracy with no regard for performance.");
+        ImGui::TextUnformatted(_("Maximizes accuracy with no regard for performance."));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Best performance##accuracy"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Best performance", "accuracy")))) {
         m_context.EnqueueEvent(events::emu::SetEmulateSH2Cache(false));
 
         settings.system.emulateSH2Cache = false;
@@ -254,15 +250,14 @@ void TweaksSettingsView::DisplayAccuracyOptions() {
         m_context.EnqueueEvent(events::emu::SetCDBlockLLE(false));
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Maximizes performance with no regard for accuracy.\n"
-                               "Reduces compatibility with some games.");
+        ImGui::TextUnformatted(_("Maximizes performance with no regard for accuracy.\nReduces compatibility with some games."));
         ImGui::EndTooltip();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("SH-2");
+    ImGui::SeparatorText(_("SH-2"));
     ImGui::PopFont();
 
     widgets::settings::system::EmulateSH2Cache(m_context);
@@ -271,7 +266,7 @@ void TweaksSettingsView::DisplayAccuracyOptions() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Audio");
+    ImGui::SeparatorText(_("Audio"));
     ImGui::PopFont();
 
     widgets::settings::audio::InterpolationMode(m_context);
@@ -280,7 +275,7 @@ void TweaksSettingsView::DisplayAccuracyOptions() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("CD Block");
+    ImGui::SeparatorText(_("CD Block"));
     ImGui::PopFont();
 
     widgets::settings::cdblock::CDBlockLLE(m_context);
@@ -292,62 +287,61 @@ void TweaksSettingsView::DisplayPerformanceOptions() {
     auto &settings = GetSettings();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.xlarge);
-    ImGui::SeparatorText("Performance");
+    ImGui::SeparatorText(_("Performance"));
     ImGui::PopFont();
 
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Presets:");
+    ImGui::TextUnformatted(_("Presets:"));
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Recommended##performance"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Recommended", "performance")))) {
         m_context.EnqueueEvent(events::emu::EnableThreadedVDP1(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedVDP2(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedDeinterlacer(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedSCSP(true));
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Strikes a good balance between compatibility and performance.");
+        ImGui::TextUnformatted(_("Strikes a good balance between compatibility and performance."));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Best compatibility##performance"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Best compatibility", "performance")))) {
         m_context.EnqueueEvent(events::emu::EnableThreadedVDP1(false));
         m_context.EnqueueEvent(events::emu::EnableThreadedVDP2(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedDeinterlacer(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedSCSP(false));
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Maximizes compatibility with no regard for performance.");
+        ImGui::TextUnformatted(_("Maximizes compatibility with no regard for performance."));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (MakeDirty(ImGui::Button("Best performance##performance"))) {
+    if (MakeDirty(ImGui::Button(TR_ID("Best performance", "performance")))) {
         m_context.EnqueueEvent(events::emu::EnableThreadedVDP1(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedVDP2(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedDeinterlacer(true));
         m_context.EnqueueEvent(events::emu::EnableThreadedSCSP(true));
     }
     if (ImGui::BeginItemTooltip()) {
-        ImGui::TextUnformatted("Maximizes performance with no regard for accuracy.\n"
-                               "Reduces compatibility with some games.");
+        ImGui::TextUnformatted(_("Maximizes performance with no regard for accuracy.\nReduces compatibility with some games."));
         ImGui::EndTooltip();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Video");
+    ImGui::SeparatorText(_("Video"));
     ImGui::PopFont();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.medium);
-    ImGui::SeparatorText("Software renderer");
+    ImGui::SeparatorText(_("Software renderer"));
     ImGui::PopFont();
 
     widgets::settings::video::swrenderer::ThreadedVDP(m_context);
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.medium);
-    ImGui::SeparatorText("Hardware renderer");
+    ImGui::SeparatorText(_("Hardware renderer"));
     ImGui::PopFont();
 
     widgets::settings::video::UseHardwareAcceleration(m_context);
@@ -355,7 +349,7 @@ void TweaksSettingsView::DisplayPerformanceOptions() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Audio");
+    ImGui::SeparatorText(_("Audio"));
     ImGui::PopFont();
 
     widgets::settings::audio::ThreadedSCSP(m_context);

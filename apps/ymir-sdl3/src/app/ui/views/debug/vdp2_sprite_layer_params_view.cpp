@@ -6,9 +6,12 @@
 
 #include <imgui.h>
 
+#include <app/ui/i18n.hpp>
+
 using namespace ymir;
 
 namespace app::ui {
+
 
 VDP2SpriteLayerParamsView::VDP2SpriteLayerParamsView(SharedContext &context, vdp::VDP &vdp)
     : m_context(context)
@@ -21,9 +24,9 @@ void VDP2SpriteLayerParamsView::Display() {
 
     auto printYesNo = [&](bool value) {
         if (value) {
-            ImGui::TextUnformatted("yes");
+            ImGui::TextUnformatted(_("yes"));
         } else {
-            ImGui::TextUnformatted("no");
+            ImGui::TextUnformatted(_("no"));
         }
     };
 
@@ -32,24 +35,24 @@ void VDP2SpriteLayerParamsView::Display() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted("Format");
+        ImGui::TextUnformatted(_("Format"));
 
         ImGui::TableNextColumn();
         ImGui::Text("Type %u, ", spriteParams.type);
         ImGui::SameLine(0, 0);
         if (spriteParams.mixedFormat) {
-            ImGui::TextUnformatted("Palette/RGB");
+            ImGui::TextUnformatted(_("Palette/RGB"));
         } else {
-            ImGui::TextUnformatted("Palette only");
+            ImGui::TextUnformatted(_("Palette only"));
         }
         if (spriteParams.lineColorScreenEnable) {
             ImGui::SameLine(0, 0);
-            ImGui::TextUnformatted(", LNCL insertion");
+            ImGui::TextUnformatted(_(", LNCL insertion"));
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted("Color calc.");
+        ImGui::TextUnformatted(_("Color calc."));
         ImGui::TableNextColumn();
         if (spriteParams.colorCalcEnable) {
             switch (spriteParams.colorCalcCond) {
@@ -62,7 +65,7 @@ void VDP2SpriteLayerParamsView::Display() {
             case vdp::SpriteColorCalculationCondition::PriorityGreaterThanOrEqual:
                 ImGui::Text("priority >= %u", spriteParams.colorCalcValue);
                 break;
-            case vdp::SpriteColorCalculationCondition::MsbEqualsOne: ImGui::TextUnformatted("color MSB == 1"); break;
+            case vdp::SpriteColorCalculationCondition::MsbEqualsOne: ImGui::TextUnformatted(_("color MSB == 1")); break;
             }
             ImGui::SameLine(0, 0);
             ImGui::Text(
@@ -70,12 +73,12 @@ void VDP2SpriteLayerParamsView::Display() {
                 spriteParams.colorCalcRatios[2], spriteParams.colorCalcRatios[3], spriteParams.colorCalcRatios[4],
                 spriteParams.colorCalcRatios[5], spriteParams.colorCalcRatios[6], spriteParams.colorCalcRatios[7]);
         } else {
-            ImGui::TextUnformatted("no");
+            ImGui::TextUnformatted(_("no"));
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted("Priorities");
+        ImGui::TextUnformatted(_("Priorities"));
         ImGui::TableNextColumn();
         for (uint32 i = 0; i < 8; ++i) {
             if (i > 0) {
@@ -86,7 +89,7 @@ void VDP2SpriteLayerParamsView::Display() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted("Windows");
+        ImGui::TextUnformatted(_("Windows"));
         ImGui::TableNextColumn();
         const auto &windowSet = spriteParams.windowSet;
         WindowSetPrinter printer{windowSet.logic};
@@ -97,7 +100,7 @@ void VDP2SpriteLayerParamsView::Display() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted("Sprite window");
+        ImGui::TextUnformatted(_("Sprite window"));
         ImGui::TableNextColumn();
         printYesNo(spriteParams.useSpriteWindow);
 

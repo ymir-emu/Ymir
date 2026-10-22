@@ -2,6 +2,8 @@
 
 #include <app/events/gui_event_factory.hpp>
 
+#include <app/ui/i18n.hpp>
+
 #include <app/settings.hpp>
 
 #include <ymir/hw/smpc/smpc.hpp>
@@ -9,6 +11,7 @@
 using namespace ymir;
 
 namespace app::ui::widgets {
+
 
 bool PeripheralSelector(SharedContext &ctx, uint32 portIndex) {
     std::unique_lock lock{ctx.locks.peripherals};
@@ -32,7 +35,7 @@ bool PeripheralSelector(SharedContext &ctx, uint32 portIndex) {
             if (ImGui::TableNextColumn()) {
                 ImGui::AlignTextToFramePadding();
                 // TODO: multitap -- ImGui::Text("Slot %u:", slotIndex);
-                ImGui::TextUnformatted("Peripheral:");
+                ImGui::TextUnformatted(_("Peripheral:"));
             }
             if (ImGui::TableNextColumn()) {
                 ImGui::SetNextItemWidth(-1);
@@ -51,7 +54,7 @@ bool PeripheralSelector(SharedContext &ctx, uint32 portIndex) {
                 if (isNone) {
                     ImGui::BeginDisabled();
                 }
-                if (ImGui::Button(fmt::format("Configure##{}_{}", portIndex, slotIndex).c_str())) {
+                if (ImGui::Button(fmt::format("{}##{}_{}", _("Configure"), portIndex, slotIndex).c_str())) {
                     ctx.EnqueueEvent(events::gui::OpenPeripheralBindsEditor(portIndex - 1, slotIndex));
                 }
                 if (isNone) {

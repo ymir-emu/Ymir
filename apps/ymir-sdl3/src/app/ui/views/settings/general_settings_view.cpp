@@ -3,6 +3,7 @@
 #include <app/events/emu_event_factory.hpp>
 #include <app/events/gui_event_factory.hpp>
 
+#include <app/ui/i18n.hpp>
 #include <app/ui/widgets/common_widgets.hpp>
 
 #include <app/imgui_data.hpp>
@@ -18,6 +19,7 @@
 
 namespace app::ui {
 
+
 GeneralSettingsView::GeneralSettingsView(SharedContext &context)
     : SettingsViewBase(context) {}
 
@@ -29,41 +31,41 @@ void GeneralSettingsView::Display() {
     const float paddingWidth = ImGui::GetStyle().FramePadding.x;
     const float itemSpacingWidth = ImGui::GetStyle().ItemSpacing.x;
     const float fileSelectorButtonWidth = ImGui::CalcTextSize("...").x + paddingWidth * 2;
-    const float clearButtonWidth = ImGui::CalcTextSize("Clear").x + paddingWidth * 2;
-    const float openButtonWidth = ImGui::CalcTextSize("Open").x + paddingWidth * 2;
+    const float clearButtonWidth = ImGui::CalcTextSize(_("Clear")).x + paddingWidth * 2;
+    const float openButtonWidth = ImGui::CalcTextSize(_("Open")).x + paddingWidth * 2;
 
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Performance");
+    ImGui::SeparatorText(_("Performance"));
     ImGui::PopFont();
 
-    if (MakeDirty(ImGui::Checkbox("Boost process priority", &settings.boostProcessPriority))) {
+    if (MakeDirty(ImGui::Checkbox(_("Boost process priority"), &settings.boostProcessPriority))) {
         m_context.EnqueueEvent(events::gui::SetProcessPriority(settings.boostProcessPriority));
     }
     widgets::ExplanationTooltip("Increases the process's priority level, which may help reduce stuttering.");
 
-    if (MakeDirty(ImGui::Checkbox("Boost emulator thread priority", &settings.boostEmuThreadPriority))) {
+    if (MakeDirty(ImGui::Checkbox(_("Boost emulator thread priority"), &settings.boostEmuThreadPriority))) {
         m_context.EnqueueEvent(events::emu::SetThreadPriority(settings.boostEmuThreadPriority));
     }
     widgets::ExplanationTooltip("Increases the emulator thread's priority, which may help reduce jitter.");
 
-    MakeDirty(ImGui::Checkbox("Preload disc images to RAM", &settings.preloadDiscImagesToRAM));
+    MakeDirty(ImGui::Checkbox(_("Preload disc images to RAM"), &settings.preloadDiscImagesToRAM));
     widgets::ExplanationTooltip(
         "Preloads the entire disc image to memory.\n"
         "May help reduce stuttering if you're loading images from a slow disk or from the network.");
 
-    MakeDirty(ImGui::Checkbox("Remember last loaded disc image", &settings.rememberLastLoadedDisc));
+    MakeDirty(ImGui::Checkbox(_("Remember last loaded disc image"), &settings.rememberLastLoadedDisc));
     widgets::ExplanationTooltip(
         "When enabled, Ymir will automatically load the most recently loaded game disc on startup.");
 
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Behavior");
+    ImGui::SeparatorText(_("Behavior"));
     ImGui::PopFont();
 
-    ImGui::TextUnformatted("Emulation speed");
+    ImGui::TextUnformatted(_("Emulation speed"));
     widgets::ExplanationTooltip(
         "You can adjust and switch between the primary and alternate speeds at any time.\n"
         "The primary speed is meant to be the default speed for normal usage while the alternate speed is used "
@@ -73,7 +75,7 @@ void GeneralSettingsView::Display() {
     if (ImGui::BeginTable("emu_speed", 3, ImGuiTableFlags_SizingFixedFit)) {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
-            if (MakeDirty(ImGui::RadioButton("Primary##emu_speed", !settings.useAltSpeed))) {
+            if (MakeDirty(ImGui::RadioButton(TR_ID("Primary", "emu_speed"), !settings.useAltSpeed))) {
                 settings.useAltSpeed = false;
             }
         }
@@ -88,14 +90,14 @@ void GeneralSettingsView::Display() {
             }
         }
         if (ImGui::TableNextColumn()) {
-            if (MakeDirty(ImGui::Button("Reset##main_emu_speed"))) {
+            if (MakeDirty(ImGui::Button(TR_ID("Reset", "main_emu_speed")))) {
                 settings.mainSpeedFactor = 1.0;
             }
         }
 
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
-            if (MakeDirty(ImGui::RadioButton("Alternate##emu_speed", settings.useAltSpeed))) {
+            if (MakeDirty(ImGui::RadioButton(TR_ID("Alternate", "emu_speed"), settings.useAltSpeed))) {
                 settings.useAltSpeed = true;
             }
         }
@@ -110,7 +112,7 @@ void GeneralSettingsView::Display() {
             }
         }
         if (ImGui::TableNextColumn()) {
-            if (MakeDirty(ImGui::Button("Reset##alt_emu_speed"))) {
+            if (MakeDirty(ImGui::Button(TR_ID("Reset", "alt_emu_speed")))) {
                 settings.altSpeedFactor = 0.5;
             }
         }
@@ -118,35 +120,35 @@ void GeneralSettingsView::Display() {
         ImGui::EndTable();
     }
 
-    MakeDirty(ImGui::Checkbox("Pause when unfocused", &settings.pauseWhenUnfocused));
+    MakeDirty(ImGui::Checkbox(_("Pause when unfocused"), &settings.pauseWhenUnfocused));
     widgets::ExplanationTooltip(
         "The emulator will pause when the window loses focus and resume when it regains focus.\n"
         "Does not affect the behavior of manual pauses - they persist through focus changes.");
 
-    MakeDirty(ImGui::Checkbox("Unpause after loading discs", &settings.unpauseOnDiscLoad));
+    MakeDirty(ImGui::Checkbox(_("Unpause after loading discs"), &settings.unpauseOnDiscLoad));
     widgets::ExplanationTooltip("The emulator will unpause when a game disc is loaded.");
 
-    MakeDirty(ImGui::Checkbox("Start paused upon launch", &settings.startPaused));
+    MakeDirty(ImGui::Checkbox(_("Start paused upon launch"), &settings.startPaused));
     widgets::ExplanationTooltip("Ymir will launch with emulation paused when starting up.");
 
-    MakeDirty(ImGui::Checkbox("Enable Discord Rich Presence", &settings.enableDiscordPresence));
+    MakeDirty(ImGui::Checkbox(_("Enable Discord Rich Presence"), &settings.enableDiscordPresence));
     widgets::ExplanationTooltip("Displays the current game on your Discord profile while Ymir is running.");
 
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Updates");
+    ImGui::SeparatorText(_("Updates"));
     ImGui::PopFont();
 
 #if Ymir_ENABLE_UPDATE_CHECKS
-    MakeDirty(ImGui::Checkbox("Check for updates on startup", &settings.checkForUpdates));
+    MakeDirty(ImGui::Checkbox(_("Check for updates on startup"), &settings.checkForUpdates));
 #endif
-    MakeDirty(ImGui::Checkbox("Update to nightly builds", &settings.includeNightlyBuilds));
+    MakeDirty(ImGui::Checkbox(_("Update to nightly builds"), &settings.includeNightlyBuilds));
     widgets::ExplanationTooltip("When enabled, Ymir will also notify you when new nightly builds are available.");
-    if (ImGui::Button("Check now")) {
+    if (ImGui::Button(_("Check now"))) {
         m_context.EnqueueEvent(events::gui::CheckForUpdates());
     }
-    ImGui::TextUnformatted("Latest versions:");
+    ImGui::TextUnformatted(_("Latest versions:"));
     if (ImGui::BeginTable("updates", 3, ImGuiTableFlags_SizingFixedFit)) {
         std::unique_lock lock{m_context.locks.updates};
         auto version = [&](const char *name, const std::optional<UpdateInfo> &ver) {
@@ -159,13 +161,13 @@ void GeneralSettingsView::Display() {
             ImGui::TableNextColumn();
             if (ver) {
                 if (m_context.updates.inProgress) {
-                    ImGui::TextUnformatted("Checking...");
+                    ImGui::TextUnformatted(_("Checking..."));
                 } else {
                     ImGui::Text("%s", ver->version.to_string().c_str());
                 }
                 ImGui::TableNextColumn();
                 if (!ver->releaseNotesURL.empty()) {
-                    if (ImGui::SmallButton("Release notes")) {
+                    if (ImGui::SmallButton(_("Release notes"))) {
                         SDL_OpenURL(ver->releaseNotesURL.c_str());
                     }
                 }
@@ -173,12 +175,12 @@ void GeneralSettingsView::Display() {
                     if (!ver->releaseNotesURL.empty()) {
                         ImGui::SameLine();
                     }
-                    if (ImGui::SmallButton("Download")) {
+                    if (ImGui::SmallButton(_("Download"))) {
                         SDL_OpenURL(ver->downloadURL.c_str());
                     }
                 }
             } else {
-                ImGui::TextUnformatted("Not checked");
+                ImGui::TextUnformatted(_("Not checked"));
             }
 
             ImGui::PopID();
@@ -202,17 +204,17 @@ void GeneralSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Screenshots");
+    ImGui::SeparatorText(_("Screenshots"));
     ImGui::PopFont();
 
     MakeDirty(
-        ImGui::SliderInt("Screenshot scale", &settings.screenshotScale, 1, 4, "%u", ImGuiSliderFlags_AlwaysClamp));
+        ImGui::SliderInt(_("Screenshot scale"), &settings.screenshotScale, 1, 4, "%u", ImGuiSliderFlags_AlwaysClamp));
     widgets::ExplanationTooltip("Adjusts the scale at which screenshots are saved.\n"
                                 "Screenshots taken by the emulator have no aspect ratio distortion and are scaled with "
                                 "nearest neighbor interpolation to preserve the raw framebuffer data.");
 
     const std::filesystem::path screenshotsPath = m_context.profile.GetPath(ProfilePath::Screenshots);
-    ImGui::TextUnformatted("Screenshots are saved to ");
+    ImGui::TextUnformatted(_("Screenshots are saved to "));
     ImGui::SameLine(0, 0);
     if (ImGui::TextLink(fmt::format("{}", screenshotsPath).c_str())) {
         SDL_OpenURL(fmt::format("file:///{}", screenshotsPath).c_str());
@@ -221,10 +223,10 @@ void GeneralSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Rewind buffer");
+    ImGui::SeparatorText(_("Rewind buffer"));
     ImGui::PopFont();
 
-    if (MakeDirty(ImGui::Checkbox("Enable rewind buffer", &settings.enableRewindBuffer))) {
+    if (MakeDirty(ImGui::Checkbox(_("Enable rewind buffer"), &settings.enableRewindBuffer))) {
         m_context.EnqueueEvent(events::gui::EnableRewindBuffer(settings.enableRewindBuffer));
     }
     widgets::ExplanationTooltip("Allows you to step back in time.\n"
@@ -232,7 +234,7 @@ void GeneralSettingsView::Display() {
 
     // TODO: rewind buffer size
 
-    if (MakeDirty(ImGui::SliderInt("Compression level", &settings.rewindCompressionLevel, 0, 16, "%d",
+    if (MakeDirty(ImGui::SliderInt(_("Compression level"), &settings.rewindCompressionLevel, 0, 16, "%d",
                                    ImGuiSliderFlags_AlwaysClamp))) {
         m_context.rewindBuffer.LZ4Accel = 1 << (16 - settings.rewindCompressionLevel);
     }
@@ -243,7 +245,7 @@ void GeneralSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Profile paths");
+    ImGui::SeparatorText(_("Profile paths"));
     ImGui::PopFont();
 
     const std::filesystem::path profileRoot = m_context.profile.GetPath(ProfilePath::Root);

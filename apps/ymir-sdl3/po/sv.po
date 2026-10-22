@@ -1,0 +1,2764 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Ymir\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-22 13:02+0200\n"
+"PO-Revision-Date: 2026-10-15 10:04+0100\n"
+"Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: src/app/app.cpp:2185
+msgid "File"
+msgstr "Arkiv"
+
+#: src/app/app.cpp:2187
+msgid "Load disc image"
+msgstr "Läs in skivavbild"
+
+#: src/app/app.cpp:2191
+msgid "Recent disc images"
+msgstr "Senaste skivavbilder"
+
+#: src/app/app.cpp:2193
+msgid "(empty)"
+msgstr "(tom)"
+
+#: src/app/app.cpp:2218
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:59
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:31
+#: src/app/ui/views/settings/general_settings_view.cpp:34
+msgid "Clear"
+msgstr "Rensa"
+
+#: src/app/app.cpp:2226
+msgid "Load from drive"
+msgstr "Läs in från enhet"
+
+#: src/app/app.cpp:2243
+msgid "Reenumerate devices"
+msgstr "Sök efter enheter igen"
+
+#: src/app/app.cpp:2250
+msgid "Open/close tray"
+msgstr "Öppna/stäng släden"
+
+#: src/app/app.cpp:2254 src/app/ui/windows/system_state_window.cpp:262
+#: src/app/ui/windows/system_state_window.cpp:420
+msgid "Eject disc"
+msgstr "Mata ut skivan"
+
+#: src/app/app.cpp:2300 src/app/ui/views/settings/analog_pad_config_view.cpp:35
+#: src/app/ui/views/settings/control_pad_config_view.cpp:24
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:35
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:60
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:193
+msgid "Clear all"
+msgstr "Rensa alla"
+
+#: src/app/app.cpp:2306 src/app/ui/views/backup_memory_view.cpp:618
+msgid "Yes"
+msgstr "Ja"
+
+#: src/app/app.cpp:2312 src/app/ui/views/backup_memory_view.cpp:625
+msgid "No"
+msgstr "Nej"
+
+#: src/app/app.cpp:2321
+msgid "Load state"
+msgstr "Läs in sparat läge"
+
+#: src/app/app.cpp:2327
+msgid "Save state"
+msgstr "Spara läge"
+
+#: src/app/app.cpp:2336
+msgid "Undo save state"
+msgstr "Ångra sparat läge"
+
+#: src/app/app.cpp:2342
+msgid "Undo load state"
+msgstr "Ångra inläst läge"
+
+#: src/app/app.cpp:2348
+msgid "Open save states directory"
+msgstr "Öppna katalogen för sparade lägen"
+
+#: src/app/app.cpp:2354
+msgid "Reload save states from disk"
+msgstr "Läs in sparade lägen från disken igen"
+
+#: src/app/app.cpp:2360
+msgid "Take screenshot"
+msgstr "Ta skärmbild"
+
+#: src/app/app.cpp:2364
+msgid "Open screenshots directory"
+msgstr "Öppna katalogen för skärmbilder"
+
+#: src/app/app.cpp:2371
+msgid "Open profile directory"
+msgstr "Öppna profilmappen"
+
+#: src/app/app.cpp:2377
+msgid "Exit"
+msgstr "Avsluta"
+
+#: src/app/app.cpp:2383
+msgid "View"
+msgstr "Visa"
+
+#: src/app/app.cpp:2386 src/app/ui/views/settings/video_settings_view.cpp:66
+msgid "Force integer scaling"
+msgstr "Tvinga heltalsskalning"
+
+#: src/app/app.cpp:2387 src/app/ui/views/settings/video_settings_view.cpp:67
+msgid "Force aspect ratio"
+msgstr "Tvinga bildförhållande"
+
+#: src/app/app.cpp:2412 src/app/ui/views/settings/video_settings_view.cpp:114
+msgid "Full screen"
+msgstr "Helskärm"
+
+#: src/app/app.cpp:2421 src/app/ui/views/settings/video_settings_view.cpp:91
+msgid "Auto-fit window to screen"
+msgstr "Anpassa fönstret automatiskt till skärmen"
+
+#: src/app/app.cpp:2426
+msgid "Fit window to screen"
+msgstr "Anpassa fönstret till skärmen"
+
+#: src/app/app.cpp:2430 src/app/ui/views/settings/gui_settings_view.cpp:87
+msgid "Remember window geometry"
+msgstr "Kom ihåg fönsterposition och storlek"
+
+#: src/app/app.cpp:2434
+msgid "Set view scale to"
+msgstr "Ställ in visningsskalan till"
+
+#: src/app/app.cpp:2466 src/app/ui/views/settings/video_settings_view.cpp:105
+msgid "Windowed video output"
+msgstr "Videoutmatning i fönster"
+
+#: src/app/app.cpp:2474 src/app/app.cpp:2607
+#: src/app/ui/windows/settings_window.cpp:69
+msgid "System"
+msgstr "System"
+
+#: src/app/app.cpp:2475 src/app/ui/windows/system_state_window.cpp:31
+msgid "System state"
+msgstr "Systemstatus"
+
+#: src/app/app.cpp:2476
+msgid "Copy disc hash"
+msgstr "Kopiera skivhash"
+
+#: src/app/app.cpp:2481 src/app/ui/windows/backup_ram_manager_window.cpp:23
+msgid "Backup memory manager"
+msgstr "Hanterare för reservminne"
+
+#: src/app/app.cpp:2488 src/app/ui/windows/system_state_window.cpp:738
+msgid "Soft reset"
+msgstr "Mjuk återställning"
+
+#: src/app/app.cpp:2492 src/app/ui/windows/system_state_window.cpp:734
+msgid "Hard reset"
+msgstr "Hård återställning"
+
+#: src/app/app.cpp:2507
+msgid "Video standard:"
+msgstr "Videostandard:"
+
+#: src/app/app.cpp:2512 src/app/ui/views/settings/ipl_settings_view.cpp:90
+#: src/app/ui/views/settings/system_settings_view.cpp:49
+#: src/app/ui/views/settings/system_settings_view.cpp:68
+#: src/app/ui/windows/system_state_window.cpp:109
+msgid "Region"
+msgstr "Region"
+
+#: src/app/app.cpp:2516 src/app/ui/views/settings/system_settings_view.cpp:69
+#: src/app/ui/windows/system_state_window.cpp:113
+msgid "Changing this option will cause a hard reset"
+msgstr "Om alternativet ändras utförs en hård återställning"
+
+#: src/app/app.cpp:2528
+msgid "Cartridge port: "
+msgstr "Kassettport: "
+
+#: src/app/app.cpp:2533
+msgid "Insert backup RAM..."
+msgstr "Sätt i reserv-RAM…"
+
+#: src/app/app.cpp:2536
+msgid "Insert 8 Mbit DRAM"
+msgstr "Sätt i 8 Mbit DRAM"
+
+#: src/app/app.cpp:2539
+msgid "Insert 32 Mbit DRAM"
+msgstr "Sätt i 32 Mbit DRAM"
+
+#: src/app/app.cpp:2542
+msgid "Insert 48 Mbit DRAM (dev)"
+msgstr "Sätt i 48 Mbit DRAM (utveckling)"
+
+#: src/app/app.cpp:2545
+msgid "Insert 16 Mbit ROM..."
+msgstr "Sätt i 16 Mbit ROM…"
+
+#: src/app/app.cpp:2549
+msgid "Remove cartridge"
+msgstr "Ta ut kassett"
+
+#: src/app/app.cpp:2563
+msgid "Emulation"
+msgstr "Emulering"
+
+#: src/app/app.cpp:2566
+msgid "Pause/resume"
+msgstr "Pausa/fortsätt"
+
+#: src/app/app.cpp:2570
+msgid "Forward frame step"
+msgstr "Stega fram en bildruta"
+
+#: src/app/app.cpp:2574
+msgid "Reverse frame step"
+msgstr "Stega bak en bildruta"
+
+#: src/app/app.cpp:2581 src/app/ui/views/settings/general_settings_view.cpp:226
+msgid "Rewind buffer"
+msgstr "Återspolningsbuffert"
+
+#: src/app/app.cpp:2588 src/app/app.cpp:2590
+#: src/app/ui/windows/settings_window.cpp:26
+msgid "Settings"
+msgstr "Inställningar"
+
+#: src/app/app.cpp:2598 src/app/ui/views/settings/audio_settings_view.cpp:32
+#: src/app/ui/views/settings/gui_settings_view.cpp:24
+#: src/app/ui/views/settings/video_settings_view.cpp:26
+#: src/app/ui/windows/settings_window.cpp:57
+msgid "General"
+msgstr "Allmänt"
+
+#: src/app/app.cpp:2601 src/app/ui/windows/settings_window.cpp:61
+msgid "GUI"
+msgstr "Gränssnitt"
+
+#: src/app/app.cpp:2604 src/app/ui/windows/settings_window.cpp:65
+msgid "Hotkeys"
+msgstr "Kortkommandon"
+
+#: src/app/app.cpp:2610 src/app/ui/windows/settings_window.cpp:73
+msgid "IPL (BIOS)"
+msgstr "IPL (BIOS)"
+
+#: src/app/app.cpp:2613 src/app/ui/windows/settings_window.cpp:77
+msgid "Input"
+msgstr "Indata"
+
+#: src/app/app.cpp:2616 src/app/ui/views/settings/tweaks_settings_view.cpp:179
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:334
+#: src/app/ui/windows/settings_window.cpp:82
+msgid "Video"
+msgstr "Video"
+
+#: src/app/app.cpp:2619 src/app/ui/views/settings/tweaks_settings_view.cpp:269
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:352
+#: src/app/ui/windows/settings_window.cpp:86
+msgid "Audio"
+msgstr "Ljud"
+
+#: src/app/app.cpp:2622 src/app/ui/windows/settings_window.cpp:90
+#: src/app/ui/windows/system_state_window.cpp:63
+msgid "Cartridge"
+msgstr "Kassett"
+
+#: src/app/app.cpp:2625 src/app/app.cpp:2748
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:278
+#: src/app/ui/windows/settings_window.cpp:94
+msgid "CD Block"
+msgstr "CD Block"
+
+#: src/app/app.cpp:2628 src/app/ui/windows/settings_window.cpp:98
+msgid "Tweaks"
+msgstr "Justeringar"
+
+#: src/app/app.cpp:2634
+msgid "Debug"
+msgstr "Felsökning"
+
+#: src/app/app.cpp:2636
+msgid "Enable tracing"
+msgstr "Aktivera spårning"
+
+#: src/app/app.cpp:2642
+msgid "Open memory viewer"
+msgstr "Öppna minnesvisare"
+
+#: src/app/app.cpp:2645
+msgid "Memory viewers"
+msgstr "Minnesvisare"
+
+#: src/app/app.cpp:2652
+msgid "Dump all memory"
+msgstr "Dumpa allt minne"
+
+#: src/app/app.cpp:2660
+msgid "Debugger"
+msgstr "Felsökare"
+
+#: src/app/app.cpp:2663
+msgid "Breakpoints"
+msgstr "Brytpunkter"
+
+#: src/app/app.cpp:2664
+msgid "Watchpoints"
+msgstr "Övervakningspunkter"
+
+#: src/app/app.cpp:2667
+msgid "Interrupts"
+msgstr "Avbrott"
+
+#: src/app/app.cpp:2668 src/app/app.cpp:2688
+msgid "Interrupt trace"
+msgstr "Avbrottsspårning"
+
+#: src/app/app.cpp:2669
+msgid "Exception vectors"
+msgstr "Undantagsvektorer"
+
+#: src/app/app.cpp:2670
+msgid "Cache"
+msgstr "Cache"
+
+#: src/app/app.cpp:2671
+msgid "Division unit (DIVU)"
+msgstr "Divisionsenhet (DIVU)"
+
+#: src/app/app.cpp:2672
+msgid "Timers (FRT and WDT)"
+msgstr "Tidtagare (FRT och WDT)"
+
+#: src/app/app.cpp:2673
+msgid "Power module"
+msgstr "Strömmodul"
+
+#: src/app/app.cpp:2674
+msgid "DMA Controller (DMAC)"
+msgstr "DMA-styrenhet (DMAC)"
+
+#: src/app/app.cpp:2675
+msgid "DMA Controller trace"
+msgstr "Spårning av DMA-styrenhet"
+
+#: src/app/app.cpp:2682
+msgid "SCU"
+msgstr "SCU"
+
+#: src/app/app.cpp:2684 src/app/app.cpp:2727 src/app/app.cpp:2735
+msgid "Registers"
+msgstr "Register"
+
+#: src/app/app.cpp:2685
+msgid "DSP"
+msgstr "DSP"
+
+#: src/app/app.cpp:2686
+msgid "DMA"
+msgstr "DMA"
+
+#: src/app/app.cpp:2687
+msgid "DMA trace"
+msgstr "DMA-spårning"
+
+#: src/app/app.cpp:2692
+msgid "SCSP"
+msgstr "SCSP"
+
+#: src/app/app.cpp:2694
+msgid "Output"
+msgstr "Utdata"
+
+#: src/app/app.cpp:2695
+msgid "Slots"
+msgstr "Platser"
+
+#: src/app/app.cpp:2696
+msgid "KYONEX trace"
+msgstr "KYONEX-spårning"
+
+#: src/app/app.cpp:2701
+msgid "VDP"
+msgstr "VDP"
+
+#: src/app/app.cpp:2712
+msgid "Layer visibility"
+msgstr "Lagersynlighet"
+
+#: src/app/app.cpp:2737
+msgid "Background layer parameters"
+msgstr "Parametrar för bakgrundslager"
+
+#: src/app/app.cpp:2738
+msgid "Sprite layer parameters"
+msgstr "Parametrar för sprite-lager"
+
+#: src/app/app.cpp:2739
+msgid "Window parameters"
+msgstr "Fönsterparametrar"
+
+#: src/app/app.cpp:2740
+msgid "Color calculation parameters"
+msgstr "Parametrar för färgberäkning"
+
+#: src/app/app.cpp:2741
+msgid "Debug overlay"
+msgstr "Felsökningsöverlägg"
+
+#: src/app/app.cpp:2742
+msgid "VRAM access patterns"
+msgstr "Åtkomstmönster för VRAM"
+
+#: src/app/app.cpp:2743
+msgid "Color RAM palette"
+msgstr "Färgpalett i RAM"
+
+#: src/app/app.cpp:2753
+msgid "Command trace"
+msgstr "Kommandospårning"
+
+#: src/app/app.cpp:2754
+msgid "Filters"
+msgstr "Filter"
+
+#: src/app/app.cpp:2755
+msgid "Partitions"
+msgstr "Partitioner"
+
+#: src/app/app.cpp:2760
+msgid "CD drive state trace"
+msgstr "Spårning av cd-enhetens tillstånd"
+
+#: src/app/app.cpp:2761
+msgid "YGR command trace"
+msgstr "YGR-kommandospårning"
+
+#: src/app/app.cpp:2765
+msgid "Debug output"
+msgstr "Felsökningsutdata"
+
+#: src/app/app.cpp:2776
+msgid "Help"
+msgstr "Hjälp"
+
+#: src/app/app.cpp:2777
+msgid "Open welcome window"
+msgstr "Öppna välkomstfönstret"
+
+#: src/app/app.cpp:2780
+msgid "Check for updates"
+msgstr "Sök efter uppdateringar"
+
+#: src/app/app.cpp:2785
+msgid "Show message history"
+msgstr "Visa meddelandehistorik"
+
+#: src/app/app.cpp:2790
+msgid "ImGui demo window"
+msgstr "ImGui-demofönster"
+
+#: src/app/app.cpp:2793 src/app/ui/windows/about_window.cpp:233
+#: src/app/ui/windows/about_window.cpp:249
+msgid "About"
+msgstr "Om"
+
+#: src/app/services/window_manager_service.cpp:111
+#: src/app/ui/views/backup_memory_view.cpp:585
+#: src/app/ui/views/backup_memory_view.cpp:876
+#: src/app/ui/views/backup_memory_view.cpp:901
+#: src/app/ui/views/backup_memory_view.cpp:923
+#: src/app/ui/views/backup_memory_view.cpp:944
+#: src/app/ui/views/backup_memory_view.cpp:968
+msgid "OK"
+msgstr "OK"
+
+#: src/app/services/window_manager_service.cpp:126
+#: src/app/ui/views/backup_memory_view.cpp:954
+#: src/app/ui/windows/system_state_window.cpp:284
+msgid "Error"
+msgstr "Fel"
+
+#: src/app/services/window_manager_service.cpp:155
+msgid "Welcome"
+msgstr "Välkommen"
+
+#: src/app/services/window_manager_service.cpp:172
+msgid "Welcome to Ymir!"
+msgstr "Välkommen till Ymir!"
+
+#: src/app/services/window_manager_service.cpp:176
+msgid "Ymir requires a valid IPL (BIOS) ROM to work."
+msgstr "Ymir behöver en giltig IPL-ROM (BIOS) för att fungera."
+
+#: src/app/services/window_manager_service.cpp:180
+msgid "Ymir will automatically load IPL ROMs placed in "
+msgstr "Ymir läser automatiskt in IPL-ROM-filer som finns i "
+
+#: src/app/services/window_manager_service.cpp:186
+msgid "Alternatively, you can "
+msgstr "Du kan också "
+
+#: src/app/services/window_manager_service.cpp:188
+msgid "manually select an IPL ROM"
+msgstr "välja en IPL-ROM manuellt"
+
+#: src/app/services/window_manager_service.cpp:192
+msgid " or "
+msgstr " eller "
+
+#: src/app/services/window_manager_service.cpp:194
+msgid "manage the ROM settings in Settings > IPL"
+msgstr "hantera ROM-inställningarna under Inställningar > IPL"
+
+#: src/app/services/window_manager_service.cpp:202
+msgid "Ymir is not currently scanning for IPL ROMs."
+msgstr "Ymir söker för närvarande inte efter IPL-ROM-filer."
+
+#: src/app/services/window_manager_service.cpp:203
+msgid ""
+"If you would like to actively scan for IPL ROMs, press the button below."
+msgstr "Tryck på knappen nedan om du vill söka aktivt efter IPL-ROM-filer."
+
+#: src/app/services/window_manager_service.cpp:204
+msgid "Start active scanning"
+msgstr "Starta aktiv sökning"
+
+#: src/app/services/window_manager_service.cpp:212
+#, c-format
+msgid "The file %s does not contain a valid IPL ROM."
+msgstr "Filen %s innehåller inte en giltig IPL-ROM."
+
+#: src/app/services/window_manager_service.cpp:214
+#, c-format
+msgid "Reason: %s."
+msgstr "Orsak: %s."
+
+#: src/app/services/window_manager_service.cpp:219
+msgid "Open IPL ROMs directory"
+msgstr "Öppna katalogen med IPL-ROM-filer"
+
+#: src/app/services/window_manager_service.cpp:223
+msgid "Select IPL ROM..."
+msgstr "Välj IPL-ROM…"
+
+#: src/app/services/window_manager_service.cpp:227
+msgid "Open IPL settings"
+msgstr "Öppna IPL-inställningar"
+
+#: src/app/services/window_manager_service.cpp:237
+msgid "Select IPL ROM"
+msgstr "Välj IPL-ROM"
+
+#: src/app/services/window_manager_service.cpp:239
+msgid "ROM files (*.bin, *.rom)"
+msgstr "ROM-filer (*.bin, *.rom)"
+
+#: src/app/services/window_manager_service.cpp:239
+#: src/app/ui/views/settings/system_settings_view.cpp:274
+msgid "All files (*.*)"
+msgstr "Alla filer (*.*)"
+
+#: src/app/ui/views/backup_memory_view.cpp:55
+msgid "Confirm deletion"
+msgstr "Bekräfta borttagning"
+
+#: src/app/ui/views/backup_memory_view.cpp:56
+msgid "Confirm format"
+msgstr "Bekräfta formatering"
+
+#: src/app/ui/views/backup_memory_view.cpp:77
+#, c-format
+msgid "%u KiB capacity, %u of %u blocks used"
+msgstr "%u KiB kapacitet, %u av %u block används"
+
+#: src/app/ui/views/backup_memory_view.cpp:82
+msgid "Unavailable - insert a backup memory cartridge to manage it"
+msgstr "Inte tillgängligt – sätt i en reservminneskassett för att hantera den"
+
+#: src/app/ui/views/backup_memory_view.cpp:193
+msgid "No files selected"
+msgstr "Inga filer har valts"
+
+#: src/app/ui/views/backup_memory_view.cpp:200
+#: src/app/ui/views/backup_memory_view.cpp:738
+msgid "Import"
+msgstr "Importera"
+
+#: src/app/ui/views/backup_memory_view.cpp:218
+msgid "Export"
+msgstr "Exportera"
+
+#: src/app/ui/views/backup_memory_view.cpp:275
+msgid "Delete"
+msgstr "Ta bort"
+
+#: src/app/ui/views/backup_memory_view.cpp:282
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:38
+msgid "Format"
+msgstr "Formatera"
+
+#: src/app/ui/views/backup_memory_view.cpp:287
+#: src/app/ui/views/backup_memory_view.cpp:302
+msgid "Load image..."
+msgstr "Läs in avbild…"
+
+#: src/app/ui/views/backup_memory_view.cpp:289
+#: src/app/ui/views/backup_memory_view.cpp:317
+msgid "Save image..."
+msgstr "Spara avbild…"
+
+#: src/app/ui/views/backup_memory_view.cpp:402
+#: src/app/ui/views/backup_memory_view.cpp:772
+#: src/app/ui/views/backup_memory_view.cpp:1006
+msgid "Not enough space in memory"
+msgstr "Det finns inte tillräckligt med utrymme i minnet"
+
+#: src/app/ui/views/backup_memory_view.cpp:404
+#: src/app/ui/views/backup_memory_view.cpp:774
+#: src/app/ui/views/backup_memory_view.cpp:1009
+#: src/app/ui/views/backup_memory_view.cpp:1015
+msgid "Unspecified error"
+msgstr "Ospecificerat fel"
+
+#: src/app/ui/views/backup_memory_view.cpp:453
+#: src/app/ui/views/backup_memory_view.cpp:654
+#: src/app/ui/views/backup_memory_view.cpp:819
+msgid "File name"
+msgstr "Filnamn"
+
+#: src/app/ui/views/backup_memory_view.cpp:455
+msgid "Comment"
+msgstr "Kommentar"
+
+#: src/app/ui/views/backup_memory_view.cpp:456
+msgid "Language"
+msgstr "Språk"
+
+#: src/app/ui/views/backup_memory_view.cpp:457
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:45
+msgid "Size"
+msgstr "Storlek"
+
+#: src/app/ui/views/backup_memory_view.cpp:458
+msgid "Blocks"
+msgstr "Block"
+
+#: src/app/ui/views/backup_memory_view.cpp:459
+msgid "Date/time"
+msgstr "Datum/tid"
+
+#: src/app/ui/views/backup_memory_view.cpp:470
+msgid "Used blocks + header blocks"
+msgstr "Använda block + huvudblock"
+
+#: src/app/ui/views/backup_memory_view.cpp:552
+#, c-format
+msgid "The following files will be deleted from %s:"
+msgstr "Följande filer kommer att tas bort från %s:"
+
+#: src/app/ui/views/backup_memory_view.cpp:576
+#: src/app/ui/views/backup_memory_view.cpp:614
+msgid "This operation cannot be undone!"
+msgstr "Åtgärden kan inte ångras!"
+
+#: src/app/ui/views/backup_memory_view.cpp:602
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: src/app/ui/views/backup_memory_view.cpp:613
+#, c-format
+msgid "%s will be formatted. All files will be erased."
+msgstr "%s formateras. Alla filer raderas."
+
+#: src/app/ui/views/backup_memory_view.cpp:616
+#, c-format
+msgid "Are you sure you want to format %s?"
+msgstr "Vill du verkligen formatera %s?"
+
+#: src/app/ui/views/backup_memory_view.cpp:634
+msgid "Resolve imported file conflicts"
+msgstr "Hantera konflikter för importerade filer"
+
+#: src/app/ui/views/backup_memory_view.cpp:644
+#, c-format
+msgid "The following files already exist in %s:"
+msgstr "Följande filer finns redan i %s:"
+
+#: src/app/ui/views/backup_memory_view.cpp:655
+msgid ""
+"Original\n"
+"Size"
+msgstr ""
+"Ursprunglig\n"
+"storlek"
+
+#: src/app/ui/views/backup_memory_view.cpp:656
+msgid ""
+"Original\n"
+"Date/time"
+msgstr ""
+"Ursprungligt\n"
+"datum/tid"
+
+#: src/app/ui/views/backup_memory_view.cpp:657
+msgid ""
+"Imported\n"
+"Size"
+msgstr ""
+"Importerad\n"
+"storlek"
+
+#: src/app/ui/views/backup_memory_view.cpp:658
+msgid ""
+"Imported\n"
+"Date/time"
+msgstr ""
+"Importerat\n"
+"datum/tid"
+
+#: src/app/ui/views/backup_memory_view.cpp:659
+msgid "Overwrite"
+msgstr "Skriv över"
+
+#: src/app/ui/views/backup_memory_view.cpp:742
+msgid "Overwrite all"
+msgstr "Skriv över alla"
+
+#: src/app/ui/views/backup_memory_view.cpp:750
+msgid "Ignore all"
+msgstr "Ignorera alla"
+
+#: src/app/ui/views/backup_memory_view.cpp:789
+msgid "Backup file import summary"
+msgstr "Sammanfattning av import av säkerhetskopieringsfil"
+
+#: src/app/ui/views/backup_memory_view.cpp:809
+msgid "No files were imported."
+msgstr "Inga filer importerades."
+
+#: src/app/ui/views/backup_memory_view.cpp:820
+#: src/app/ui/views/backup_memory_view.cpp:852
+msgid "Reason"
+msgstr "Orsak"
+
+#: src/app/ui/views/backup_memory_view.cpp:851
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:71
+#: src/app/ui/views/settings/ipl_settings_view.cpp:86
+msgid "Path"
+msgstr "Sökväg"
+
+#: src/app/ui/views/backup_memory_view.cpp:889
+msgid "Files export successful"
+msgstr "Filerna exporterades"
+
+#: src/app/ui/views/backup_memory_view.cpp:911
+msgid "Image import successful"
+msgstr "Avbilden importerades"
+
+#: src/app/ui/views/backup_memory_view.cpp:932
+msgid "Image export successful"
+msgstr "Avbilden exporterades"
+
+#: src/app/ui/views/backup_memory_view.cpp:1013
+msgid "Backup file truncated"
+msgstr "Säkerhetskopieringsfilen är avkortad"
+
+#: src/app/ui/views/backup_memory_view.cpp:1014
+msgid "Not a valid backup file"
+msgstr "Inte en giltig säkerhetskopieringsfil"
+
+#: src/app/ui/views/backup_memory_view.cpp:1034
+#, c++-format
+msgid "File import failed: {}"
+msgstr "Import av fil misslyckades: {}"
+
+#: src/app/ui/views/backup_memory_view.cpp:1221
+#, c++-format
+msgid "File export failed: {}"
+msgstr "Export av fil misslyckades: {}"
+
+#: src/app/ui/views/backup_memory_view.cpp:1368
+#, c++-format
+msgid "Could not import {} as {}: {}"
+msgstr "Kunde inte importera {} som {}: {}"
+
+#: src/app/ui/views/backup_memory_view.cpp:1371
+#: src/app/ui/views/backup_memory_view.cpp:1383
+#, c++-format
+msgid "Could not import {} as {}: invalid image size"
+msgstr "Kunde inte importera {} som {}: ogiltig avbildsstorlek"
+
+#: src/app/ui/views/backup_memory_view.cpp:1374
+#, c++-format
+msgid "Could not import {} as {}: out of memory"
+msgstr "Kunde inte importera {} som {}: minnet är slut"
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:51
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:21
+msgid "Enable"
+msgstr "Aktivera"
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:55
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:25
+msgid "You must also enable tracing in Debug > Enable tracing (F11)"
+msgstr ""
+"Du måste också aktivera spårning under Felsökning > Aktivera spårning (F11)"
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:64
+msgid "CD Block LLE is disabled. Nothing will be traced here."
+msgstr "CD Block LLE är avstängd. Ingenting spåras här."
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:71
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:28
+msgid "Command"
+msgstr "Kommando"
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:73
+msgid "Status"
+msgstr "Status"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:32
+msgid "CD connection"
+msgstr "CD-anslutning"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:33
+msgid "File number"
+msgstr "Filnummer"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:34
+msgid "Channel number"
+msgstr "Kanalnummer"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:36
+msgid "Submode"
+msgstr "Underläge"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:37
+msgid "Coding info"
+msgstr "Kodningsinfo"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:38
+msgid "Invert subheader conditions"
+msgstr "Invertera underhuvudvillkor"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:40
+msgid "Frame address"
+msgstr "Bildruteadress"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:42
+msgid "Pass"
+msgstr "Godkänd"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:43
+msgid "Fail"
+msgstr "Underkänd"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:118
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:126
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:28
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:27
+msgid "yes"
+msgstr "ja"
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:120
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:30
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:29
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:76
+msgid "no"
+msgstr "nej"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:43
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:71
+msgid "From"
+msgstr "Från"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:58
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:85
+msgid "to"
+msgstr "till"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:98
+msgid "Swap"
+msgstr "Byt"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:109
+msgid "Increment address by"
+msgstr "Öka adressen med"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:132
+msgid "Hold"
+msgstr "Håll"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:138
+msgid "Count:"
+msgstr "Antal:"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:146
+msgid "longwords"
+msgstr "långord"
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:149
+msgid "Run transfer"
+msgstr "Kör överföring"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:25
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:134
+msgid "Enabled"
+msgstr "Aktiverad"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:34
+msgid "Timer 0"
+msgstr "Tidtagare 0"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:49
+msgid "Counter"
+msgstr "Räknare"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:62
+msgid "Compare"
+msgstr "Jämför"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:70
+msgid "Timer 1"
+msgstr "Tidtagare 1"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:83
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:258
+msgid "Reload"
+msgstr "Läs om"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:87
+msgid "Every line"
+msgstr "Varje rad"
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:91
+msgid "Timer 0 match"
+msgstr "Matchning för tidtagare 0"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:58
+msgid "Step (F7, S)"
+msgstr "Stega (F7, S)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:70
+msgid "Pause (Space, R)"
+msgstr "Pausa (mellanslag, R)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:82
+msgid "Resume (Space, R)"
+msgstr "Fortsätt (mellanslag, R)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:94
+msgid "Hard reset (Ctrl+R)"
+msgstr "Hård återställning (Ctrl+R)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:104
+msgid "Breakpoints (Ctrl+F9)"
+msgstr "Brytpunkter (Ctrl+F9)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:114
+msgid "Watchpoints (Ctrl+Shift+F9)"
+msgstr "Övervakningspunkter (Ctrl+Skift+F9)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:123
+msgid "Dump disassembly range (Ctrl+D)"
+msgstr "Dumpa avassembleringsintervall (Ctrl+D)"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:144
+msgid "Suspended"
+msgstr "Avstängd"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:153
+msgid "Asleep"
+msgstr "Vilande"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:172
+msgid "Go to:"
+msgstr "Gå till:"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:196
+msgid "Jump"
+msgstr "Hoppa"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:201
+msgid "Follow PC"
+msgstr "Följ PC"
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:204
+msgid "on events"
+msgstr "vid händelser"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:29
+msgid "Display numbers in hexadecimal"
+msgstr "Visa tal hexadecimalt"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:46
+msgid "Dividend"
+msgstr "Dividend"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:48
+msgid "Divisor"
+msgstr "Divisor"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:50
+msgid "Quotient"
+msgstr "Kvot"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:52
+msgid "Remainder"
+msgstr "Rest"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:54
+msgid "Overflow"
+msgstr "Överflöde"
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:124
+msgid "yes+IRQ"
+msgstr "ja+IRQ"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:48
+msgid "Bitmap"
+msgstr "Bitmap"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:50
+msgid "Scroll"
+msgstr "Rullning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:56
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:27
+msgid "Type"
+msgstr "Typ"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:82
+msgid "Plane/bitmap size"
+msgstr "Plan-/bitmapstorlek"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:109
+msgid "Char. pattern size"
+msgstr "Teckenmönsterstorlek"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:127
+msgid "Reduction"
+msgstr "Förminskning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:161
+msgid "Color format"
+msgstr "Färgformat"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:179
+msgid "Transparency"
+msgstr "Genomskinlighet"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:197
+msgid "Shadow"
+msgstr "Skugga"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:215
+msgid "Gradation"
+msgstr "Gradation"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:247
+msgid "Mosaic"
+msgstr "Mosaik"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:267
+msgid "Priority number"
+msgstr "Prioritetsnummer"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:285
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:339
+msgid "Screen"
+msgstr "Skärm"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:286
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:340
+msgid "Character"
+msgstr "Tecken"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:287
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:341
+msgid "Dot"
+msgstr "Bildpunkt"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:288
+msgid "Illegal"
+msgstr "Ogiltig"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:294
+msgid "Priority mode"
+msgstr "Prioritetsläge"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:320
+msgid "Color calc. ratio"
+msgstr "Förhållande för färgberäkning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:342
+msgid "Color MSB"
+msgstr "Färgens MSB"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:351
+msgid "Color calc. mode"
+msgstr "Läge för färgberäkning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:369
+msgid "LNCL insertion"
+msgstr "LNCL-infogning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:395
+msgid "Special function"
+msgstr "Specialfunktion"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:413
+msgid "Vert. cell scroll"
+msgstr "Lodrät cellrullning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:435
+msgid "X line scroll"
+msgstr "X-radrullning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:457
+msgid "Y line scroll"
+msgstr "Y-radrullning"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:479
+msgid "Line zoom"
+msgstr "Radrzoom"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:501
+msgid "Scroll X"
+msgstr "Rullning X"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:520
+msgid "Scroll Y"
+msgstr "Rullning Y"
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:538
+msgid "Scroll X inc."
+msgstr "Ökning av rullning X."
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:556
+msgid "Scroll Y inc."
+msgstr "Ökning av rullning Y."
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:584
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:92
+msgid "Windows"
+msgstr "Fönster"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:25
+msgid "Color gradation: enabled on "
+msgstr "Färggradation: aktiverad på "
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:50
+msgid "Color gradation: disabled"
+msgstr "Färggradation: avstängd"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:54
+msgid "Using extended color calculations"
+msgstr "Använder utökade färgberäkningar"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:57
+msgid "(ignored; color gradation takes precedence)"
+msgstr "(ignoreras; färggradation har företräde)"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:60
+msgid "Using standard color calculations"
+msgstr "Använder vanliga färgberäkningar"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:64
+msgid "Using ratio from second screen"
+msgstr "Använder förhållandet från andra skärmen"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:66
+msgid "Using ratio from top screen"
+msgstr "Använder förhållandet från översta skärmen"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:70
+msgid "Blend mode: Additive"
+msgstr "Blandningsläge: additivt"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:72
+msgid "Blend mode: Alpha (color ratio)"
+msgstr "Blandningsläge: alfa (färgförhållande)"
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:85
+msgid "Windows: "
+msgstr "Fönster: "
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:44
+msgid "Palette/RGB"
+msgstr "Palett/RGB"
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:46
+msgid "Palette only"
+msgstr "Endast palett"
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:50
+msgid ", LNCL insertion"
+msgstr ", LNCL-infogning"
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:55
+msgid "Color calc."
+msgstr "Färgberäkning."
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:68
+msgid "color MSB == 1"
+msgstr "färgens MSB == 1"
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:81
+msgid "Priorities"
+msgstr "Prioriteter"
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:103
+msgid "Sprite window"
+msgstr "Spritefönster"
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:20
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:20
+#: src/app/ui/views/settings/system_settings_view.cpp:152
+msgid "Mode:"
+msgstr "Läge:"
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:22
+msgid "Analog"
+msgstr "Analog"
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:26
+msgid "Digital"
+msgstr "Digital"
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:30
+#: src/app/ui/views/settings/control_pad_config_view.cpp:19
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:18
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:30
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:27
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:55
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:28
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:156
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:188
+msgid "Restore defaults"
+msgstr "Återställ standardvärden"
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:40
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:153
+#: src/app/ui/views/settings/control_pad_config_view.cpp:29
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:23
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:40
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:67
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:198
+msgid "Left-click a button to assign a hotkey. Right-click to clear."
+msgstr ""
+"Vänsterklicka på en knapp för att ange ett kortkommando. Högerklicka för att "
+"rensa."
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:44
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:157
+#: src/app/ui/views/settings/control_pad_config_view.cpp:33
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:44
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:70
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:201
+msgid "Button"
+msgstr "Knapp"
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:46
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:159
+#: src/app/ui/views/settings/control_pad_config_view.cpp:35
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:30
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:46
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:72
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:203
+#, c++-format
+msgid "Hotkey {}"
+msgstr "Kortkommando {}"
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:26
+msgid "Wheel sensitivity"
+msgstr "Rattkänslighet"
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:139
+msgid "Display raw value in meter"
+msgstr "Visa råvärde i mätaren"
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:143
+msgid "Restore default binds"
+msgstr "Återställ standardbindningar"
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:148
+msgid "Clear all binds"
+msgstr "Rensa alla bindningar"
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:38
+msgid "Volume"
+msgstr "Volym"
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:43
+msgid "Mute"
+msgstr "Tysta"
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:50
+msgid "Quality"
+msgstr "Kvalitet"
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:81
+#: src/app/ui/views/settings/audio_settings_view.cpp:115
+#: src/app/ui/widgets/cartridge_widgets.cpp:18
+msgid "None"
+msgstr "Ingen"
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:143
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:35
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:191
+msgid "Accuracy"
+msgstr "Noggrannhet"
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:151
+#: src/app/ui/views/settings/general_settings_view.cpp:40
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:290
+msgid "Performance"
+msgstr "Prestanda"
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:60
+msgid "Current cartridge: "
+msgstr "Aktuell kassett: "
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:72
+msgid "Automatically switch to recommended cartridges"
+msgstr "Byt automatiskt till rekommenderade kassetter"
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:85
+msgid "Open ROM cartridge images directory"
+msgstr "Öppna katalogen för ROM-kassettavbilder"
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:92
+msgid "Cartridge type:"
+msgstr "Kassettyp:"
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:104
+msgid "Insert"
+msgstr "Sätt i"
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:50
+#: src/app/ui/views/settings/ipl_settings_view.cpp:67
+msgid "Open directory"
+msgstr "Öppna katalog"
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:54
+#: src/app/ui/views/settings/ipl_settings_view.cpp:71
+msgid "Rescan"
+msgstr "Sök igen"
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:72
+#: src/app/ui/views/settings/ipl_settings_view.cpp:87
+msgid "Version"
+msgstr "Version"
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:137
+msgid "Use"
+msgstr "Använd"
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:154
+msgid "Override CD block ROM"
+msgstr "Åsidosätt CD Block-ROM"
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:165
+msgid "CD block ROM path"
+msgstr "Sökväg till CD Block-ROM"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:35
+msgid "Open"
+msgstr "Öppna"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:43
+msgid "Boost process priority"
+msgstr "Höj processprioriteten"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:48
+msgid "Boost emulator thread priority"
+msgstr "Höj emulatortrådens prioritet"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:53
+msgid "Preload disc images to RAM"
+msgstr "Läs in skivavbilder i RAM i förväg"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:58
+msgid "Remember last loaded disc image"
+msgstr "Kom ihåg senast inlästa skivavbild"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:65
+#: src/app/ui/views/settings/gui_settings_view.cpp:84
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:24
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:25
+msgid "Behavior"
+msgstr "Beteende"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:68
+msgid "Emulation speed"
+msgstr "Emuleringshastighet"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:78
+msgid "Primary"
+msgstr "Primär"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:93
+#: src/app/ui/views/settings/general_settings_view.cpp:115
+#: src/app/ui/views/settings/system_settings_view.cpp:185
+#: src/app/ui/widgets/settings_widgets.cpp:63
+#: src/app/ui/widgets/settings_widgets.cpp:84
+#: src/app/ui/windows/system_state_window.cpp:427
+msgid "Reset"
+msgstr "Återställ"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:100
+msgid "Alternate"
+msgstr "Alternativ"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:123
+msgid "Pause when unfocused"
+msgstr "Pausa när fönstret inte har fokus"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:128
+msgid "Unpause after loading discs"
+msgstr "Fortsätt efter att en skiva har lästs in"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:131
+msgid "Start paused upon launch"
+msgstr "Starta i pausat läge"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:134
+msgid "Enable Discord Rich Presence"
+msgstr "Aktivera Discord Rich Presence"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:140
+msgid "Updates"
+msgstr "Uppdateringar"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:144
+#: src/app/ui/windows/update_onboarding_window.cpp:42
+msgid "Check for updates on startup"
+msgstr "Sök efter uppdateringar vid start"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:146
+#: src/app/ui/windows/update_onboarding_window.cpp:46
+msgid "Update to nightly builds"
+msgstr "Uppdatera till nattbyggen"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:148
+msgid "Check now"
+msgstr "Sök nu"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:151
+msgid "Latest versions:"
+msgstr "Senaste versioner:"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:164
+msgid "Checking..."
+msgstr "Söker…"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:170
+#: src/app/ui/windows/update_window.cpp:42
+msgid "Release notes"
+msgstr "Versionsanteckningar"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:178
+msgid "Download"
+msgstr "Hämta"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:183
+msgid "Not checked"
+msgstr "Inte kontrollerad"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:207
+msgid "Screenshots"
+msgstr "Skärmbilder"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:211
+msgid "Screenshot scale"
+msgstr "Skärmbildsskala"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:217
+msgid "Screenshots are saved to "
+msgstr "Skärmbilder sparas i "
+
+#: src/app/ui/views/settings/general_settings_view.cpp:229
+msgid "Enable rewind buffer"
+msgstr "Aktivera återspolningsbuffert"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:237
+msgid "Compression level"
+msgstr "Komprimeringsnivå"
+
+#: src/app/ui/views/settings/general_settings_view.cpp:248
+msgid "Profile paths"
+msgstr "Profilsökvägar"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:27
+msgid "Show game name on window title bar"
+msgstr "Visa spelets namn i fönstrets namnlist"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:29
+msgid "Show performance indicator on window title bar"
+msgstr "Visa prestandaindikator i fönstrets namnlist"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:35
+msgid "UI scaling"
+msgstr "Skalning av gränssnittet"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:44
+#, c++-format
+msgid "Override UI scale (current: {:.0f}%)"
+msgstr "Åsidosätt gränssnittets skala (nuvarande: {:.0f} %)"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:94
+msgid "On-screen display"
+msgstr "Skärmvisning"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:97
+msgid "Show messages"
+msgstr "Visa meddelanden"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:103
+msgid "Show frame rate"
+msgstr "Visa bildfrekvens"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:125
+msgid "Top left"
+msgstr "Övre vänster"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:127
+msgid "Top right"
+msgstr "Övre höger"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:129
+msgid "Bottom left"
+msgstr "Nedre vänster"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:131
+msgid "Bottom right"
+msgstr "Nedre höger"
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:135
+msgid "Show speed indicators for modified speeds"
+msgstr "Visa hastighetsindikatorer för ändrade hastigheter"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:33
+msgid "Port 1"
+msgstr "Port 1"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:42
+msgid "Port 2"
+msgstr "Port 2"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:55
+msgid "Mouse"
+msgstr "Mus"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:67
+msgid "Capture mode:"
+msgstr "Fångstläge:"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:70
+msgid "System cursor"
+msgstr "Systempekare"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:83
+msgid "Physical mouse"
+msgstr "Fysisk mus"
+
+#: src/app/ui/views/settings/input_settings_view.cpp:97
+msgid "Lock mouse cursor to window"
+msgstr "Lås muspekaren till fönstret"
+
+#: src/app/ui/views/settings/ipl_settings_view.cpp:88
+msgid "Date"
+msgstr "Datum"
+
+#: src/app/ui/views/settings/ipl_settings_view.cpp:89
+msgid "Variant"
+msgstr "Variant"
+
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:22
+msgid "Three-axis"
+msgstr "Tre axlar"
+
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:26
+msgid "Six-axis"
+msgstr "Sex axlar"
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:35
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:35
+msgid "Speed"
+msgstr "Hastighet"
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:39
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:39
+msgid "Speed boost factor"
+msgstr "Hastighetsökningsfaktor"
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:44
+msgid "Mouse sensitivity"
+msgstr "Muskänslighet"
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:52
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:185
+msgid "Binds"
+msgstr "Bindningar"
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:65
+msgid "Left, middle and right mouse buttons are mapped normally."
+msgstr "Vänster, mitten och höger musknapp är bundna på normalt sätt."
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:66
+msgid "Start is bound to mouse buttons 4 and 5."
+msgstr "Start är bundet till musknapp 4 och 5."
+
+#: src/app/ui/views/settings/system_settings_view.cpp:59
+#: src/app/ui/windows/system_state_window.cpp:100
+msgid "Video standard"
+msgstr "Videostandard"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:79
+msgid "Autodetect region from loaded discs"
+msgstr "Identifiera region automatiskt från inlästa skivor"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:82
+msgid ""
+"Whenever a game disc is loaded, the emulator will automatically switch the "
+"system region to match one of the game's supported regions. The list below "
+"allows you to choose the preferred region order. If none of the preferred "
+"regions is supported by the game, the emulator will pick the first region "
+"listed on the disc."
+msgstr ""
+"När en spelskiva läses in växlar emulatorn automatiskt systemregion så att "
+"den motsvarar en av spelets regioner. I listan nedan väljer du önskad "
+"regionordning. Om spelet inte har någon av de önskade regionerna väljer "
+"emulatorn den första regionen som anges på skivan."
+
+#: src/app/ui/views/settings/system_settings_view.cpp:85
+msgid "Preferred region order:"
+msgstr "Föredragen regionordning:"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:86
+msgid "Drag items to reorder"
+msgstr "Dra objekt för att ändra ordning"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:136
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:260
+msgid "SH-2"
+msgstr "SH-2"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:148
+msgid "Real-Time Clock"
+msgstr "Realtidsklocka"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:157
+msgid "Host"
+msgstr "Värddator"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:161
+msgid "Virtual"
+msgstr "Virtuell"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:166
+msgid "Current date/time:"
+msgstr "Aktuellt datum och aktuell tid:"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:176
+msgid "Host time offset:"
+msgstr "Tidsförskjutning för värddatorn:"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:183
+msgid "seconds"
+msgstr "sekunder"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:191
+msgid ""
+"This may occasionally stop updating because the virtual RTC is only updated "
+"when the game reads from it."
+msgstr ""
+"Uppdateringen kan ibland stanna eftersom den virtuella realtidsklockan bara "
+"uppdateras när spelet läser från den."
+
+#: src/app/ui/views/settings/system_settings_view.cpp:193
+#: src/app/ui/views/settings/system_settings_view.cpp:233
+msgid "Set to host time"
+msgstr "Ange värddatorns tid"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:198
+msgid "Set to starting point"
+msgstr "Ange starttidpunkt"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:214
+msgid "Hard reset behavior:"
+msgstr "Beteende vid hård återställning:"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:215
+msgid "Specifies how the virtual RTC behaves on a hard reset."
+msgstr ""
+"Anger hur den virtuella realtidsklockan beter sig vid en hård återställning."
+
+#: src/app/ui/views/settings/system_settings_view.cpp:217
+msgid "Preserve current time"
+msgstr "Behåll aktuell tid"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:221
+msgid "Sync to host time"
+msgstr "Synkronisera med värddatorns tid"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:224
+msgid "Reset to starting point"
+msgstr "Återställ till starttidpunkt"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:243
+msgid "Internal backup memory"
+msgstr "Internt reservminne"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:247
+msgid "Create internal backup memory images per game"
+msgstr "Skapa en intern reservminnesavbild per spel"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:259
+msgid "Image path"
+msgstr "Avbildssökväg"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:270
+msgid "Load backup memory image"
+msgstr "Läs in reservminnesavbild"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:274
+msgid "Backup memory image files (*.bin, *.sav)"
+msgstr "Reservminnesavbilder (*.bin, *.sav)"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:289
+msgid "Load"
+msgstr "Läs in"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:297
+#: src/app/ui/windows/system_state_window.cpp:598
+msgid "Open backup memory manager"
+msgstr "Öppna hanteraren för reservminne"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:304
+#, c-format
+msgid "Currently using internal backup memory image from %s"
+msgstr "Använder för närvarande intern reservminnesavbild från %s"
+
+#: src/app/ui/views/settings/system_settings_view.cpp:306
+msgid "Open containing directory"
+msgstr "Öppna innehållande katalog"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:25
+msgid ""
+"The options listed in this tab affect emulation accuracy.\n"
+"If you encounter an issue running some games, try using the recommended or "
+"maximum quality/accuracy/compatibility presets below.\n"
+"The performance presets may cause issues with some games.\n"
+"When reporting issues, make sure to include this list:"
+msgstr ""
+"Alternativen på den här fliken påverkar emuleringens noggrannhet.\n"
+"Om vissa spel inte fungerar kan du prova de rekommenderade eller högsta "
+"förinställningarna för kvalitet, noggrannhet eller kompatibilitet nedan.\n"
+"Prestandaförinställningarna kan orsaka problem i vissa spel.\n"
+"Ta med denna lista när du rapporterar problem:"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:127
+msgid "Copy to clipboard"
+msgstr "Kopiera till urklipp"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:141
+#: src/app/ui/views/settings/video_settings_view.cpp:54
+msgid "Enhancements"
+msgstr "Förbättringar"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:145
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:195
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:294
+msgid "Presets:"
+msgstr "Förinställningar:"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:147
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:197
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:296
+msgid "Recommended"
+msgstr "Rekommenderad"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:152
+msgid ""
+"Strikes a good balance between quality and performance without compromising "
+"compatibility."
+msgstr ""
+"Ger en bra balans mellan kvalitet och prestanda utan att kompromissa med "
+"kompatibiliteten."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:157
+msgid "Best quality"
+msgstr "Bästa kvalitet"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:162
+msgid "Maximizes quality with no regard for performance."
+msgstr "Maximerar kvaliteten utan hänsyn till prestandan."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:167
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:239
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:320
+msgid "Best performance"
+msgstr "Bästa prestanda"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:172
+msgid "Maximizes performance with no regard for quality."
+msgstr "Maximerar prestandan utan hänsyn till kvaliteten."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:211
+msgid ""
+"Strikes a good balance between accuracy and performance without compromising "
+"compatibility."
+msgstr ""
+"Ger en bra balans mellan noggrannhet och prestanda utan att kompromissa med "
+"kompatibiliteten."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:216
+msgid "Best accuracy"
+msgstr "Bästa noggrannhet"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:234
+msgid "Maximizes accuracy with no regard for performance."
+msgstr "Maximerar noggrannheten utan hänsyn till prestandan."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:253
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:327
+msgid ""
+"Maximizes performance with no regard for accuracy.\n"
+"Reduces compatibility with some games."
+msgstr ""
+"Maximerar prestandan utan hänsyn till noggrannheten.\n"
+"Minskar kompatibiliteten med vissa spel."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:303
+msgid "Strikes a good balance between compatibility and performance."
+msgstr "Ger en bra balans mellan kompatibilitet och prestanda."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:308
+msgid "Best compatibility"
+msgstr "Bästa kompatibilitet"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:315
+msgid "Maximizes compatibility with no regard for performance."
+msgstr "Maximerar kompatibiliteten utan hänsyn till prestandan."
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:338
+#: src/app/ui/views/settings/video_settings_view.cpp:46
+msgid "Software renderer"
+msgstr "Programvarurenderare"
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:344
+msgid "Hardware renderer"
+msgstr "Maskinvarurenderare"
+
+#: src/app/ui/views/settings/video_settings_view.cpp:63
+msgid "Display"
+msgstr "Visning"
+
+#: src/app/ui/views/settings/video_settings_view.cpp:98
+msgid "Fit now"
+msgstr "Anpassa nu"
+
+#: src/app/ui/views/settings/video_settings_view.cpp:118
+msgid "Double-click to toggle full screen"
+msgstr "Dubbelklicka för att växla helskärm"
+
+#: src/app/ui/views/settings/video_settings_view.cpp:146
+msgid "Full screen display"
+msgstr "Helskärmsskärm"
+
+#: src/app/ui/views/settings/video_settings_view.cpp:185
+msgid "Full screen resolution"
+msgstr "Helskärmsupplösning"
+
+#: src/app/ui/views/settings/video_settings_view.cpp:186
+#: src/app/ui/views/settings/video_settings_view.cpp:201
+msgid "Borderless full screen"
+msgstr "Kantlös helskärm"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:47
+msgid "Crosshair"
+msgstr "Riktmedel"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:82
+msgid "Background"
+msgstr "Bakgrund"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:98
+msgid "Color"
+msgstr "Färg"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:106
+msgid "Radius"
+msgstr "Radie"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:115
+msgid "Thickness"
+msgstr "Tjocklek"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:127
+msgid "Rotation"
+msgstr "Rotation"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:136
+msgid "Stroke color"
+msgstr "Konturfärg"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:144
+msgid "Stroke thickness"
+msgstr "Konturtjocklek"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:166
+msgid "Randomize"
+msgstr "Slumpa"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:240
+msgid "Mouse binds"
+msgstr "Musbindningar"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:244
+msgid "Mouse inputs are bound as follows:"
+msgstr "Musindata är bundna enligt följande:"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:257
+msgid "Trigger"
+msgstr "Avtryckare"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:257
+msgid "Left button"
+msgstr "Vänster knapp"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:258
+msgid "Right button"
+msgstr "Höger knapp"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:259
+msgid "Start"
+msgstr "Starta"
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:259
+msgid "Middle button"
+msgstr "Mittenknapp"
+
+#: src/app/ui/widgets/cartridge_widgets.cpp:22
+#, c-format
+msgid "%u Mbit Backup RAM"
+msgstr "%u Mbit reserv-RAM"
+
+#: src/app/ui/widgets/input_widgets.cpp:67
+msgid ""
+"Press any key or gamepad button to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+"Tryck på valfri tangent eller handkontrollsknapp för att tilldela den.\n"
+"\n"
+"Tryck på Esc eller klicka utanför dialogrutan för att avbryta."
+
+#: src/app/ui/widgets/input_widgets.cpp:71
+msgid ""
+"Press any key combo with at least one modifier key to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+"Tryck på en tangentkombination med minst en specialtangent för att tilldela "
+"den.\n"
+"\n"
+"Tryck på Esc eller klicka utanför dialogrutan för att avbryta."
+
+#: src/app/ui/widgets/input_widgets.cpp:75
+msgid ""
+"Move any one-dimensional monopolar axis such as analog triggers to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+"Rör en endimensionell monopolär axel, till exempel analoga avtryckare, för "
+"att tilldela den.\n"
+"\n"
+"Tryck på Esc eller klicka utanför dialogrutan för att avbryta."
+
+#: src/app/ui/widgets/input_widgets.cpp:80
+msgid ""
+"Move any one-dimensional bipolar axis such as analog wheels or one direction "
+"of an analog stick to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+"Rör en endimensionell bipolär axel, till exempel ett analogt hjul eller en "
+"riktning på en analog spak, för att tilldela den.\n"
+"\n"
+"Tryck på Esc eller klicka utanför dialogrutan för att avbryta."
+
+#: src/app/ui/widgets/input_widgets.cpp:87
+msgid ""
+"Move any two-dimensional bipolar axis such as analog sticks or D-Pads to map "
+"it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+"Rör en tvådimensionell bipolär axel, till exempel en analog spak eller "
+"styrkors, för att tilldela den.\n"
+"\n"
+"Tryck på Esc eller klicka utanför dialogrutan för att avbryta."
+
+#: src/app/ui/widgets/peripheral_widgets.cpp:38
+msgid "Peripheral:"
+msgstr "Kringutrustning:"
+
+#: src/app/ui/widgets/peripheral_widgets.cpp:57
+#: src/app/ui/windows/system_state_window.cpp:688
+msgid "Configure"
+msgstr "Konfigurera"
+
+#: src/app/ui/widgets/settings_widgets.cpp:44
+msgid "Emulate SH-2 cache"
+msgstr "Emulera SH-2-cache"
+
+#: src/app/ui/widgets/settings_widgets.cpp:56
+msgid "Forced by the currently loaded game"
+msgstr "Tvingas av det inlästa spelet"
+
+#: src/app/ui/widgets/settings_widgets.cpp:68
+msgid "SH-2 clock factor"
+msgstr "SH-2-klockfaktor"
+
+#: src/app/ui/widgets/settings_widgets.cpp:97
+msgid "Graphics backend:"
+msgstr "Grafikmotor:"
+
+#: src/app/ui/widgets/settings_widgets.cpp:131
+msgid "Graphics adapter:"
+msgstr "Grafikadapter:"
+
+#: src/app/ui/widgets/settings_widgets.cpp:134
+msgid "(unavailable for SDL Renderer)"
+msgstr "(inte tillgängligt för SDL-renderaren)"
+
+#: src/app/ui/widgets/settings_widgets.cpp:139
+msgid "(No graphics adapters detected)"
+msgstr "(Inga grafikadaptrar hittades)"
+
+#: src/app/ui/widgets/settings_widgets.cpp:160
+msgid "Refresh"
+msgstr "Uppdatera"
+
+#: src/app/ui/widgets/settings_widgets.cpp:174
+msgid "Use hardware-accelerated VDP1/VDP2 rendering"
+msgstr "Använd hårdvaruaccelererad VDP1/VDP2-rendering"
+
+#: src/app/ui/widgets/settings_widgets.cpp:184
+msgid "Not supported with SDL Renderer"
+msgstr "Stöds inte med SDL-renderaren"
+
+#: src/app/ui/widgets/settings_widgets.cpp:195
+msgid "Display rotation:"
+msgstr "Bildrotation:"
+
+#: src/app/ui/widgets/settings_widgets.cpp:204
+msgid "Normal"
+msgstr "Normal"
+
+#: src/app/ui/widgets/settings_widgets.cpp:216
+msgid "Threaded VDP1 renderer"
+msgstr "Trådad VDP1-renderare"
+
+#: src/app/ui/widgets/settings_widgets.cpp:224
+msgid "Threaded VDP2 renderer"
+msgstr "Trådad VDP2-renderare"
+
+#: src/app/ui/widgets/settings_widgets.cpp:242
+msgid "Use dedicated thread for deinterlaced rendering"
+msgstr "Använd särskild tråd för deinterlace-rendering"
+
+#: src/app/ui/widgets/settings_widgets.cpp:268
+msgid "Deinterlace video"
+msgstr "Deinterlace-video"
+
+#: src/app/ui/widgets/settings_widgets.cpp:290
+msgid "Transparent meshes"
+msgstr "Genomskinliga meshobjekt"
+
+#: src/app/ui/widgets/settings_widgets.cpp:318
+msgid "Interpolation:"
+msgstr "Interpolering:"
+
+#: src/app/ui/widgets/settings_widgets.cpp:338
+msgid "Label"
+msgstr "Etikett"
+
+#: src/app/ui/widgets/settings_widgets.cpp:339
+msgid "Value"
+msgstr "Värde"
+
+#: src/app/ui/widgets/settings_widgets.cpp:344
+msgid "Emulation step granularity"
+msgstr "Stegindelning för emulering"
+
+#: src/app/ui/widgets/settings_widgets.cpp:366
+#, c-format
+msgid "Step size: %s"
+msgstr "Stegstorlek: %s"
+
+#: src/app/ui/widgets/settings_widgets.cpp:418
+msgid "Threaded SCSP and sound CPU"
+msgstr "Trådad SCSP och ljudprocessor"
+
+#: src/app/ui/widgets/settings_widgets.cpp:441
+msgid "CD read speed"
+msgstr "CD-läshastighet"
+
+#: src/app/ui/widgets/settings_widgets.cpp:474
+msgid "Use low level CD Block emulation"
+msgstr "Använd CD Block-emulering på låg nivå"
+
+#: src/app/ui/widgets/settings_widgets.cpp:486
+msgid "No CD Block ROMs found. Low level emulation cannot be enabled."
+msgstr ""
+"Inga CD Block-ROM-filer hittades. Emulering på låg nivå kan inte aktiveras."
+
+#: src/app/ui/windows/about_window.cpp:257
+msgid "Dependencies"
+msgstr "Beroenden"
+
+#: src/app/ui/windows/about_window.cpp:265
+msgid "Acknowledgements"
+msgstr "Tack"
+
+#: src/app/ui/windows/about_window.cpp:290
+msgid "Version "
+msgstr "Version "
+
+#: src/app/ui/windows/about_window.cpp:294
+msgid "(development build)"
+msgstr "(utvecklingsbygge)"
+
+#: src/app/ui/windows/about_window.cpp:299
+msgid "A Sega Saturn emulator"
+msgstr "En Sega Saturn-emulator"
+
+#: src/app/ui/windows/about_window.cpp:302
+msgid "Copy version"
+msgstr "Kopiera version"
+
+#: src/app/ui/windows/about_window.cpp:307
+#, c-format
+msgid "Compiled with %s %s."
+msgstr "Kompilerad med %s %s."
+
+#: src/app/ui/windows/about_window.cpp:311
+#, c++-format
+msgid "Built at {}"
+msgstr "Byggd {}"
+
+#: src/app/ui/windows/about_window.cpp:315
+msgid "Nightly release channel."
+msgstr "Utgivningskanal för nattbyggen."
+
+#: src/app/ui/windows/about_window.cpp:317
+msgid "Stable release channel."
+msgstr "Stabil utgivningskanal."
+
+#: src/app/ui/windows/about_window.cpp:319
+msgid "Local development build."
+msgstr "Lokalt utvecklingsbygge."
+
+#: src/app/ui/windows/about_window.cpp:324
+msgid "Using AVX2 instruction set."
+msgstr "Använder instruktionsuppsättningen AVX2."
+
+#: src/app/ui/windows/about_window.cpp:326
+msgid "Using SSE2 instruction set."
+msgstr "Använder instruktionsuppsättningen SSE2."
+
+#: src/app/ui/windows/about_window.cpp:329
+msgid "Using NEON instruction set."
+msgstr "Använder instruktionsuppsättningen NEON."
+
+#: src/app/ui/windows/about_window.cpp:333
+#, c-format
+msgid "Using %s graphics backend for GUI rendering."
+msgstr "Använder grafikbakänden %s för rendering av gränssnittet."
+
+#: src/app/ui/windows/about_window.cpp:337
+#, c-format
+msgid "Using %s VDP1/VDP2 renderer."
+msgstr "Använder VDP1/VDP2-renderaren %s."
+
+#: src/app/ui/windows/about_window.cpp:341
+#, c-format
+msgid "Using %s audio driver."
+msgstr "Använder ljuddrivrutinen %s."
+
+#: src/app/ui/windows/about_window.cpp:342
+#, c-format
+msgid "Using %s MIDI API."
+msgstr "Använder MIDI-API:t %s."
+
+#: src/app/ui/windows/about_window.cpp:345
+msgid "Licensed under "
+msgstr "Licensierad under "
+
+#: src/app/ui/windows/about_window.cpp:349
+msgid "The source code can be found at "
+msgstr "Källkoden finns på "
+
+#: src/app/ui/windows/about_window.cpp:354
+msgid "Join the official "
+msgstr "Gå med i den officiella "
+
+#: src/app/ui/windows/about_window.cpp:356
+#: src/app/ui/windows/about_window.cpp:638
+msgid "Discord server"
+msgstr "Discord-servern"
+
+#: src/app/ui/windows/about_window.cpp:358
+msgid "Consider supporting my work on "
+msgstr "Överväg att stödja mitt arbete på "
+
+#: src/app/ui/windows/about_window.cpp:483
+msgid "Ymir was made possible by"
+msgstr "Ymir möjliggjordes av"
+
+#: src/app/ui/windows/about_window.cpp:500
+#, c-format
+msgid "by %s"
+msgstr "av %s"
+
+#: src/app/ui/windows/about_window.cpp:533
+msgid "CD block research"
+msgstr "Forskning om CD Block"
+
+#: src/app/ui/windows/about_window.cpp:559
+msgid "Helpful tools and test suites"
+msgstr "Användbara verktyg och testsviter"
+
+#: src/app/ui/windows/about_window.cpp:577
+msgid "Other emulators that inspired Ymir"
+msgstr "Andra emulatorer som inspirerade Ymir"
+
+#: src/app/ui/windows/about_window.cpp:629
+msgid "Special thanks"
+msgstr "Särskilt tack"
+
+#: src/app/ui/windows/about_window.cpp:632
+#: src/app/ui/windows/about_window.cpp:644
+msgid "To the "
+msgstr "Till "
+
+#: src/app/ui/windows/about_window.cpp:636
+msgid " and their "
+msgstr " och deras "
+
+#: src/app/ui/windows/about_window.cpp:646
+msgid "project contributors"
+msgstr "projektets bidragsgivare"
+
+#: src/app/ui/windows/about_window.cpp:648
+msgid " and users "
+msgstr " och användare som "
+
+#: src/app/ui/windows/about_window.cpp:650
+msgid "reporting issues and feature requests"
+msgstr "rapporterar problem och funktionsönskemål"
+
+#: src/app/ui/windows/about_window.cpp:652
+msgid ", including:"
+msgstr ", bland andra:"
+
+#: src/app/ui/windows/about_window.cpp:661
+msgid "official Ymir Discord server"
+msgstr "officiella Ymir-Discord-server"
+
+#: src/app/ui/windows/about_window.cpp:663
+msgid ", especially:"
+msgstr ", särskilt:"
+
+#: src/app/ui/windows/about_window.cpp:672
+msgid "Patreon supporters"
+msgstr "Patreon-stödjare"
+
+#: src/app/ui/windows/about_window.cpp:674
+msgid ":"
+msgstr ":"
+
+#: src/app/ui/windows/about_window.cpp:680
+msgid "And YOU!"
+msgstr "Och DU!"
+
+#: src/app/ui/windows/backup_ram_manager_window.cpp:44
+msgid "System memory"
+msgstr "Systemminne"
+
+#: src/app/ui/windows/backup_ram_manager_window.cpp:61
+#: src/app/ui/windows/system_state_window.cpp:584
+msgid "Copy"
+msgstr "Kopiera"
+
+#: src/app/ui/windows/backup_ram_manager_window.cpp:112
+msgid "Cartridge memory"
+msgstr "Kassettminne"
+
+#: src/app/ui/windows/system_state_window.cpp:45
+msgid "SMPC Parameters"
+msgstr "SMPC-parametrar"
+
+#: src/app/ui/windows/system_state_window.cpp:48
+msgid "State"
+msgstr "Status"
+
+#: src/app/ui/windows/system_state_window.cpp:53
+msgid "CD drive"
+msgstr "CD-enhet"
+
+#: src/app/ui/windows/system_state_window.cpp:60
+msgid "Backup memory"
+msgstr "Reservminne"
+
+#: src/app/ui/windows/system_state_window.cpp:66
+msgid "Peripherals"
+msgstr "Kringutrustning"
+
+#: src/app/ui/windows/system_state_window.cpp:69
+msgid "Actions"
+msgstr "Åtgärder"
+
+#: src/app/ui/windows/system_state_window.cpp:82
+msgid "Clock speed"
+msgstr "Klockhastighet"
+
+#: src/app/ui/windows/system_state_window.cpp:83
+msgid ""
+"Select the divider for system clock rates.\n"
+"Automatically adjusted by games.\n"
+"On a real Saturn, games must use the faster clock setting to use 352 pixels-"
+"wide resolution modes."
+msgstr ""
+"Välj delaren för systemets klockfrekvenser.\n"
+"Justeras automatiskt av spel.\n"
+"På en riktig Saturn måste spel använda den snabbare klockinställningen för "
+"upplösningslägen som är 352 bildpunkter breda."
+
+#: src/app/ui/windows/system_state_window.cpp:86
+msgid "Slow"
+msgstr "Långsam"
+
+#: src/app/ui/windows/system_state_window.cpp:89
+msgid "320 pixels"
+msgstr "320 bildpunkter"
+
+#: src/app/ui/windows/system_state_window.cpp:91
+msgid "Fast"
+msgstr "Snabb"
+
+#: src/app/ui/windows/system_state_window.cpp:94
+msgid "352 pixels"
+msgstr "352 bildpunkter"
+
+#: src/app/ui/windows/system_state_window.cpp:130
+msgid "progressive"
+msgstr "progressiv"
+
+#: src/app/ui/windows/system_state_window.cpp:130
+msgid "(invalid)"
+msgstr "(ogiltig)"
+
+#: src/app/ui/windows/system_state_window.cpp:130
+msgid "single-density interlace"
+msgstr "sammanflätning med enkel densitet"
+
+#: src/app/ui/windows/system_state_window.cpp:131
+msgid "double-density interlace"
+msgstr "sammanflätning med dubbel densitet"
+
+#: src/app/ui/windows/system_state_window.cpp:133
+msgid "Resolution:"
+msgstr "Upplösning:"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Sun"
+msgstr "Sön"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Mon"
+msgstr "Mån"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Tue"
+msgstr "Tis"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Wed"
+msgstr "Ons"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Thu"
+msgstr "Tor"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Fri"
+msgstr "Fre"
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Sat"
+msgstr "Lör"
+
+#: src/app/ui/windows/system_state_window.cpp:143
+#, c-format
+msgid "Current date/time: %s %04u/%02u/%02u %02u:%02u:%02u"
+msgstr "Aktuellt datum och tid: %s %04u/%02u/%02u %02u:%02u:%02u"
+
+#: src/app/ui/windows/system_state_window.cpp:150
+msgid "Components"
+msgstr "Komponenter"
+
+#: src/app/ui/windows/system_state_window.cpp:151
+msgid "Clock"
+msgstr "Klocka"
+
+#: src/app/ui/windows/system_state_window.cpp:152
+msgid "Ratio"
+msgstr "Förhållande"
+
+#: src/app/ui/windows/system_state_window.cpp:166
+msgid "SH-2, SCU and VDPs"
+msgstr "SH-2, SCU och VDP:er"
+
+#: src/app/ui/windows/system_state_window.cpp:190
+msgid "Pixel clock"
+msgstr "Bildpunktsklocka"
+
+#: src/app/ui/windows/system_state_window.cpp:254
+#: src/app/ui/windows/system_state_window.cpp:412
+msgid "Close tray"
+msgstr "Stäng släden"
+
+#: src/app/ui/windows/system_state_window.cpp:254
+#: src/app/ui/windows/system_state_window.cpp:412
+msgid "Open tray"
+msgstr "Öppna släden"
+
+#: src/app/ui/windows/system_state_window.cpp:258
+#: src/app/ui/windows/system_state_window.cpp:416
+msgid "Load disc..."
+msgstr "Läs in skiva…"
+
+#: src/app/ui/windows/system_state_window.cpp:269
+msgid "Busy"
+msgstr "Upptagen"
+
+#: src/app/ui/windows/system_state_window.cpp:270
+msgid "Paused"
+msgstr "Pausad"
+
+#: src/app/ui/windows/system_state_window.cpp:271
+msgid "Standby"
+msgstr "Vänteläge"
+
+#: src/app/ui/windows/system_state_window.cpp:273
+#, c-format
+msgid "Playing track %u, index %u (%s)"
+msgstr "Spelar spår %u, index %u (%s)"
+
+#: src/app/ui/windows/system_state_window.cpp:276
+msgid "Seeking"
+msgstr "Söker"
+
+#: src/app/ui/windows/system_state_window.cpp:278
+#, c-format
+msgid "Scanning track %u, index %u (%s)"
+msgstr "Genomsöker spår %u, index %u (%s)"
+
+#: src/app/ui/windows/system_state_window.cpp:281
+#: src/app/ui/windows/system_state_window.cpp:430
+msgid "Tray open"
+msgstr "Släden är öppen"
+
+#: src/app/ui/windows/system_state_window.cpp:282
+#: src/app/ui/windows/system_state_window.cpp:431
+msgid "No disc"
+msgstr "Ingen skiva"
+
+#: src/app/ui/windows/system_state_window.cpp:283
+msgid "Retrying"
+msgstr "Försöker igen"
+
+#: src/app/ui/windows/system_state_window.cpp:285
+msgid "Fatal error"
+msgstr "Allvarligt fel"
+
+#: src/app/ui/windows/system_state_window.cpp:288
+#: src/app/ui/windows/system_state_window.cpp:452
+#, c-format
+msgid "Read speed: %ux"
+msgstr "Läshastighet: %ux"
+
+#: src/app/ui/windows/system_state_window.cpp:337
+#: src/app/ui/windows/system_state_window.cpp:366
+#: src/app/ui/windows/system_state_window.cpp:504
+#: src/app/ui/windows/system_state_window.cpp:533
+msgid ""
+"MM:SS.FF\n"
+"Minutes, seconds and frames\n"
+"(75 frames per second)"
+msgstr ""
+"MM:SS.FF\n"
+"Minuter, sekunder och bildrutor\n"
+"(75 bildrutor per sekund)"
+
+#: src/app/ui/windows/system_state_window.cpp:351
+#: src/app/ui/windows/system_state_window.cpp:377
+#: src/app/ui/windows/system_state_window.cpp:518
+#: src/app/ui/windows/system_state_window.cpp:544
+msgid "Frame address (FAD)"
+msgstr "Bildruteadress (FAD)"
+
+#: src/app/ui/windows/system_state_window.cpp:385
+msgid "Repeat forever"
+msgstr "Upprepa för alltid"
+
+#: src/app/ui/windows/system_state_window.cpp:387
+#, c-format
+msgid "Repeat %u of %u"
+msgstr "Upprepning %u av %u"
+
+#: src/app/ui/windows/system_state_window.cpp:389
+msgid "No repeat"
+msgstr "Ingen upprepning"
+
+#: src/app/ui/windows/system_state_window.cpp:395
+#: src/app/ui/windows/system_state_window.cpp:550
+#, c-format
+msgid "Reading file %s"
+msgstr "Läser filen %s"
+
+#: src/app/ui/windows/system_state_window.cpp:397
+#: src/app/ui/windows/system_state_window.cpp:552
+msgid "Not a file"
+msgstr "Inte en fil"
+
+#: src/app/ui/windows/system_state_window.cpp:428
+msgid "Idle"
+msgstr "Inaktiv"
+
+#: src/app/ui/windows/system_state_window.cpp:429
+msgid "Stopped"
+msgstr "Stoppad"
+
+#: src/app/ui/windows/system_state_window.cpp:432
+msgid "Reading TOC"
+msgstr "Läser innehållsförteckning"
+
+#: src/app/ui/windows/system_state_window.cpp:433
+msgid "Disc changed"
+msgstr "Skivan har ändrats"
+
+#: src/app/ui/windows/system_state_window.cpp:435
+#, c-format
+msgid "Reading track %u, index %u (Data)"
+msgstr "Läser spår %u, index %u (data)"
+
+#: src/app/ui/windows/system_state_window.cpp:439
+#, c-format
+msgid "Playing track %u, index %u (CDDA)"
+msgstr "Spelar spår %u, index %u (CDDA)"
+
+#: src/app/ui/windows/system_state_window.cpp:443
+#, c-format
+msgid "Scanning track %u, index %u (CDDA)"
+msgstr "Genomsöker spår %u, index %u (CDDA)"
+
+#: src/app/ui/windows/system_state_window.cpp:448
+msgid "Seeking security ring"
+msgstr "Söker säkerhetsring"
+
+#: src/app/ui/windows/system_state_window.cpp:449
+#, c-format
+msgid "Unknown (%02X)"
+msgstr "Okänd (%02X)"
+
+#: src/app/ui/windows/system_state_window.cpp:562
+msgid "No disc loaded"
+msgstr "Ingen skiva har lästs in"
+
+#: src/app/ui/windows/system_state_window.cpp:565
+#, c-format
+msgid "Disc image from %s"
+msgstr "Skivavbild från %s"
+
+#: src/app/ui/windows/system_state_window.cpp:567
+#, c-format
+msgid "Disc from drive %s"
+msgstr "Skiva från enheten %s"
+
+#: src/app/ui/windows/system_state_window.cpp:579
+#, c-format
+msgid "%s: <blank>"
+msgstr "%s: <tom>"
+
+#: src/app/ui/windows/system_state_window.cpp:603
+msgid "Device"
+msgstr "Enhet"
+
+#: src/app/ui/windows/system_state_window.cpp:604
+msgid "Capacity"
+msgstr "Kapacitet"
+
+#: src/app/ui/windows/system_state_window.cpp:605
+msgid "Blocks used"
+msgstr "Använda block"
+
+#: src/app/ui/windows/system_state_window.cpp:619
+#, c-format
+msgid "%u of %u"
+msgstr "%u av %u"
+
+#: src/app/ui/windows/system_state_window.cpp:621
+msgid "Invalid"
+msgstr "Ogiltig"
+
+#: src/app/ui/windows/system_state_window.cpp:634
+msgid "Internal"
+msgstr "Intern"
+
+#: src/app/ui/windows/system_state_window.cpp:638
+#: src/app/ui/windows/system_state_window.cpp:640
+msgid "External"
+msgstr "Extern"
+
+#: src/app/ui/windows/system_state_window.cpp:649
+msgid "Insert..."
+msgstr "Sätt i…"
+
+#: src/app/ui/windows/system_state_window.cpp:651
+msgid "Backup RAM"
+msgstr "Reserv-RAM"
+
+#: src/app/ui/windows/system_state_window.cpp:654
+msgid "8 Mbit DRAM"
+msgstr "8 Mbit DRAM"
+
+#: src/app/ui/windows/system_state_window.cpp:657
+msgid "32 Mbit DRAM"
+msgstr "32 Mbit DRAM"
+
+#: src/app/ui/windows/system_state_window.cpp:660
+msgid "48 Mbit DRAM"
+msgstr "48 Mbit DRAM"
+
+#: src/app/ui/windows/system_state_window.cpp:663
+msgid "16 Mbit ROM"
+msgstr "16 Mbit ROM"
+
+#: src/app/ui/windows/system_state_window.cpp:669
+msgid "Remove"
+msgstr "Ta ut"
+
+#: src/app/ui/windows/system_state_window.cpp:699
+msgid "Port 1:"
+msgstr "Port 1:"
+
+#: src/app/ui/windows/system_state_window.cpp:717
+msgid "Port 2:"
+msgstr "Port 2:"
+
+#: src/app/ui/windows/update_onboarding_window.cpp:25
+msgid "Automatic update checks"
+msgstr "Automatiska uppdateringskontroller"
+
+#: src/app/ui/windows/update_onboarding_window.cpp:39
+msgid "Ymir can check for new versions automatically on startup."
+msgstr "Ymir kan automatiskt söka efter nya versioner vid start."
+
+#: src/app/ui/windows/update_onboarding_window.cpp:40
+msgid ""
+"This requires an Internet connection and will reach github.com to check for "
+"new versions."
+msgstr ""
+"Det kräver en internetanslutning och kontaktar github.com för att söka efter "
+"nya versioner."
+
+#: src/app/ui/windows/update_onboarding_window.cpp:41
+msgid "Please make your choices below:"
+msgstr "Välj alternativ nedan:"
+
+#: src/app/ui/windows/update_onboarding_window.cpp:44
+msgid ""
+"Ymir will check for updates whenever it is launched, and notify you if a new "
+"version is available.\n"
+"Upon accepting, Ymir will immediately check for updates if this option is "
+"enabled."
+msgstr ""
+"Ymir söker efter uppdateringar varje gång programmet startas och meddelar "
+"dig när en ny version finns.\n"
+"När du godkänner kontrollerar Ymir direkt om uppdateringar, om alternativet "
+"är aktiverat."
+
+#: src/app/ui/windows/update_onboarding_window.cpp:48
+msgid ""
+"Whenever Ymir checks for updates, it will also consider nightly builds.\n"
+"Nightly builds include the latest features and bug fixes, but are work-in-"
+"progress and may contain bugs"
+msgstr ""
+"När Ymir söker efter uppdateringar tas även nattbyggen med.\n"
+"Nattbyggen innehåller de senaste funktionerna och felrättningarna, men är "
+"under utveckling och kan innehålla fel"
+
+#: src/app/ui/windows/update_onboarding_window.cpp:52
+msgid ""
+"Choose Accept to apply these settings or Decide later to close this window "
+"now.\n"
+"If you choose to decide later, this popup will appear again on next startup."
+msgstr ""
+"Välj Godkänn för att tillämpa inställningarna eller Bestäm senare för att "
+"stänga fönstret nu.\n"
+"Om du väljer att bestämma senare visas dialogrutan igen nästa gång "
+"programmet startas."
+
+#: src/app/ui/windows/update_onboarding_window.cpp:56
+msgid "Accept"
+msgstr "Godkänn"
+
+#: src/app/ui/windows/update_onboarding_window.cpp:73
+msgid "Decide later"
+msgstr "Bestäm senare"
+
+#: src/app/ui/windows/update_window.cpp:13
+msgid "Update available"
+msgstr "Uppdatering tillgänglig"
+
+#: src/app/ui/windows/update_window.cpp:33
+msgid "A new version of Ymir is available."
+msgstr "En ny version av Ymir finns tillgänglig."
+
+#: src/app/ui/windows/update_window.cpp:34
+msgid "Current version: "
+msgstr "Nuvarande version: "
+
+#: src/app/ui/windows/update_window.cpp:35
+msgid "New version: "
+msgstr "Ny version: "
+
+#: src/app/ui/windows/update_window.cpp:44
+msgid "Retrieving..."
+msgstr "Hämtar…"
+
+#: src/app/ui/windows/update_window.cpp:49
+msgid "Close"
+msgstr "Stäng"

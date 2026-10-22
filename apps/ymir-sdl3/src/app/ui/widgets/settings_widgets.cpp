@@ -3,6 +3,7 @@
 #include "common_widgets.hpp"
 
 #include <app/imgui_data.hpp>
+#include <app/ui/i18n.hpp>
 #include <app/settings.hpp>
 
 #include <app/services/gfx/gfx_adapters.hpp>
@@ -19,6 +20,7 @@
 using namespace ymir;
 
 namespace app::ui::widgets {
+
 
 namespace settings::system {
 
@@ -39,7 +41,7 @@ namespace settings::system {
         if (forced) {
             ImGui::BeginDisabled();
         }
-        if (settings.MakeDirty(ImGui::Checkbox("Emulate SH-2 cache", &emulateSH2Cache))) {
+        if (settings.MakeDirty(ImGui::Checkbox(_("Emulate SH-2 cache"), &emulateSH2Cache))) {
             ctx.EnqueueEvent(events::emu::SetEmulateSH2Cache(emulateSH2Cache));
             settings.system.emulateSH2Cache = emulateSH2Cache;
         }
@@ -51,19 +53,19 @@ namespace settings::system {
             const YmirImGuiData *imguiData = GetYmirImGuiData();
             ImGui::EndDisabled();
             ImGui::SameLine();
-            ImGui::TextColored(imguiData->colors.notice, "Forced by the currently loaded game");
+            ImGui::TextColored(imguiData->colors.notice, "%s", _("Forced by the currently loaded game"));
         }
     }
 
     void SH2ClockFactor(SharedContext &ctx) {
         const float paddingWidth = ImGui::GetStyle().FramePadding.x;
         const float itemSpacingWidth = ImGui::GetStyle().ItemSpacing.x;
-        const float resetButtonWidth = ImGui::CalcTextSize("Reset").x + paddingWidth * 2;
+        const float resetButtonWidth = ImGui::CalcTextSize(_("Reset")).x + paddingWidth * 2;
 
         auto &settings = ctx.serviceLocator.GetRequired<Settings>();
         int factor = settings.system.sh2ClockFactor.Get();
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("SH-2 clock factor");
+        ImGui::TextUnformatted(_("SH-2 clock factor"));
         widgets::ExplanationTooltip("WARNING: May break games, desync audio, or cause crashes.\n"
                                     "Use with caution!\n"
                                     "\n"
@@ -79,7 +81,7 @@ namespace settings::system {
             settings.system.sh2ClockFactor = factor;
         }
         ImGui::SameLine();
-        if (settings.MakeDirty(ImGui::Button("Reset##sh2_clock_factor"))) {
+        if (settings.MakeDirty(ImGui::Button(fmt::format("{}##sh2_clock_factor", _("Reset")).c_str()))) {
             settings.system.sh2ClockFactor = app::config_defaults::system::kDefaultSH2ClockFactor;
         }
     }
@@ -92,7 +94,7 @@ namespace settings::video {
         auto &settings = ctx.serviceLocator.GetRequired<Settings>();
         auto &videoSettings = settings.video;
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Graphics backend:");
+        ImGui::TextUnformatted(_("Graphics backend:"));
         widgets::ExplanationTooltip(
             "Select the graphics API used to render the GUI.\n"
             "Affects availability of additional features such as GPU rendering and shaders.\n"
@@ -126,15 +128,15 @@ namespace settings::video {
         const gfx::Backend backend = videoSettings.graphicsBackend;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Graphics adapter:");
+        ImGui::TextUnformatted(_("Graphics adapter:"));
         ImGui::SameLine();
         if (backend == gfx::Backend::SDLRenderer) {
-            ImGui::TextDisabled("(unavailable for SDL Renderer)");
+            ImGui::TextDisabled("%s", _("(unavailable for SDL Renderer)"));
         } else {
             std::vector<gfx::Adapter> adapters = gfx::GetGraphicsAdapters(backend);
             std::string currAdapter;
             if (adapters.empty()) {
-                currAdapter = "(No graphics adapters detected)";
+                currAdapter = _("(No graphics adapters detected)");
             } else {
                 currAdapter = adapters.front().ToString();
             }
@@ -155,7 +157,7 @@ namespace settings::video {
                 ImGui::EndCombo();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Refresh##graphics_adapters")) {
+            if (ImGui::Button(fmt::format("{}##graphics_adapters", _("Refresh")).c_str())) {
                 gfx::RefreshGraphicsAdapters(backend);
             }
         }
@@ -169,7 +171,7 @@ namespace settings::video {
         if (isSDLRenderer) {
             ImGui::BeginDisabled();
         }
-        if (settings.MakeDirty(ImGui::Checkbox("Use hardware-accelerated VDP1/VDP2 rendering", &hwAccel))) {
+        if (settings.MakeDirty(ImGui::Checkbox(_("Use hardware-accelerated VDP1/VDP2 rendering"), &hwAccel))) {
             videoSettings.useHardwareAcceleration = hwAccel;
             ctx.EnqueueEvent(events::emu::SwitchVDPRenderer());
         }
@@ -179,7 +181,7 @@ namespace settings::video {
                                     "NOTE: Support for hardware acceleration is currently EXPERIMENTAL. You may "
                                     "encounter bugs, stability and performance issues.");
         if (isSDLRenderer) {
-            widgets::ExplanationTooltip("Not supported with SDL Renderer");
+            widgets::ExplanationTooltip(_("Not supported with SDL Renderer"));
             ImGui::EndDisabled();
         }
     }
@@ -190,7 +192,7 @@ namespace settings::video {
         ImGui::PushID("##disp_rot");
         using Rot = Settings::Video::DisplayRotation;
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Display rotation:");
+        ImGui::TextUnformatted(_("Display rotation:"));
         auto option = [&](const char *name, Rot value, bool sameLine = true) {
             if (sameLine) {
                 ImGui::SameLine();
@@ -199,7 +201,7 @@ namespace settings::video {
                 videoSettings.rotation = value;
             }
         };
-        option("Normal", Rot::Normal, !newLine);
+        option(_("Normal"), Rot::Normal, !newLine);
         option("90\u00B0 CW", Rot::_90CW);
         option("180\u00B0", Rot::_180);
         option("90\u00B0 CCW", Rot::_90CCW);
@@ -211,7 +213,7 @@ namespace settings::video {
         void ThreadedVDP(SharedContext &ctx) {
             auto &settings = ctx.serviceLocator.GetRequired<Settings>();
             bool threadedVDP1 = settings.video.swRenderer.threadedVDP1;
-            if (settings.MakeDirty(ImGui::Checkbox("Threaded VDP1 renderer", &threadedVDP1))) {
+            if (settings.MakeDirty(ImGui::Checkbox(_("Threaded VDP1 renderer"), &threadedVDP1))) {
                 ctx.EnqueueEvent(events::emu::EnableThreadedVDP1(threadedVDP1));
             }
             widgets::ExplanationTooltip("Runs the software VDP1 renderer in a dedicated thread.\n"
@@ -219,7 +221,7 @@ namespace settings::video {
                                         "When disabled, VDP1 rendering is done on the emulator thread.");
 
             bool threadedVDP2 = settings.video.swRenderer.threadedVDP2;
-            if (settings.MakeDirty(ImGui::Checkbox("Threaded VDP2 renderer", &threadedVDP2))) {
+            if (settings.MakeDirty(ImGui::Checkbox(_("Threaded VDP2 renderer"), &threadedVDP2))) {
                 ctx.EnqueueEvent(events::emu::EnableThreadedVDP2(threadedVDP2));
             }
             widgets::ExplanationTooltip(
@@ -237,7 +239,7 @@ namespace settings::video {
 
                 bool threadedDeinterlacer = settings.video.swRenderer.threadedDeinterlacer;
                 if (settings.MakeDirty(
-                        ImGui::Checkbox("Use dedicated thread for deinterlaced rendering", &threadedDeinterlacer))) {
+                        ImGui::Checkbox(_("Use dedicated thread for deinterlaced rendering"), &threadedDeinterlacer))) {
                     ctx.EnqueueEvent(events::emu::EnableThreadedDeinterlacer(threadedDeinterlacer));
                 }
                 widgets::ExplanationTooltip(
@@ -263,7 +265,7 @@ namespace settings::video {
             auto &settings = ctx.serviceLocator.GetRequired<Settings>();
             auto &videoSettings = settings.video;
             bool deinterlace = videoSettings.enhancements.deinterlace.Get();
-            if (settings.MakeDirty(ImGui::Checkbox("Deinterlace video", &deinterlace))) {
+            if (settings.MakeDirty(ImGui::Checkbox(_("Deinterlace video"), &deinterlace))) {
                 videoSettings.enhancements.deinterlace = deinterlace;
             }
             widgets::ExplanationTooltip(
@@ -285,7 +287,7 @@ namespace settings::video {
             auto &settings = ctx.serviceLocator.GetRequired<Settings>();
             auto &videoSettings = settings.video;
             bool transparentMeshes = videoSettings.enhancements.transparentMeshes.Get();
-            if (settings.MakeDirty(ImGui::Checkbox("Transparent meshes", &transparentMeshes))) {
+            if (settings.MakeDirty(ImGui::Checkbox(_("Transparent meshes"), &transparentMeshes))) {
                 videoSettings.enhancements.transparentMeshes = transparentMeshes;
             }
             widgets::ExplanationTooltip(
@@ -313,7 +315,7 @@ namespace settings::audio {
         };
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Interpolation:");
+        ImGui::TextUnformatted(_("Interpolation:"));
         widgets::ExplanationTooltip("- Nearest neighbor: Cheapest option with grittier sounds.\n"
                                     "- Linear: Hardware accurate option with softer sounds. (default)");
         interpOption("Nearest neighbor", InterpMode::NearestNeighbor);
@@ -333,13 +335,13 @@ namespace settings::audio {
         int stepGranularity = audioSettings.stepGranularity;
 
         if (ImGui::BeginTable("scsp_step_granularity", 2, ImGuiTableFlags_SizingStretchProp)) {
-            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 200.0f * imguiData->displayScale);
-            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn(_("Label"), ImGuiTableColumnFlags_WidthFixed, 200.0f * imguiData->displayScale);
+            ImGui::TableSetupColumn(_("Value"), ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
             if (ImGui::TableNextColumn()) {
                 ImGui::AlignTextToFramePadding();
-                ImGui::TextUnformatted("Emulation step granularity");
+                ImGui::TextUnformatted(_("Emulation step granularity"));
                 widgets::ExplanationTooltip(
                     "WARNING: This setting is very performance-hungry!\n"
                     "\n"
@@ -361,7 +363,7 @@ namespace settings::audio {
             ImGui::TableNextRow();
             if (ImGui::TableNextColumn()) {
                 ImGui::AlignTextToFramePadding();
-                ImGui::Text("Step size: %s", StepGranularityToString(stepGranularity).c_str());
+                ImGui::Text(_("Step size: %s"), StepGranularityToString(stepGranularity).c_str());
                 widgets::ExplanationTooltip(
                     "The entire bar encompasses one sample. The SCSP processes 32 slots per sample, represented by the "
                     "subdivisions in the bar.\n\n"
@@ -413,7 +415,7 @@ namespace settings::audio {
     void ThreadedSCSP(SharedContext &ctx) {
         auto &settings = ctx.serviceLocator.GetRequired<Settings>();
         bool threadedSCSP = settings.audio.threadedSCSP;
-        if (settings.MakeDirty(ImGui::Checkbox("Threaded SCSP and sound CPU", &threadedSCSP))) {
+        if (settings.MakeDirty(ImGui::Checkbox(_("Threaded SCSP and sound CPU"), &threadedSCSP))) {
             ctx.EnqueueEvent(events::emu::EnableThreadedSCSP(threadedSCSP));
         }
         widgets::ExplanationTooltip("Runs the SCSP and MC68EC000 in a dedicated thread.\n"
@@ -436,7 +438,7 @@ namespace settings::cdblock {
             ImGui::BeginDisabled();
         }
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("CD read speed");
+        ImGui::TextUnformatted(_("CD read speed"));
         widgets::ExplanationTooltip("Changes the maximum read speed of the emulated CD drive.\n"
                                     "The default value is 2x, matching the real Saturn's CD drive speed.\n"
                                     "Higher speeds decrease load times but may reduce compatibility.\n"
@@ -469,7 +471,7 @@ namespace settings::cdblock {
         if (!hasROMs) {
             ImGui::BeginDisabled();
         }
-        if (settings.MakeDirty(ImGui::Checkbox("Use low level CD Block emulation", &cdblockSettings.useLLE))) {
+        if (settings.MakeDirty(ImGui::Checkbox(_("Use low level CD Block emulation"), &cdblockSettings.useLLE))) {
             ctx.EnqueueEvent(events::emu::SetCDBlockLLE(cdblockSettings.useLLE));
         }
         widgets::ExplanationTooltip("Choose between high or low level CD Block emulation.\n"
@@ -481,8 +483,7 @@ namespace settings::cdblock {
         if (!hasROMs) {
             const YmirImGuiData *imguiData = GetYmirImGuiData();
             ImGui::EndDisabled();
-            ImGui::TextColored(imguiData->colors.warn,
-                               "No CD Block ROMs found. Low level emulation cannot be enabled.");
+            ImGui::TextColored(imguiData->colors.warn, "%s", _("No CD Block ROMs found. Low level emulation cannot be enabled."));
         }
     }
 

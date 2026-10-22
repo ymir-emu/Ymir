@@ -10,6 +10,7 @@
 #include <app/ui/widgets/system_widgets.hpp>
 
 #include <app/imgui_data.hpp>
+#include <app/ui/i18n.hpp>
 
 #include <SDL3/SDL_clipboard.h>
 
@@ -21,12 +22,13 @@ using namespace ymir;
 
 namespace app::ui {
 
+
 inline constexpr float kWindowWidth = 350.0f;
 
 SystemStateWindow::SystemStateWindow(SharedContext &context)
     : WindowBase(context) {
 
-    m_windowConfig.name = "System state";
+    m_windowConfig.name = _("System state");
     m_windowConfig.flags = ImGuiWindowFlags_AlwaysAutoResize;
 }
 
@@ -40,31 +42,31 @@ void SystemStateWindow::DrawContents() {
 
     ImGui::BeginGroup();
 
-    ImGui::SeparatorText("SMPC Parameters");
+    ImGui::SeparatorText(_("SMPC Parameters"));
     DrawSMPCParameters();
 
-    ImGui::SeparatorText("State");
+    ImGui::SeparatorText(_("State"));
     DrawScreen();
     DrawRealTimeClock();
     DrawClocks();
 
-    ImGui::SeparatorText("CD drive");
+    ImGui::SeparatorText(_("CD drive"));
     if (settings.cdblock.useLLE) {
         DrawCDDrive();
     } else {
         DrawCDBlock();
     }
 
-    ImGui::SeparatorText("Backup memory");
+    ImGui::SeparatorText(_("Backup memory"));
     DrawBackupMemory();
 
-    ImGui::SeparatorText("Cartridge");
+    ImGui::SeparatorText(_("Cartridge"));
     DrawCartridge();
 
-    ImGui::SeparatorText("Peripherals");
+    ImGui::SeparatorText(_("Peripherals"));
     DrawPeripherals();
 
-    ImGui::SeparatorText("Actions");
+    ImGui::SeparatorText(_("Actions"));
     DrawActions();
 
     ImGui::EndGroup();
@@ -77,28 +79,25 @@ void SystemStateWindow::DrawSMPCParameters() {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Clock speed");
-            widgets::ExplanationTooltip(
-                "Select the divider for system clock rates.\n"
-                "Automatically adjusted by games.\n"
-                "On a real Saturn, games must use the faster clock setting to use 352 pixels-wide resolution modes.");
+            ImGui::TextUnformatted(_("Clock speed"));
+            widgets::ExplanationTooltip(_("Select the divider for system clock rates.\nAutomatically adjusted by games.\nOn a real Saturn, games must use the faster clock setting to use 352 pixels-wide resolution modes."));
         }
         if (ImGui::TableNextColumn()) {
-            if (ImGui::RadioButton("Slow", clockSpeed == sys::ClockSpeed::_320)) {
+            if (ImGui::RadioButton(_("Slow"), clockSpeed == sys::ClockSpeed::_320)) {
                 m_context.EnqueueEvent(events::emu::SetClockSpeed(sys::ClockSpeed::_320));
             }
-            widgets::ExplanationTooltip("320 pixels");
+            widgets::ExplanationTooltip(_("320 pixels"));
             ImGui::SameLine();
-            if (ImGui::RadioButton("Fast", clockSpeed == sys::ClockSpeed::_352)) {
+            if (ImGui::RadioButton(_("Fast"), clockSpeed == sys::ClockSpeed::_352)) {
                 m_context.EnqueueEvent(events::emu::SetClockSpeed(sys::ClockSpeed::_352));
             }
-            widgets::ExplanationTooltip("352 pixels");
+            widgets::ExplanationTooltip(_("352 pixels"));
         }
 
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Video standard");
+            ImGui::TextUnformatted(_("Video standard"));
         }
         if (ImGui::TableNextColumn()) {
             ui::widgets::VideoStandardSelector(m_context);
@@ -107,11 +106,11 @@ void SystemStateWindow::DrawSMPCParameters() {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Region");
+            ImGui::TextUnformatted(_("Region"));
             ImGui::SameLine();
             ImGui::TextDisabled("(?)");
             if (ImGui::BeginItemTooltip()) {
-                ImGui::TextUnformatted("Changing this option will cause a hard reset");
+                ImGui::TextUnformatted(_("Changing this option will cause a hard reset"));
                 ImGui::EndTooltip();
             }
         }
@@ -128,10 +127,10 @@ void SystemStateWindow::DrawScreen() {
     auto [width, height] = probe.GetResolution();
     auto interlaceMode = probe.GetInterlaceMode();
 
-    static constexpr const char *kInterlaceNames[]{"progressive", "(invalid)", "single-density interlace",
-                                                   "double-density interlace"};
+    const char *const kInterlaceNames[]{_("progressive"), _("(invalid)"), _("single-density interlace"),
+                                         _("double-density interlace")};
 
-    ImGui::TextUnformatted("Resolution:");
+    ImGui::TextUnformatted(_("Resolution:"));
     ImGui::SameLine();
     ImGui::Text("%ux%u %s", width, height, kInterlaceNames[static_cast<uint8>(interlaceMode)]);
 }
@@ -139,18 +138,18 @@ void SystemStateWindow::DrawScreen() {
 void SystemStateWindow::DrawRealTimeClock() {
     const auto dt = m_context.saturn.instance->SMPC.GetProbe().GetRTCDateTime();
 
-    static constexpr const char *kWeekdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    const char *const kWeekdays[] = {_("Sun"), _("Mon"), _("Tue"), _("Wed"), _("Thu"), _("Fri"), _("Sat")};
 
-    ImGui::Text("Current date/time: %s %04u/%02u/%02u %02u:%02u:%02u", kWeekdays[dt.weekday], dt.year, dt.month, dt.day,
+    ImGui::Text(_("Current date/time: %s %04u/%02u/%02u %02u:%02u:%02u"), kWeekdays[dt.weekday], dt.year, dt.month, dt.day,
                 dt.hour, dt.minute, dt.second);
     // TODO: make it adjustable, sync to host
 }
 
 void SystemStateWindow::DrawClocks() {
     if (ImGui::BeginTable("sys_clocks", 3, ImGuiTableFlags_SizingFixedFit)) {
-        ImGui::TableSetupColumn("Components");
-        ImGui::TableSetupColumn("Clock");
-        ImGui::TableSetupColumn("Ratio");
+        ImGui::TableSetupColumn(_("Components"));
+        ImGui::TableSetupColumn(_("Clock"));
+        ImGui::TableSetupColumn(_("Ratio"));
         ImGui::TableHeadersRow();
 
         const Saturn &saturn = *m_context.saturn.instance;
@@ -164,7 +163,7 @@ void SystemStateWindow::DrawClocks() {
 
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
-            ImGui::TextUnformatted("SH-2, SCU and VDPs");
+            ImGui::TextUnformatted(_("SH-2, SCU and VDPs"));
         }
         if (ImGui::TableNextColumn()) {
             ImGui::Text("%.5lf MHz", masterClock);
@@ -188,7 +187,7 @@ void SystemStateWindow::DrawClocks() {
         const bool doubleWidth = saturn.VDP.GetProbe().GetResolution().width >= 640;
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
-            ImGui::TextUnformatted("Pixel clock");
+            ImGui::TextUnformatted(_("Pixel clock"));
         }
         if (ImGui::TableNextColumn()) {
             const double factor = doubleWidth ? 0.5 : 0.25;
@@ -252,41 +251,41 @@ void SystemStateWindow::DrawCDBlock() {
 
     const uint8 status = probe.GetCurrentStatusCode();
 
-    if (ImGui::Button(m_context.saturn.instance->CDBlock.IsTrayOpen() ? "Close tray" : "Open tray")) {
+    if (ImGui::Button(m_context.saturn.instance->CDBlock.IsTrayOpen() ? _("Close tray") : _("Open tray"))) {
         m_context.EnqueueEvent(events::emu::OpenCloseTray());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Load disc...")) {
+    if (ImGui::Button(_("Load disc..."))) {
         m_context.EnqueueEvent(events::gui::LoadDisc());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Eject disc")) {
+    if (ImGui::Button(_("Eject disc"))) {
         m_context.EnqueueEvent(events::emu::EjectDisc());
     }
 
     DrawDiscImage();
 
     switch (status) {
-    case cdblock::kStatusCodeBusy: ImGui::TextUnformatted("Busy"); break;
-    case cdblock::kStatusCodePause: ImGui::TextUnformatted("Paused"); break;
-    case cdblock::kStatusCodeStandby: ImGui::TextUnformatted("Standby"); break;
+    case cdblock::kStatusCodeBusy: ImGui::TextUnformatted(_("Busy")); break;
+    case cdblock::kStatusCodePause: ImGui::TextUnformatted(_("Paused")); break;
+    case cdblock::kStatusCodeStandby: ImGui::TextUnformatted(_("Standby")); break;
     case cdblock::kStatusCodePlay:
-        ImGui::Text("Playing track %u, index %u (%s)", probe.GetCurrentTrack(), probe.GetCurrentIndex(),
+        ImGui::Text(_("Playing track %u, index %u (%s)"), probe.GetCurrentTrack(), probe.GetCurrentIndex(),
                     (probe.GetCurrentControlADRBits() == 0x01 ? "CDDA" : "Data"));
         break;
-    case cdblock::kStatusCodeSeek: ImGui::TextUnformatted("Seeking"); break;
+    case cdblock::kStatusCodeSeek: ImGui::TextUnformatted(_("Seeking")); break;
     case cdblock::kStatusCodeScan:
-        ImGui::Text("Scanning track %u, index %u (%s)", probe.GetCurrentTrack(), probe.GetCurrentIndex(),
+        ImGui::Text(_("Scanning track %u, index %u (%s)"), probe.GetCurrentTrack(), probe.GetCurrentIndex(),
                     (probe.GetCurrentControlADRBits() == 0x01 ? "CDDA" : "Data"));
         break;
-    case cdblock::kStatusCodeOpen: ImGui::TextUnformatted("Tray open"); break;
-    case cdblock::kStatusCodeNoDisc: ImGui::TextUnformatted("No disc"); break;
-    case cdblock::kStatusCodeRetry: ImGui::TextUnformatted("Retrying"); break;
-    case cdblock::kStatusCodeError: ImGui::TextUnformatted("Error"); break;
-    case cdblock::kStatusCodeFatal: ImGui::TextUnformatted("Fatal error"); break;
+    case cdblock::kStatusCodeOpen: ImGui::TextUnformatted(_("Tray open")); break;
+    case cdblock::kStatusCodeNoDisc: ImGui::TextUnformatted(_("No disc")); break;
+    case cdblock::kStatusCodeRetry: ImGui::TextUnformatted(_("Retrying")); break;
+    case cdblock::kStatusCodeError: ImGui::TextUnformatted(_("Error")); break;
+    case cdblock::kStatusCodeFatal: ImGui::TextUnformatted(_("Fatal error")); break;
     }
 
-    ImGui::Text("Read speed: %ux", probe.GetReadSpeed());
+    ImGui::Text(_("Read speed: %ux"), probe.GetReadSpeed());
 
     const uint32 fad = probe.GetCurrentFrameAddress();
     const uint8 repeat = probe.GetCurrentRepeatCount();
@@ -335,7 +334,7 @@ void SystemStateWindow::DrawCDBlock() {
         }
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)");
+        ImGui::SetItemTooltip("%s", _("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)"));
 
         ImGui::SameLine(0, 0);
         ImGui::TextUnformatted(" :: ");
@@ -349,7 +348,7 @@ void SystemStateWindow::DrawCDBlock() {
         ImGui::Text("%X", fad);
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("Frame address (FAD)");
+        ImGui::SetItemTooltip("%s", _("Frame address (FAD)"));
     } else {
         ImGui::BeginGroup();
         ImGui::PushFont(imguiData->fonts.monospace.regular, imguiData->fontSizes.medium);
@@ -364,7 +363,7 @@ void SystemStateWindow::DrawCDBlock() {
         ImGui::TextDisabled("--");
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)");
+        ImGui::SetItemTooltip("%s", _("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)"));
 
         ImGui::SameLine(0, 0);
         ImGui::TextUnformatted(" :: ");
@@ -375,7 +374,7 @@ void SystemStateWindow::DrawCDBlock() {
         ImGui::TextDisabled("------");
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("Frame address (FAD)");
+        ImGui::SetItemTooltip("%s", _("Frame address (FAD)"));
     }
 
     ImGui::SameLine(0, 0);
@@ -383,19 +382,19 @@ void SystemStateWindow::DrawCDBlock() {
     ImGui::SameLine(0, 0);
 
     if (maxRepeat == 0xF) {
-        ImGui::TextUnformatted("Repeat forever");
+        ImGui::TextUnformatted(_("Repeat forever"));
     } else if (maxRepeat > 0) {
-        ImGui::Text("Repeat %u of %u", repeat, maxRepeat);
+        ImGui::Text(_("Repeat %u of %u"), repeat, maxRepeat);
     } else {
-        ImGui::TextUnformatted("No repeat");
+        ImGui::TextUnformatted(_("No repeat"));
     }
 
     if (status == cdblock::kStatusCodePlay) {
         std::string file = probe.GetPathAtFrameAddress(fad);
         if (!file.empty()) {
-            ImGui::Text("Reading file %s", file.c_str());
+            ImGui::Text(_("Reading file %s"), file.c_str());
         } else {
-            ImGui::TextUnformatted("Not a file");
+            ImGui::TextUnformatted(_("Not a file"));
         }
     } else {
         ImGui::TextUnformatted("");
@@ -410,47 +409,47 @@ void SystemStateWindow::DrawCDDrive() {
 
     const auto &status = probe.GetStatus();
 
-    if (ImGui::Button(status.operation == CDOp::TrayOpen ? "Close tray" : "Open tray")) {
+    if (ImGui::Button(status.operation == CDOp::TrayOpen ? _("Close tray") : _("Open tray"))) {
         m_context.EnqueueEvent(events::emu::OpenCloseTray());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Load disc...")) {
+    if (ImGui::Button(_("Load disc..."))) {
         m_context.EnqueueEvent(events::gui::LoadDisc());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Eject disc")) {
+    if (ImGui::Button(_("Eject disc"))) {
         m_context.EnqueueEvent(events::emu::EjectDisc());
     }
 
     DrawDiscImage();
 
     switch (status.operation) {
-    case CDOp::Reset: ImGui::TextUnformatted("Reset"); break;
-    case CDOp::Idle: ImGui::TextUnformatted("Idle"); break;
-    case CDOp::Stopped: ImGui::TextUnformatted("Stopped"); break;
-    case CDOp::TrayOpen: ImGui::TextUnformatted("Tray open"); break;
-    case CDOp::NoDisc: ImGui::TextUnformatted("No disc"); break;
-    case CDOp::ReadTOC: ImGui::TextUnformatted("Reading TOC"); break;
-    case CDOp::DiscChanged: ImGui::TextUnformatted("Disc changed"); break;
+    case CDOp::Reset: ImGui::TextUnformatted(_("Reset")); break;
+    case CDOp::Idle: ImGui::TextUnformatted(_("Idle")); break;
+    case CDOp::Stopped: ImGui::TextUnformatted(_("Stopped")); break;
+    case CDOp::TrayOpen: ImGui::TextUnformatted(_("Tray open")); break;
+    case CDOp::NoDisc: ImGui::TextUnformatted(_("No disc")); break;
+    case CDOp::ReadTOC: ImGui::TextUnformatted(_("Reading TOC")); break;
+    case CDOp::DiscChanged: ImGui::TextUnformatted(_("Disc changed")); break;
     case CDOp::ReadDataSector:
-        ImGui::Text("Reading track %u, index %u (Data)", util::from_bcd(status.trackNum),
+        ImGui::Text(_("Reading track %u, index %u (Data)"), util::from_bcd(status.trackNum),
                     util::from_bcd(status.indexNum));
         break;
     case CDOp::ReadAudioSector:
-        ImGui::Text("Playing track %u, index %u (CDDA)", util::from_bcd(status.trackNum),
+        ImGui::Text(_("Playing track %u, index %u (CDDA)"), util::from_bcd(status.trackNum),
                     util::from_bcd(status.indexNum));
         break;
     case CDOp::ScanAudioSector:
-        ImGui::Text("Scanning track %u, index %u (CDDA)", util::from_bcd(status.trackNum),
+        ImGui::Text(_("Scanning track %u, index %u (CDDA)"), util::from_bcd(status.trackNum),
                     util::from_bcd(status.indexNum));
         break;
     case CDOp::Seek: ImGui::TextUnformatted("Seeking"); break;
     case CDOp::SeekSecurityRingB2: [[fallthrough]];
-    case CDOp::SeekSecurityRingB6: ImGui::TextUnformatted("Seeking security ring"); break;
-    default: ImGui::Text("Unknown (%02X)", static_cast<uint8>(status.operation)); break;
+    case CDOp::SeekSecurityRingB6: ImGui::TextUnformatted(_("Seeking security ring")); break;
+    default: ImGui::Text(_("Unknown (%02X)"), static_cast<uint8>(status.operation)); break;
     }
 
-    ImGui::Text("Read speed: %ux", probe.GetReadSpeed());
+    ImGui::Text(_("Read speed: %ux"), probe.GetReadSpeed());
 
     const bool isReading = status.operation == CDOp::ReadDataSector || status.operation == CDOp::ReadAudioSector ||
                            status.operation == CDOp::ScanAudioSector;
@@ -502,7 +501,7 @@ void SystemStateWindow::DrawCDDrive() {
         }
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)");
+        ImGui::SetItemTooltip("%s", _("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)"));
 
         ImGui::SameLine(0, 0);
         ImGui::TextUnformatted(" :: ");
@@ -516,7 +515,7 @@ void SystemStateWindow::DrawCDDrive() {
         ImGui::Text("%X", fad);
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("Frame address (FAD)");
+        ImGui::SetItemTooltip("%s", _("Frame address (FAD)"));
     } else {
         ImGui::BeginGroup();
         ImGui::PushFont(imguiData->fonts.monospace.regular, imguiData->fontSizes.medium);
@@ -531,7 +530,7 @@ void SystemStateWindow::DrawCDDrive() {
         ImGui::TextDisabled("--");
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)");
+        ImGui::SetItemTooltip("%s", _("MM:SS.FF\nMinutes, seconds and frames\n(75 frames per second)"));
 
         ImGui::SameLine(0, 0);
         ImGui::TextUnformatted(" :: ");
@@ -542,15 +541,15 @@ void SystemStateWindow::DrawCDDrive() {
         ImGui::TextDisabled("------");
         ImGui::PopFont();
         ImGui::EndGroup();
-        ImGui::SetItemTooltip("Frame address (FAD)");
+        ImGui::SetItemTooltip("%s", _("Frame address (FAD)"));
     }
 
     if (status.operation == CDOp::ReadDataSector) {
         std::string file = probe.GetPathAtFrameAddress(fad);
         if (!file.empty()) {
-            ImGui::Text("Reading file %s", file.c_str());
+            ImGui::Text(_("Reading file %s"), file.c_str());
         } else {
-            ImGui::TextUnformatted("Not a file");
+            ImGui::TextUnformatted(_("Not a file"));
         }
     } else {
         ImGui::TextUnformatted("");
@@ -560,12 +559,12 @@ void SystemStateWindow::DrawCDDrive() {
 void SystemStateWindow::DrawDiscImage() {
     ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x);
     if (m_context.state.loadedDiscImagePath.empty() && m_context.state.loadedDiscDrivePath.empty()) {
-        ImGui::TextUnformatted("No disc loaded");
+        ImGui::TextUnformatted(_("No disc loaded"));
     } else {
         if (!m_context.state.loadedDiscImagePath.empty()) {
-            ImGui::Text("Disc image from %s", fmt::format("{}", m_context.state.loadedDiscImagePath).c_str());
+            ImGui::Text(_("Disc image from %s"), fmt::format("{}", m_context.state.loadedDiscImagePath).c_str());
         } else {
-            ImGui::Text("Disc from drive %s", fmt::format("{}", m_context.state.loadedDiscDrivePath).c_str());
+            ImGui::Text(_("Disc from drive %s"), fmt::format("{}", m_context.state.loadedDiscDrivePath).c_str());
         }
         std::string hash{};
         std::string serial{};
@@ -577,12 +576,12 @@ void SystemStateWindow::DrawDiscImage() {
 
         auto draw = [&](const char *name, std::string_view value) {
             if (value.empty()) {
-                ImGui::Text("%s: <blank>", name);
+                ImGui::Text(_("%s: <blank>"), name);
             } else {
                 ImGui::Text("%s: %s", name, value.data());
                 ImGui::PushID(name);
                 ImGui::SameLine();
-                if (ImGui::SmallButton("Copy")) {
+                if (ImGui::SmallButton(_("Copy"))) {
                     SDL_SetClipboardText(value.data());
                 }
                 ImGui::PopID();
@@ -596,14 +595,14 @@ void SystemStateWindow::DrawDiscImage() {
 }
 
 void SystemStateWindow::DrawBackupMemory() {
-    if (ImGui::Button("Open backup memory manager")) {
+    if (ImGui::Button(_("Open backup memory manager"))) {
         m_context.EnqueueEvent(events::gui::OpenBackupMemoryManager());
     }
 
     if (ImGui::BeginTable("bup_info", 3, ImGuiTableFlags_SizingFixedFit)) {
-        ImGui::TableSetupColumn("Device");
-        ImGui::TableSetupColumn("Capacity");
-        ImGui::TableSetupColumn("Blocks used");
+        ImGui::TableSetupColumn(_("Device"));
+        ImGui::TableSetupColumn(_("Capacity"));
+        ImGui::TableSetupColumn(_("Blocks used"));
         ImGui::TableHeadersRow();
 
         auto drawBup = [&](const char *name, bup::IBackupMemory *bup) {
@@ -617,9 +616,9 @@ void SystemStateWindow::DrawBackupMemory() {
                 }
                 if (ImGui::TableNextColumn()) {
                     if (bup->IsHeaderValid()) {
-                        ImGui::Text("%u of %u", bup->GetUsedBlocks(), bup->GetTotalBlocks());
+                        ImGui::Text(_("%u of %u"), bup->GetUsedBlocks(), bup->GetTotalBlocks());
                     } else {
-                        ImGui::TextUnformatted("Invalid");
+                        ImGui::TextUnformatted(_("Invalid"));
                     }
                 }
             } else {
@@ -632,13 +631,13 @@ void SystemStateWindow::DrawBackupMemory() {
             }
         };
 
-        drawBup("Internal", &m_context.saturn.instance->mem.GetInternalBackupRAM());
+        drawBup(_("Internal"), &m_context.saturn.instance->mem.GetInternalBackupRAM());
         {
             std::unique_lock lock{m_context.locks.cart};
             if (auto *bupCart = m_context.saturn.instance->GetCartridge().As<cart::CartType::BackupMemory>()) {
-                drawBup("External", &bupCart->GetBackupMemory());
+                drawBup(_("External"), &bupCart->GetBackupMemory());
             } else {
-                drawBup("External", nullptr);
+                drawBup(_("External"), nullptr);
             }
         }
 
@@ -647,27 +646,27 @@ void SystemStateWindow::DrawBackupMemory() {
 }
 
 void SystemStateWindow::DrawCartridge() {
-    ImGui::Button("Insert...");
+    ImGui::Button(_("Insert..."));
     if (ImGui::BeginPopupContextItem(nullptr, ImGuiPopupFlags_MouseButtonLeft)) {
-        if (ImGui::MenuItem("Backup RAM")) {
+        if (ImGui::MenuItem(_("Backup RAM"))) {
             m_context.EnqueueEvent(events::gui::OpenBackupMemoryCartFileDialog());
         }
-        if (ImGui::MenuItem("8 Mbit DRAM")) {
+        if (ImGui::MenuItem(_("8 Mbit DRAM"))) {
             m_context.EnqueueEvent(events::emu::Insert8MbitDRAMCartridge());
         }
-        if (ImGui::MenuItem("32 Mbit DRAM")) {
+        if (ImGui::MenuItem(_("32 Mbit DRAM"))) {
             m_context.EnqueueEvent(events::emu::Insert32MbitDRAMCartridge());
         }
-        if (ImGui::MenuItem("48 Mbit DRAM")) {
+        if (ImGui::MenuItem(_("48 Mbit DRAM"))) {
             m_context.EnqueueEvent(events::emu::Insert48MbitDRAMCartridge());
         }
-        if (ImGui::MenuItem("16 Mbit ROM")) {
+        if (ImGui::MenuItem(_("16 Mbit ROM"))) {
             m_context.EnqueueEvent(events::gui::OpenROMCartFileDialog());
         }
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Remove")) {
+    if (ImGui::Button(_("Remove"))) {
         m_context.EnqueueEvent(events::emu::RemoveCartridge());
     }
     ImGui::SameLine();
@@ -686,7 +685,7 @@ void SystemStateWindow::DrawCartridge() {
 }
 
 void SystemStateWindow::DrawPeripherals() {
-    if (ImGui::Button("Configure##peripherals")) {
+    if (ImGui::Button(TR_ID("Configure", "peripherals"))) {
         m_context.EnqueueEvent(events::gui::OpenSettings(SettingsTab::Input));
     }
 
@@ -697,7 +696,7 @@ void SystemStateWindow::DrawPeripherals() {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             // ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Port 1:");
+            ImGui::TextUnformatted(_("Port 1:"));
         }
         if (ImGui::TableNextColumn()) {
             // ImGui::AlignTextToFramePadding();
@@ -715,7 +714,7 @@ void SystemStateWindow::DrawPeripherals() {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             // ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Port 2:");
+            ImGui::TextUnformatted(_("Port 2:"));
         }
         if (ImGui::TableNextColumn()) {
             // ImGui::AlignTextToFramePadding();
@@ -732,11 +731,11 @@ void SystemStateWindow::DrawPeripherals() {
 }
 
 void SystemStateWindow::DrawActions() {
-    if (ImGui::Button("Hard reset")) {
+    if (ImGui::Button(_("Hard reset"))) {
         m_context.EnqueueEvent(events::emu::HardReset());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Soft reset")) {
+    if (ImGui::Button(_("Soft reset"))) {
         m_context.EnqueueEvent(events::emu::SoftReset());
     }
     // TODO: Let's not make it that easy to accidentally wipe system settings

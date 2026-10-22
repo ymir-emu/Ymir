@@ -1,0 +1,2699 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-22 13:02+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/app/app.cpp:2185
+msgid "File"
+msgstr ""
+
+#: src/app/app.cpp:2187
+msgid "Load disc image"
+msgstr ""
+
+#: src/app/app.cpp:2191
+msgid "Recent disc images"
+msgstr ""
+
+#: src/app/app.cpp:2193
+msgid "(empty)"
+msgstr ""
+
+#: src/app/app.cpp:2218
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:59
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:31
+#: src/app/ui/views/settings/general_settings_view.cpp:34
+msgid "Clear"
+msgstr ""
+
+#: src/app/app.cpp:2226
+msgid "Load from drive"
+msgstr ""
+
+#: src/app/app.cpp:2243
+msgid "Reenumerate devices"
+msgstr ""
+
+#: src/app/app.cpp:2250
+msgid "Open/close tray"
+msgstr ""
+
+#: src/app/app.cpp:2254 src/app/ui/windows/system_state_window.cpp:262
+#: src/app/ui/windows/system_state_window.cpp:420
+msgid "Eject disc"
+msgstr ""
+
+#: src/app/app.cpp:2300 src/app/ui/views/settings/analog_pad_config_view.cpp:35
+#: src/app/ui/views/settings/control_pad_config_view.cpp:24
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:35
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:60
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:193
+msgid "Clear all"
+msgstr ""
+
+#: src/app/app.cpp:2306 src/app/ui/views/backup_memory_view.cpp:618
+msgid "Yes"
+msgstr ""
+
+#: src/app/app.cpp:2312 src/app/ui/views/backup_memory_view.cpp:625
+msgid "No"
+msgstr ""
+
+#: src/app/app.cpp:2321
+msgid "Load state"
+msgstr ""
+
+#: src/app/app.cpp:2327
+msgid "Save state"
+msgstr ""
+
+#: src/app/app.cpp:2336
+msgid "Undo save state"
+msgstr ""
+
+#: src/app/app.cpp:2342
+msgid "Undo load state"
+msgstr ""
+
+#: src/app/app.cpp:2348
+msgid "Open save states directory"
+msgstr ""
+
+#: src/app/app.cpp:2354
+msgid "Reload save states from disk"
+msgstr ""
+
+#: src/app/app.cpp:2360
+msgid "Take screenshot"
+msgstr ""
+
+#: src/app/app.cpp:2364
+msgid "Open screenshots directory"
+msgstr ""
+
+#: src/app/app.cpp:2371
+msgid "Open profile directory"
+msgstr ""
+
+#: src/app/app.cpp:2377
+msgid "Exit"
+msgstr ""
+
+#: src/app/app.cpp:2383
+msgid "View"
+msgstr ""
+
+#: src/app/app.cpp:2386 src/app/ui/views/settings/video_settings_view.cpp:66
+msgid "Force integer scaling"
+msgstr ""
+
+#: src/app/app.cpp:2387 src/app/ui/views/settings/video_settings_view.cpp:67
+msgid "Force aspect ratio"
+msgstr ""
+
+#: src/app/app.cpp:2412 src/app/ui/views/settings/video_settings_view.cpp:114
+msgid "Full screen"
+msgstr ""
+
+#: src/app/app.cpp:2421 src/app/ui/views/settings/video_settings_view.cpp:91
+msgid "Auto-fit window to screen"
+msgstr ""
+
+#: src/app/app.cpp:2426
+msgid "Fit window to screen"
+msgstr ""
+
+#: src/app/app.cpp:2430 src/app/ui/views/settings/gui_settings_view.cpp:87
+msgid "Remember window geometry"
+msgstr ""
+
+#: src/app/app.cpp:2434
+msgid "Set view scale to"
+msgstr ""
+
+#: src/app/app.cpp:2466 src/app/ui/views/settings/video_settings_view.cpp:105
+msgid "Windowed video output"
+msgstr ""
+
+#: src/app/app.cpp:2474 src/app/app.cpp:2607
+#: src/app/ui/windows/settings_window.cpp:69
+msgid "System"
+msgstr ""
+
+#: src/app/app.cpp:2475 src/app/ui/windows/system_state_window.cpp:31
+msgid "System state"
+msgstr ""
+
+#: src/app/app.cpp:2476
+msgid "Copy disc hash"
+msgstr ""
+
+#: src/app/app.cpp:2481 src/app/ui/windows/backup_ram_manager_window.cpp:23
+msgid "Backup memory manager"
+msgstr ""
+
+#: src/app/app.cpp:2488 src/app/ui/windows/system_state_window.cpp:738
+msgid "Soft reset"
+msgstr ""
+
+#: src/app/app.cpp:2492 src/app/ui/windows/system_state_window.cpp:734
+msgid "Hard reset"
+msgstr ""
+
+#: src/app/app.cpp:2507
+msgid "Video standard:"
+msgstr ""
+
+#: src/app/app.cpp:2512 src/app/ui/views/settings/ipl_settings_view.cpp:90
+#: src/app/ui/views/settings/system_settings_view.cpp:49
+#: src/app/ui/views/settings/system_settings_view.cpp:68
+#: src/app/ui/windows/system_state_window.cpp:109
+msgid "Region"
+msgstr ""
+
+#: src/app/app.cpp:2516 src/app/ui/views/settings/system_settings_view.cpp:69
+#: src/app/ui/windows/system_state_window.cpp:113
+msgid "Changing this option will cause a hard reset"
+msgstr ""
+
+#: src/app/app.cpp:2528
+msgid "Cartridge port: "
+msgstr ""
+
+#: src/app/app.cpp:2533
+msgid "Insert backup RAM..."
+msgstr ""
+
+#: src/app/app.cpp:2536
+msgid "Insert 8 Mbit DRAM"
+msgstr ""
+
+#: src/app/app.cpp:2539
+msgid "Insert 32 Mbit DRAM"
+msgstr ""
+
+#: src/app/app.cpp:2542
+msgid "Insert 48 Mbit DRAM (dev)"
+msgstr ""
+
+#: src/app/app.cpp:2545
+msgid "Insert 16 Mbit ROM..."
+msgstr ""
+
+#: src/app/app.cpp:2549
+msgid "Remove cartridge"
+msgstr ""
+
+#: src/app/app.cpp:2563
+msgid "Emulation"
+msgstr ""
+
+#: src/app/app.cpp:2566
+msgid "Pause/resume"
+msgstr ""
+
+#: src/app/app.cpp:2570
+msgid "Forward frame step"
+msgstr ""
+
+#: src/app/app.cpp:2574
+msgid "Reverse frame step"
+msgstr ""
+
+#: src/app/app.cpp:2581 src/app/ui/views/settings/general_settings_view.cpp:226
+msgid "Rewind buffer"
+msgstr ""
+
+#: src/app/app.cpp:2588 src/app/app.cpp:2590
+#: src/app/ui/windows/settings_window.cpp:26
+msgid "Settings"
+msgstr ""
+
+#: src/app/app.cpp:2598 src/app/ui/views/settings/audio_settings_view.cpp:32
+#: src/app/ui/views/settings/gui_settings_view.cpp:24
+#: src/app/ui/views/settings/video_settings_view.cpp:26
+#: src/app/ui/windows/settings_window.cpp:57
+msgid "General"
+msgstr ""
+
+#: src/app/app.cpp:2601 src/app/ui/windows/settings_window.cpp:61
+msgid "GUI"
+msgstr ""
+
+#: src/app/app.cpp:2604 src/app/ui/windows/settings_window.cpp:65
+msgid "Hotkeys"
+msgstr ""
+
+#: src/app/app.cpp:2610 src/app/ui/windows/settings_window.cpp:73
+msgid "IPL (BIOS)"
+msgstr ""
+
+#: src/app/app.cpp:2613 src/app/ui/windows/settings_window.cpp:77
+msgid "Input"
+msgstr ""
+
+#: src/app/app.cpp:2616 src/app/ui/views/settings/tweaks_settings_view.cpp:179
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:334
+#: src/app/ui/windows/settings_window.cpp:82
+msgid "Video"
+msgstr ""
+
+#: src/app/app.cpp:2619 src/app/ui/views/settings/tweaks_settings_view.cpp:269
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:352
+#: src/app/ui/windows/settings_window.cpp:86
+msgid "Audio"
+msgstr ""
+
+#: src/app/app.cpp:2622 src/app/ui/windows/settings_window.cpp:90
+#: src/app/ui/windows/system_state_window.cpp:63
+msgid "Cartridge"
+msgstr ""
+
+#: src/app/app.cpp:2625 src/app/app.cpp:2748
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:278
+#: src/app/ui/windows/settings_window.cpp:94
+msgid "CD Block"
+msgstr ""
+
+#: src/app/app.cpp:2628 src/app/ui/windows/settings_window.cpp:98
+msgid "Tweaks"
+msgstr ""
+
+#: src/app/app.cpp:2634
+msgid "Debug"
+msgstr ""
+
+#: src/app/app.cpp:2636
+msgid "Enable tracing"
+msgstr ""
+
+#: src/app/app.cpp:2642
+msgid "Open memory viewer"
+msgstr ""
+
+#: src/app/app.cpp:2645
+msgid "Memory viewers"
+msgstr ""
+
+#: src/app/app.cpp:2652
+msgid "Dump all memory"
+msgstr ""
+
+#: src/app/app.cpp:2660
+msgid "Debugger"
+msgstr ""
+
+#: src/app/app.cpp:2663
+msgid "Breakpoints"
+msgstr ""
+
+#: src/app/app.cpp:2664
+msgid "Watchpoints"
+msgstr ""
+
+#: src/app/app.cpp:2667
+msgid "Interrupts"
+msgstr ""
+
+#: src/app/app.cpp:2668 src/app/app.cpp:2688
+msgid "Interrupt trace"
+msgstr ""
+
+#: src/app/app.cpp:2669
+msgid "Exception vectors"
+msgstr ""
+
+#: src/app/app.cpp:2670
+msgid "Cache"
+msgstr ""
+
+#: src/app/app.cpp:2671
+msgid "Division unit (DIVU)"
+msgstr ""
+
+#: src/app/app.cpp:2672
+msgid "Timers (FRT and WDT)"
+msgstr ""
+
+#: src/app/app.cpp:2673
+msgid "Power module"
+msgstr ""
+
+#: src/app/app.cpp:2674
+msgid "DMA Controller (DMAC)"
+msgstr ""
+
+#: src/app/app.cpp:2675
+msgid "DMA Controller trace"
+msgstr ""
+
+#: src/app/app.cpp:2682
+msgid "SCU"
+msgstr ""
+
+#: src/app/app.cpp:2684 src/app/app.cpp:2727 src/app/app.cpp:2735
+msgid "Registers"
+msgstr ""
+
+#: src/app/app.cpp:2685
+msgid "DSP"
+msgstr ""
+
+#: src/app/app.cpp:2686
+msgid "DMA"
+msgstr ""
+
+#: src/app/app.cpp:2687
+msgid "DMA trace"
+msgstr ""
+
+#: src/app/app.cpp:2692
+msgid "SCSP"
+msgstr ""
+
+#: src/app/app.cpp:2694
+msgid "Output"
+msgstr ""
+
+#: src/app/app.cpp:2695
+msgid "Slots"
+msgstr ""
+
+#: src/app/app.cpp:2696
+msgid "KYONEX trace"
+msgstr ""
+
+#: src/app/app.cpp:2701
+msgid "VDP"
+msgstr ""
+
+#: src/app/app.cpp:2712
+msgid "Layer visibility"
+msgstr ""
+
+#: src/app/app.cpp:2737
+msgid "Background layer parameters"
+msgstr ""
+
+#: src/app/app.cpp:2738
+msgid "Sprite layer parameters"
+msgstr ""
+
+#: src/app/app.cpp:2739
+msgid "Window parameters"
+msgstr ""
+
+#: src/app/app.cpp:2740
+msgid "Color calculation parameters"
+msgstr ""
+
+#: src/app/app.cpp:2741
+msgid "Debug overlay"
+msgstr ""
+
+#: src/app/app.cpp:2742
+msgid "VRAM access patterns"
+msgstr ""
+
+#: src/app/app.cpp:2743
+msgid "Color RAM palette"
+msgstr ""
+
+#: src/app/app.cpp:2753
+msgid "Command trace"
+msgstr ""
+
+#: src/app/app.cpp:2754
+msgid "Filters"
+msgstr ""
+
+#: src/app/app.cpp:2755
+msgid "Partitions"
+msgstr ""
+
+#: src/app/app.cpp:2760
+msgid "CD drive state trace"
+msgstr ""
+
+#: src/app/app.cpp:2761
+msgid "YGR command trace"
+msgstr ""
+
+#: src/app/app.cpp:2765
+msgid "Debug output"
+msgstr ""
+
+#: src/app/app.cpp:2776
+msgid "Help"
+msgstr ""
+
+#: src/app/app.cpp:2777
+msgid "Open welcome window"
+msgstr ""
+
+#: src/app/app.cpp:2780
+msgid "Check for updates"
+msgstr ""
+
+#: src/app/app.cpp:2785
+msgid "Show message history"
+msgstr ""
+
+#: src/app/app.cpp:2790
+msgid "ImGui demo window"
+msgstr ""
+
+#: src/app/app.cpp:2793 src/app/ui/windows/about_window.cpp:233
+#: src/app/ui/windows/about_window.cpp:249
+msgid "About"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:111
+#: src/app/ui/views/backup_memory_view.cpp:585
+#: src/app/ui/views/backup_memory_view.cpp:876
+#: src/app/ui/views/backup_memory_view.cpp:901
+#: src/app/ui/views/backup_memory_view.cpp:923
+#: src/app/ui/views/backup_memory_view.cpp:944
+#: src/app/ui/views/backup_memory_view.cpp:968
+msgid "OK"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:126
+#: src/app/ui/views/backup_memory_view.cpp:954
+#: src/app/ui/windows/system_state_window.cpp:284
+msgid "Error"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:155
+msgid "Welcome"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:172
+msgid "Welcome to Ymir!"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:176
+msgid "Ymir requires a valid IPL (BIOS) ROM to work."
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:180
+msgid "Ymir will automatically load IPL ROMs placed in "
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:186
+msgid "Alternatively, you can "
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:188
+msgid "manually select an IPL ROM"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:192
+msgid " or "
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:194
+msgid "manage the ROM settings in Settings > IPL"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:202
+msgid "Ymir is not currently scanning for IPL ROMs."
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:203
+msgid ""
+"If you would like to actively scan for IPL ROMs, press the button below."
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:204
+msgid "Start active scanning"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:212
+#, c-format
+msgid "The file %s does not contain a valid IPL ROM."
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:214
+#, c-format
+msgid "Reason: %s."
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:219
+msgid "Open IPL ROMs directory"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:223
+msgid "Select IPL ROM..."
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:227
+msgid "Open IPL settings"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:237
+msgid "Select IPL ROM"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:239
+msgid "ROM files (*.bin, *.rom)"
+msgstr ""
+
+#: src/app/services/window_manager_service.cpp:239
+#: src/app/ui/views/settings/system_settings_view.cpp:274
+msgid "All files (*.*)"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:55
+msgid "Confirm deletion"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:56
+msgid "Confirm format"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:77
+#, c-format
+msgid "%u KiB capacity, %u of %u blocks used"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:82
+msgid "Unavailable - insert a backup memory cartridge to manage it"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:193
+msgid "No files selected"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:200
+#: src/app/ui/views/backup_memory_view.cpp:738
+msgid "Import"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:218
+msgid "Export"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:275
+msgid "Delete"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:282
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:38
+msgid "Format"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:287
+#: src/app/ui/views/backup_memory_view.cpp:302
+msgid "Load image..."
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:289
+#: src/app/ui/views/backup_memory_view.cpp:317
+msgid "Save image..."
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:402
+#: src/app/ui/views/backup_memory_view.cpp:772
+#: src/app/ui/views/backup_memory_view.cpp:1006
+msgid "Not enough space in memory"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:404
+#: src/app/ui/views/backup_memory_view.cpp:774
+#: src/app/ui/views/backup_memory_view.cpp:1009
+#: src/app/ui/views/backup_memory_view.cpp:1015
+msgid "Unspecified error"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:453
+#: src/app/ui/views/backup_memory_view.cpp:654
+#: src/app/ui/views/backup_memory_view.cpp:819
+msgid "File name"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:455
+msgid "Comment"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:456
+msgid "Language"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:457
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:45
+msgid "Size"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:458
+msgid "Blocks"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:459
+msgid "Date/time"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:470
+msgid "Used blocks + header blocks"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:552
+#, c-format
+msgid "The following files will be deleted from %s:"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:576
+#: src/app/ui/views/backup_memory_view.cpp:614
+msgid "This operation cannot be undone!"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:602
+msgid "Cancel"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:613
+#, c-format
+msgid "%s will be formatted. All files will be erased."
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:616
+#, c-format
+msgid "Are you sure you want to format %s?"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:634
+msgid "Resolve imported file conflicts"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:644
+#, c-format
+msgid "The following files already exist in %s:"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:655
+msgid ""
+"Original\n"
+"Size"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:656
+msgid ""
+"Original\n"
+"Date/time"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:657
+msgid ""
+"Imported\n"
+"Size"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:658
+msgid ""
+"Imported\n"
+"Date/time"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:659
+msgid "Overwrite"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:742
+msgid "Overwrite all"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:750
+msgid "Ignore all"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:789
+msgid "Backup file import summary"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:809
+msgid "No files were imported."
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:820
+#: src/app/ui/views/backup_memory_view.cpp:852
+msgid "Reason"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:851
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:71
+#: src/app/ui/views/settings/ipl_settings_view.cpp:86
+msgid "Path"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:889
+msgid "Files export successful"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:911
+msgid "Image import successful"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:932
+msgid "Image export successful"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1013
+msgid "Backup file truncated"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1014
+msgid "Not a valid backup file"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1034
+#, c++-format
+msgid "File import failed: {}"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1221
+#, c++-format
+msgid "File export failed: {}"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1368
+#, c++-format
+msgid "Could not import {} as {}: {}"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1371
+#: src/app/ui/views/backup_memory_view.cpp:1383
+#, c++-format
+msgid "Could not import {} as {}: invalid image size"
+msgstr ""
+
+#: src/app/ui/views/backup_memory_view.cpp:1374
+#, c++-format
+msgid "Could not import {} as {}: out of memory"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:51
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:21
+msgid "Enable"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:55
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:25
+msgid "You must also enable tracing in Debug > Enable tracing (F11)"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:64
+msgid "CD Block LLE is disabled. Nothing will be traced here."
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:71
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:28
+msgid "Command"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_drive_state_trace_view.cpp:73
+msgid "Status"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:32
+msgid "CD connection"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:33
+msgid "File number"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:34
+msgid "Channel number"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:36
+msgid "Submode"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:37
+msgid "Coding info"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:38
+msgid "Invert subheader conditions"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:40
+msgid "Frame address"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:42
+msgid "Pass"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:43
+msgid "Fail"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:118
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:126
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:28
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:27
+msgid "yes"
+msgstr ""
+
+#: src/app/ui/views/debug/cdblock_filters_view.cpp:120
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:30
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:29
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:76
+msgid "no"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:43
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:71
+msgid "From"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:58
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:85
+msgid "to"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:98
+msgid "Swap"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:109
+msgid "Increment address by"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:132
+msgid "Hold"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:138
+msgid "Count:"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:146
+msgid "longwords"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_dsp_dma_registers_view.cpp:149
+msgid "Run transfer"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:25
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:134
+msgid "Enabled"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:34
+msgid "Timer 0"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:49
+msgid "Counter"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:62
+msgid "Compare"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:70
+msgid "Timer 1"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:83
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:258
+msgid "Reload"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:87
+msgid "Every line"
+msgstr ""
+
+#: src/app/ui/views/debug/scu_timers_view.cpp:91
+msgid "Timer 0 match"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:58
+msgid "Step (F7, S)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:70
+msgid "Pause (Space, R)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:82
+msgid "Resume (Space, R)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:94
+msgid "Hard reset (Ctrl+R)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:104
+msgid "Breakpoints (Ctrl+F9)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:114
+msgid "Watchpoints (Ctrl+Shift+F9)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:123
+msgid "Dump disassembly range (Ctrl+D)"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:144
+msgid "Suspended"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:153
+msgid "Asleep"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:172
+msgid "Go to:"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:196
+msgid "Jump"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:201
+msgid "Follow PC"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_debug_toolbar_view.cpp:204
+msgid "on events"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:29
+msgid "Display numbers in hexadecimal"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:46
+msgid "Dividend"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:48
+msgid "Divisor"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:50
+msgid "Quotient"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:52
+msgid "Remainder"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:54
+msgid "Overflow"
+msgstr ""
+
+#: src/app/ui/views/debug/sh2_divu_trace_view.cpp:124
+msgid "yes+IRQ"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:48
+msgid "Bitmap"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:50
+msgid "Scroll"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:56
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:27
+msgid "Type"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:82
+msgid "Plane/bitmap size"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:109
+msgid "Char. pattern size"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:127
+msgid "Reduction"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:161
+msgid "Color format"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:179
+msgid "Transparency"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:197
+msgid "Shadow"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:215
+msgid "Gradation"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:247
+msgid "Mosaic"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:267
+msgid "Priority number"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:285
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:339
+msgid "Screen"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:286
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:340
+msgid "Character"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:287
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:341
+msgid "Dot"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:288
+msgid "Illegal"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:294
+msgid "Priority mode"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:320
+msgid "Color calc. ratio"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:342
+msgid "Color MSB"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:351
+msgid "Color calc. mode"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:369
+msgid "LNCL insertion"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:395
+msgid "Special function"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:413
+msgid "Vert. cell scroll"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:435
+msgid "X line scroll"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:457
+msgid "Y line scroll"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:479
+msgid "Line zoom"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:501
+msgid "Scroll X"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:520
+msgid "Scroll Y"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:538
+msgid "Scroll X inc."
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:556
+msgid "Scroll Y inc."
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_bg_layer_params_view.cpp:584
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:92
+msgid "Windows"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:25
+msgid "Color gradation: enabled on "
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:50
+msgid "Color gradation: disabled"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:54
+msgid "Using extended color calculations"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:57
+msgid "(ignored; color gradation takes precedence)"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:60
+msgid "Using standard color calculations"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:64
+msgid "Using ratio from second screen"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:66
+msgid "Using ratio from top screen"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:70
+msgid "Blend mode: Additive"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:72
+msgid "Blend mode: Alpha (color ratio)"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_color_calc_params_view.cpp:85
+msgid "Windows: "
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:44
+msgid "Palette/RGB"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:46
+msgid "Palette only"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:50
+msgid ", LNCL insertion"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:55
+msgid "Color calc."
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:68
+msgid "color MSB == 1"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:81
+msgid "Priorities"
+msgstr ""
+
+#: src/app/ui/views/debug/vdp2_sprite_layer_params_view.cpp:103
+msgid "Sprite window"
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:20
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:20
+#: src/app/ui/views/settings/system_settings_view.cpp:152
+msgid "Mode:"
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:22
+msgid "Analog"
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:26
+msgid "Digital"
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:30
+#: src/app/ui/views/settings/control_pad_config_view.cpp:19
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:18
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:30
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:27
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:55
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:28
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:156
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:188
+msgid "Restore defaults"
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:40
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:153
+#: src/app/ui/views/settings/control_pad_config_view.cpp:29
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:23
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:40
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:67
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:198
+msgid "Left-click a button to assign a hotkey. Right-click to clear."
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:44
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:157
+#: src/app/ui/views/settings/control_pad_config_view.cpp:33
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:44
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:70
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:201
+msgid "Button"
+msgstr ""
+
+#: src/app/ui/views/settings/analog_pad_config_view.cpp:46
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:159
+#: src/app/ui/views/settings/control_pad_config_view.cpp:35
+#: src/app/ui/views/settings/hotkeys_settings_view.cpp:30
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:46
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:72
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:203
+#, c++-format
+msgid "Hotkey {}"
+msgstr ""
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:26
+msgid "Wheel sensitivity"
+msgstr ""
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:139
+msgid "Display raw value in meter"
+msgstr ""
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:143
+msgid "Restore default binds"
+msgstr ""
+
+#: src/app/ui/views/settings/arcade_racer_config_view.cpp:148
+msgid "Clear all binds"
+msgstr ""
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:38
+msgid "Volume"
+msgstr ""
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:43
+msgid "Mute"
+msgstr ""
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:50
+msgid "Quality"
+msgstr ""
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:81
+#: src/app/ui/views/settings/audio_settings_view.cpp:115
+#: src/app/ui/widgets/cartridge_widgets.cpp:18
+msgid "None"
+msgstr ""
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:143
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:35
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:191
+msgid "Accuracy"
+msgstr ""
+
+#: src/app/ui/views/settings/audio_settings_view.cpp:151
+#: src/app/ui/views/settings/general_settings_view.cpp:40
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:290
+msgid "Performance"
+msgstr ""
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:60
+msgid "Current cartridge: "
+msgstr ""
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:72
+msgid "Automatically switch to recommended cartridges"
+msgstr ""
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:85
+msgid "Open ROM cartridge images directory"
+msgstr ""
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:92
+msgid "Cartridge type:"
+msgstr ""
+
+#: src/app/ui/views/settings/cartridge_settings_view.cpp:104
+msgid "Insert"
+msgstr ""
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:50
+#: src/app/ui/views/settings/ipl_settings_view.cpp:67
+msgid "Open directory"
+msgstr ""
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:54
+#: src/app/ui/views/settings/ipl_settings_view.cpp:71
+msgid "Rescan"
+msgstr ""
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:72
+#: src/app/ui/views/settings/ipl_settings_view.cpp:87
+msgid "Version"
+msgstr ""
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:137
+msgid "Use"
+msgstr ""
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:154
+msgid "Override CD block ROM"
+msgstr ""
+
+#: src/app/ui/views/settings/cdblock_settings_view.cpp:165
+msgid "CD block ROM path"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:35
+msgid "Open"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:43
+msgid "Boost process priority"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:48
+msgid "Boost emulator thread priority"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:53
+msgid "Preload disc images to RAM"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:58
+msgid "Remember last loaded disc image"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:65
+#: src/app/ui/views/settings/gui_settings_view.cpp:84
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:24
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:25
+msgid "Behavior"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:68
+msgid "Emulation speed"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:78
+msgid "Primary"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:93
+#: src/app/ui/views/settings/general_settings_view.cpp:115
+#: src/app/ui/views/settings/system_settings_view.cpp:185
+#: src/app/ui/widgets/settings_widgets.cpp:63
+#: src/app/ui/widgets/settings_widgets.cpp:84
+#: src/app/ui/windows/system_state_window.cpp:427
+msgid "Reset"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:100
+msgid "Alternate"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:123
+msgid "Pause when unfocused"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:128
+msgid "Unpause after loading discs"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:131
+msgid "Start paused upon launch"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:134
+msgid "Enable Discord Rich Presence"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:140
+msgid "Updates"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:144
+#: src/app/ui/windows/update_onboarding_window.cpp:42
+msgid "Check for updates on startup"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:146
+#: src/app/ui/windows/update_onboarding_window.cpp:46
+msgid "Update to nightly builds"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:148
+msgid "Check now"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:151
+msgid "Latest versions:"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:164
+msgid "Checking..."
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:170
+#: src/app/ui/windows/update_window.cpp:42
+msgid "Release notes"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:178
+msgid "Download"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:183
+msgid "Not checked"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:207
+msgid "Screenshots"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:211
+msgid "Screenshot scale"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:217
+msgid "Screenshots are saved to "
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:229
+msgid "Enable rewind buffer"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:237
+msgid "Compression level"
+msgstr ""
+
+#: src/app/ui/views/settings/general_settings_view.cpp:248
+msgid "Profile paths"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:27
+msgid "Show game name on window title bar"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:29
+msgid "Show performance indicator on window title bar"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:35
+msgid "UI scaling"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:44
+#, c++-format
+msgid "Override UI scale (current: {:.0f}%)"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:94
+msgid "On-screen display"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:97
+msgid "Show messages"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:103
+msgid "Show frame rate"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:125
+msgid "Top left"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:127
+msgid "Top right"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:129
+msgid "Bottom left"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:131
+msgid "Bottom right"
+msgstr ""
+
+#: src/app/ui/views/settings/gui_settings_view.cpp:135
+msgid "Show speed indicators for modified speeds"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:33
+msgid "Port 1"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:42
+msgid "Port 2"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:55
+msgid "Mouse"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:67
+msgid "Capture mode:"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:70
+msgid "System cursor"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:83
+msgid "Physical mouse"
+msgstr ""
+
+#: src/app/ui/views/settings/input_settings_view.cpp:97
+msgid "Lock mouse cursor to window"
+msgstr ""
+
+#: src/app/ui/views/settings/ipl_settings_view.cpp:88
+msgid "Date"
+msgstr ""
+
+#: src/app/ui/views/settings/ipl_settings_view.cpp:89
+msgid "Variant"
+msgstr ""
+
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:22
+msgid "Three-axis"
+msgstr ""
+
+#: src/app/ui/views/settings/mission_stick_config_view.cpp:26
+msgid "Six-axis"
+msgstr ""
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:35
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:35
+msgid "Speed"
+msgstr ""
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:39
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:39
+msgid "Speed boost factor"
+msgstr ""
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:44
+msgid "Mouse sensitivity"
+msgstr ""
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:52
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:185
+msgid "Binds"
+msgstr ""
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:65
+msgid "Left, middle and right mouse buttons are mapped normally."
+msgstr ""
+
+#: src/app/ui/views/settings/shuttle_mouse_config_view.cpp:66
+msgid "Start is bound to mouse buttons 4 and 5."
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:59
+#: src/app/ui/windows/system_state_window.cpp:100
+msgid "Video standard"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:79
+msgid "Autodetect region from loaded discs"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:82
+msgid ""
+"Whenever a game disc is loaded, the emulator will automatically switch the "
+"system region to match one of the game's supported regions. The list below "
+"allows you to choose the preferred region order. If none of the preferred "
+"regions is supported by the game, the emulator will pick the first region "
+"listed on the disc."
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:85
+msgid "Preferred region order:"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:86
+msgid "Drag items to reorder"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:136
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:260
+msgid "SH-2"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:148
+msgid "Real-Time Clock"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:157
+msgid "Host"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:161
+msgid "Virtual"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:166
+msgid "Current date/time:"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:176
+msgid "Host time offset:"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:183
+msgid "seconds"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:191
+msgid ""
+"This may occasionally stop updating because the virtual RTC is only updated "
+"when the game reads from it."
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:193
+#: src/app/ui/views/settings/system_settings_view.cpp:233
+msgid "Set to host time"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:198
+msgid "Set to starting point"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:214
+msgid "Hard reset behavior:"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:215
+msgid "Specifies how the virtual RTC behaves on a hard reset."
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:217
+msgid "Preserve current time"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:221
+msgid "Sync to host time"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:224
+msgid "Reset to starting point"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:243
+msgid "Internal backup memory"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:247
+msgid "Create internal backup memory images per game"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:259
+msgid "Image path"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:270
+msgid "Load backup memory image"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:274
+msgid "Backup memory image files (*.bin, *.sav)"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:289
+msgid "Load"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:297
+#: src/app/ui/windows/system_state_window.cpp:598
+msgid "Open backup memory manager"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:304
+#, c-format
+msgid "Currently using internal backup memory image from %s"
+msgstr ""
+
+#: src/app/ui/views/settings/system_settings_view.cpp:306
+msgid "Open containing directory"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:25
+msgid ""
+"The options listed in this tab affect emulation accuracy.\n"
+"If you encounter an issue running some games, try using the recommended or "
+"maximum quality/accuracy/compatibility presets below.\n"
+"The performance presets may cause issues with some games.\n"
+"When reporting issues, make sure to include this list:"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:127
+msgid "Copy to clipboard"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:141
+#: src/app/ui/views/settings/video_settings_view.cpp:54
+msgid "Enhancements"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:145
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:195
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:294
+msgid "Presets:"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:147
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:197
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:296
+msgid "Recommended"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:152
+msgid ""
+"Strikes a good balance between quality and performance without compromising "
+"compatibility."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:157
+msgid "Best quality"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:162
+msgid "Maximizes quality with no regard for performance."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:167
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:239
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:320
+msgid "Best performance"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:172
+msgid "Maximizes performance with no regard for quality."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:211
+msgid ""
+"Strikes a good balance between accuracy and performance without compromising "
+"compatibility."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:216
+msgid "Best accuracy"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:234
+msgid "Maximizes accuracy with no regard for performance."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:253
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:327
+msgid ""
+"Maximizes performance with no regard for accuracy.\n"
+"Reduces compatibility with some games."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:303
+msgid "Strikes a good balance between compatibility and performance."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:308
+msgid "Best compatibility"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:315
+msgid "Maximizes compatibility with no regard for performance."
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:338
+#: src/app/ui/views/settings/video_settings_view.cpp:46
+msgid "Software renderer"
+msgstr ""
+
+#: src/app/ui/views/settings/tweaks_settings_view.cpp:344
+msgid "Hardware renderer"
+msgstr ""
+
+#: src/app/ui/views/settings/video_settings_view.cpp:63
+msgid "Display"
+msgstr ""
+
+#: src/app/ui/views/settings/video_settings_view.cpp:98
+msgid "Fit now"
+msgstr ""
+
+#: src/app/ui/views/settings/video_settings_view.cpp:118
+msgid "Double-click to toggle full screen"
+msgstr ""
+
+#: src/app/ui/views/settings/video_settings_view.cpp:146
+msgid "Full screen display"
+msgstr ""
+
+#: src/app/ui/views/settings/video_settings_view.cpp:185
+msgid "Full screen resolution"
+msgstr ""
+
+#: src/app/ui/views/settings/video_settings_view.cpp:186
+#: src/app/ui/views/settings/video_settings_view.cpp:201
+msgid "Borderless full screen"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:47
+msgid "Crosshair"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:82
+msgid "Background"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:98
+msgid "Color"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:106
+msgid "Radius"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:115
+msgid "Thickness"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:127
+msgid "Rotation"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:136
+msgid "Stroke color"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:144
+msgid "Stroke thickness"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:166
+msgid "Randomize"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:240
+msgid "Mouse binds"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:244
+msgid "Mouse inputs are bound as follows:"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:257
+msgid "Trigger"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:257
+msgid "Left button"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:258
+msgid "Right button"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:259
+msgid "Start"
+msgstr ""
+
+#: src/app/ui/views/settings/virtua_gun_config_view.cpp:259
+msgid "Middle button"
+msgstr ""
+
+#: src/app/ui/widgets/cartridge_widgets.cpp:22
+#, c-format
+msgid "%u Mbit Backup RAM"
+msgstr ""
+
+#: src/app/ui/widgets/input_widgets.cpp:67
+msgid ""
+"Press any key or gamepad button to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+
+#: src/app/ui/widgets/input_widgets.cpp:71
+msgid ""
+"Press any key combo with at least one modifier key to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+
+#: src/app/ui/widgets/input_widgets.cpp:75
+msgid ""
+"Move any one-dimensional monopolar axis such as analog triggers to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+
+#: src/app/ui/widgets/input_widgets.cpp:80
+msgid ""
+"Move any one-dimensional bipolar axis such as analog wheels or one direction "
+"of an analog stick to map it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+
+#: src/app/ui/widgets/input_widgets.cpp:87
+msgid ""
+"Move any two-dimensional bipolar axis such as analog sticks or D-Pads to map "
+"it.\n"
+"\n"
+"Press Escape or click outside of this popup to cancel."
+msgstr ""
+
+#: src/app/ui/widgets/peripheral_widgets.cpp:38
+msgid "Peripheral:"
+msgstr ""
+
+#: src/app/ui/widgets/peripheral_widgets.cpp:57
+#: src/app/ui/windows/system_state_window.cpp:688
+msgid "Configure"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:44
+msgid "Emulate SH-2 cache"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:56
+msgid "Forced by the currently loaded game"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:68
+msgid "SH-2 clock factor"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:97
+msgid "Graphics backend:"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:131
+msgid "Graphics adapter:"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:134
+msgid "(unavailable for SDL Renderer)"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:139
+msgid "(No graphics adapters detected)"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:160
+msgid "Refresh"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:174
+msgid "Use hardware-accelerated VDP1/VDP2 rendering"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:184
+msgid "Not supported with SDL Renderer"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:195
+msgid "Display rotation:"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:204
+msgid "Normal"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:216
+msgid "Threaded VDP1 renderer"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:224
+msgid "Threaded VDP2 renderer"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:242
+msgid "Use dedicated thread for deinterlaced rendering"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:268
+msgid "Deinterlace video"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:290
+msgid "Transparent meshes"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:318
+msgid "Interpolation:"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:338
+msgid "Label"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:339
+msgid "Value"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:344
+msgid "Emulation step granularity"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:366
+#, c-format
+msgid "Step size: %s"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:418
+msgid "Threaded SCSP and sound CPU"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:441
+msgid "CD read speed"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:474
+msgid "Use low level CD Block emulation"
+msgstr ""
+
+#: src/app/ui/widgets/settings_widgets.cpp:486
+msgid "No CD Block ROMs found. Low level emulation cannot be enabled."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:257
+msgid "Dependencies"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:265
+msgid "Acknowledgements"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:290
+msgid "Version "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:294
+msgid "(development build)"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:299
+msgid "A Sega Saturn emulator"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:302
+msgid "Copy version"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:307
+#, c-format
+msgid "Compiled with %s %s."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:311
+#, c++-format
+msgid "Built at {}"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:315
+msgid "Nightly release channel."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:317
+msgid "Stable release channel."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:319
+msgid "Local development build."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:324
+msgid "Using AVX2 instruction set."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:326
+msgid "Using SSE2 instruction set."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:329
+msgid "Using NEON instruction set."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:333
+#, c-format
+msgid "Using %s graphics backend for GUI rendering."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:337
+#, c-format
+msgid "Using %s VDP1/VDP2 renderer."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:341
+#, c-format
+msgid "Using %s audio driver."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:342
+#, c-format
+msgid "Using %s MIDI API."
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:345
+msgid "Licensed under "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:349
+msgid "The source code can be found at "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:354
+msgid "Join the official "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:356
+#: src/app/ui/windows/about_window.cpp:638
+msgid "Discord server"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:358
+msgid "Consider supporting my work on "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:483
+msgid "Ymir was made possible by"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:500
+#, c-format
+msgid "by %s"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:533
+msgid "CD block research"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:559
+msgid "Helpful tools and test suites"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:577
+msgid "Other emulators that inspired Ymir"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:629
+msgid "Special thanks"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:632
+#: src/app/ui/windows/about_window.cpp:644
+msgid "To the "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:636
+msgid " and their "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:646
+msgid "project contributors"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:648
+msgid " and users "
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:650
+msgid "reporting issues and feature requests"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:652
+msgid ", including:"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:661
+msgid "official Ymir Discord server"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:663
+msgid ", especially:"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:672
+msgid "Patreon supporters"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:674
+msgid ":"
+msgstr ""
+
+#: src/app/ui/windows/about_window.cpp:680
+msgid "And YOU!"
+msgstr ""
+
+#: src/app/ui/windows/backup_ram_manager_window.cpp:44
+msgid "System memory"
+msgstr ""
+
+#: src/app/ui/windows/backup_ram_manager_window.cpp:61
+#: src/app/ui/windows/system_state_window.cpp:584
+msgid "Copy"
+msgstr ""
+
+#: src/app/ui/windows/backup_ram_manager_window.cpp:112
+msgid "Cartridge memory"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:45
+msgid "SMPC Parameters"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:48
+msgid "State"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:53
+msgid "CD drive"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:60
+msgid "Backup memory"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:66
+msgid "Peripherals"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:69
+msgid "Actions"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:82
+msgid "Clock speed"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:83
+msgid ""
+"Select the divider for system clock rates.\n"
+"Automatically adjusted by games.\n"
+"On a real Saturn, games must use the faster clock setting to use 352 pixels-"
+"wide resolution modes."
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:86
+msgid "Slow"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:89
+msgid "320 pixels"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:91
+msgid "Fast"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:94
+msgid "352 pixels"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:130
+msgid "progressive"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:130
+msgid "(invalid)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:130
+msgid "single-density interlace"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:131
+msgid "double-density interlace"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:133
+msgid "Resolution:"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Sun"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Mon"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Tue"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Wed"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Thu"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Fri"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:141
+msgid "Sat"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:143
+#, c-format
+msgid "Current date/time: %s %04u/%02u/%02u %02u:%02u:%02u"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:150
+msgid "Components"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:151
+msgid "Clock"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:152
+msgid "Ratio"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:166
+msgid "SH-2, SCU and VDPs"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:190
+msgid "Pixel clock"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:254
+#: src/app/ui/windows/system_state_window.cpp:412
+msgid "Close tray"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:254
+#: src/app/ui/windows/system_state_window.cpp:412
+msgid "Open tray"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:258
+#: src/app/ui/windows/system_state_window.cpp:416
+msgid "Load disc..."
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:269
+msgid "Busy"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:270
+msgid "Paused"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:271
+msgid "Standby"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:273
+#, c-format
+msgid "Playing track %u, index %u (%s)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:276
+msgid "Seeking"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:278
+#, c-format
+msgid "Scanning track %u, index %u (%s)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:281
+#: src/app/ui/windows/system_state_window.cpp:430
+msgid "Tray open"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:282
+#: src/app/ui/windows/system_state_window.cpp:431
+msgid "No disc"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:283
+msgid "Retrying"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:285
+msgid "Fatal error"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:288
+#: src/app/ui/windows/system_state_window.cpp:452
+#, c-format
+msgid "Read speed: %ux"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:337
+#: src/app/ui/windows/system_state_window.cpp:366
+#: src/app/ui/windows/system_state_window.cpp:504
+#: src/app/ui/windows/system_state_window.cpp:533
+msgid ""
+"MM:SS.FF\n"
+"Minutes, seconds and frames\n"
+"(75 frames per second)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:351
+#: src/app/ui/windows/system_state_window.cpp:377
+#: src/app/ui/windows/system_state_window.cpp:518
+#: src/app/ui/windows/system_state_window.cpp:544
+msgid "Frame address (FAD)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:385
+msgid "Repeat forever"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:387
+#, c-format
+msgid "Repeat %u of %u"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:389
+msgid "No repeat"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:395
+#: src/app/ui/windows/system_state_window.cpp:550
+#, c-format
+msgid "Reading file %s"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:397
+#: src/app/ui/windows/system_state_window.cpp:552
+msgid "Not a file"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:428
+msgid "Idle"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:429
+msgid "Stopped"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:432
+msgid "Reading TOC"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:433
+msgid "Disc changed"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:435
+#, c-format
+msgid "Reading track %u, index %u (Data)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:439
+#, c-format
+msgid "Playing track %u, index %u (CDDA)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:443
+#, c-format
+msgid "Scanning track %u, index %u (CDDA)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:448
+msgid "Seeking security ring"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:449
+#, c-format
+msgid "Unknown (%02X)"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:562
+msgid "No disc loaded"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:565
+#, c-format
+msgid "Disc image from %s"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:567
+#, c-format
+msgid "Disc from drive %s"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:579
+#, c-format
+msgid "%s: <blank>"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:603
+msgid "Device"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:604
+msgid "Capacity"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:605
+msgid "Blocks used"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:619
+#, c-format
+msgid "%u of %u"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:621
+msgid "Invalid"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:634
+msgid "Internal"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:638
+#: src/app/ui/windows/system_state_window.cpp:640
+msgid "External"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:649
+msgid "Insert..."
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:651
+msgid "Backup RAM"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:654
+msgid "8 Mbit DRAM"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:657
+msgid "32 Mbit DRAM"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:660
+msgid "48 Mbit DRAM"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:663
+msgid "16 Mbit ROM"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:669
+msgid "Remove"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:699
+msgid "Port 1:"
+msgstr ""
+
+#: src/app/ui/windows/system_state_window.cpp:717
+msgid "Port 2:"
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:25
+msgid "Automatic update checks"
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:39
+msgid "Ymir can check for new versions automatically on startup."
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:40
+msgid ""
+"This requires an Internet connection and will reach github.com to check for "
+"new versions."
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:41
+msgid "Please make your choices below:"
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:44
+msgid ""
+"Ymir will check for updates whenever it is launched, and notify you if a new "
+"version is available.\n"
+"Upon accepting, Ymir will immediately check for updates if this option is "
+"enabled."
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:48
+msgid ""
+"Whenever Ymir checks for updates, it will also consider nightly builds.\n"
+"Nightly builds include the latest features and bug fixes, but are work-in-"
+"progress and may contain bugs"
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:52
+msgid ""
+"Choose Accept to apply these settings or Decide later to close this window "
+"now.\n"
+"If you choose to decide later, this popup will appear again on next startup."
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:56
+msgid "Accept"
+msgstr ""
+
+#: src/app/ui/windows/update_onboarding_window.cpp:73
+msgid "Decide later"
+msgstr ""
+
+#: src/app/ui/windows/update_window.cpp:13
+msgid "Update available"
+msgstr ""
+
+#: src/app/ui/windows/update_window.cpp:33
+msgid "A new version of Ymir is available."
+msgstr ""
+
+#: src/app/ui/windows/update_window.cpp:34
+msgid "Current version: "
+msgstr ""
+
+#: src/app/ui/windows/update_window.cpp:35
+msgid "New version: "
+msgstr ""
+
+#: src/app/ui/windows/update_window.cpp:44
+msgid "Retrieving..."
+msgstr ""
+
+#: src/app/ui/windows/update_window.cpp:49
+msgid "Close"
+msgstr ""

@@ -13,6 +13,7 @@
       ]
     },
     "cxxopts",
+    "gettext",
     "date",
     "neargye-semver",
     "nlohmann-json",

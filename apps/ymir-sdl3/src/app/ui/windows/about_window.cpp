@@ -1,5 +1,7 @@
 #include "about_window.hpp"
 
+#include <app/ui/i18n.hpp>
+
 #include <ymir/version.hpp>
 
 #include <util/std_lib.hpp>
@@ -43,35 +45,36 @@ CMRC_DECLARE(Ymir_sdl3_rc);
 #include <miniz/miniz.h>
 
 #define _STR_IMPL(x) #x
-#define _STR(x) _STR_IMPL(x)
-#define _SEMVER_STR(major, minor, patch) _STR(major.minor.patch)
+#define _S_(x) _STR_IMPL(x)
+#define _SEMVER_S_(major, minor, patch) _S_(major.minor.patch)
 
 #define BROTLI_VERSION "1.1.0" // Not exported
 #define CEREAL_VERSION "1.3.2" // Not exported
 #define CMRC_VERSION "2.0.0"   // Not exported
-#define CURL_VERSION _SEMVER_STR(LIBCURL_VERSION_MAJOR, LIBCURL_VERSION_MINOR, LIBCURL_VERSION_PATCH)
-#define CXXOPTS_VERSION _SEMVER_STR(CXXOPTS__VERSION_MAJOR, CXXOPTS__VERSION_MINOR, CXXOPTS__VERSION_PATCH)
+#define CURL_VERSION _SEMVER_S_(LIBCURL_VERSION_MAJOR, LIBCURL_VERSION_MINOR, LIBCURL_VERSION_PATCH)
+#define CXXOPTS_VERSION _SEMVER_S_(CXXOPTS__VERSION_MAJOR, CXXOPTS__VERSION_MINOR, CXXOPTS__VERSION_PATCH)
 #define DATE_VERSION "3.0.4" // Not exported
-#define IMGUI_VERSION_FULL IMGUI_VERSION " (" _STR(IMGUI_VERSION_NUM) ")"
+#define IMGUI_VERSION_FULL IMGUI_VERSION " (" _S_(IMGUI_VERSION_NUM) ")"
 #define LZMA_VERSION "26.02"        // Private dependency of libchdr
 #define LIBCHDR_VERSION "0.3.0-dev" // Not exported
 #define MIO_VERSION "1.1.0"         // Not exported
 // #define MZ_VERSION "3.1.1"      // Private dependency of libchdr
 #define NLOHMANN_JSON_VERSION \
-    _SEMVER_STR(NLOHMANN_JSON_VERSION_MAJOR, NLOHMANN_JSON_VERSION_MINOR, NLOHMANN_JSON_VERSION_PATCH)
-#define SDL_VERSION_STR _SEMVER_STR(SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION)
-#define SEMVER_VERSION _SEMVER_STR(SEMVER_VERSION_MAJOR, SEMVER_VERSION_MINOR, SEMVER_VERSION_PATCH)
+    _SEMVER_S_(NLOHMANN_JSON_VERSION_MAJOR, NLOHMANN_JSON_VERSION_MINOR, NLOHMANN_JSON_VERSION_PATCH)
+#define SDL_VERSION_STR _SEMVER_S_(SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION)
+#define SEMVER_VERSION _SEMVER_S_(SEMVER_VERSION_MAJOR, SEMVER_VERSION_MINOR, SEMVER_VERSION_PATCH)
 #define STB_IMAGE_VERSION "2.30"       // Not exported
 #define STB_IMAGE_WRITE_VERSION "1.16" // Not exported
 #define STB_VORBIS_VERSION "1.22"      // Not exported
 #define MC_CONCQUEUE_VERSION "1.0.4"   // Not exported
-#define TOMLPP_VERSION _SEMVER_STR(TOML_LIB_MAJOR, TOML_LIB_MINOR, TOML_LIB_PATCH)
-#define XXHASH_VERSION _SEMVER_STR(XXH_VERSION_MAJOR, XXH_VERSION_MINOR, XXH_VERSION_RELEASE)
+#define TOMLPP_VERSION _SEMVER_S_(TOML_LIB_MAJOR, TOML_LIB_MINOR, TOML_LIB_PATCH)
+#define XXHASH_VERSION _SEMVER_S_(XXH_VERSION_MAJOR, XXH_VERSION_MINOR, XXH_VERSION_RELEASE)
 
 static const std::string fmtVersion = std::to_string(FMT_VERSION / 10000) + "." +
                                       std::to_string(FMT_VERSION / 100 % 100) + "." + std::to_string(FMT_VERSION % 100);
 
 namespace app::ui {
+
 
 struct License {
     const char *name;
@@ -227,7 +230,7 @@ const char *AudioDriverToHumanReadableString(std::string_view driver) {
 AboutWindow::AboutWindow(SharedContext &context)
     : WindowBase(context) {
 
-    m_windowConfig.name = "About";
+    m_windowConfig.name = _("About");
 }
 
 void AboutWindow::PrepareWindow() {
@@ -243,7 +246,7 @@ void AboutWindow::PrepareWindow() {
 
 void AboutWindow::DrawContents() {
     if (ImGui::BeginTabBar("##tabs")) {
-        if (ImGui::BeginTabItem("About")) {
+        if (ImGui::BeginTabItem(_("About"))) {
             if (ImGui::BeginChild("##about")) {
                 DrawAboutTab();
             }
@@ -251,7 +254,7 @@ void AboutWindow::DrawContents() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Dependencies")) {
+        if (ImGui::BeginTabItem(_("Dependencies"))) {
             if (ImGui::BeginChild("##dependencies")) {
                 DrawDependenciesTab();
             }
@@ -259,7 +262,7 @@ void AboutWindow::DrawContents() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Acknowledgements")) {
+        if (ImGui::BeginTabItem(_("Acknowledgements"))) {
             if (ImGui::BeginChild("##acknowledgements", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar)) {
                 DrawAcknowledgementsTab();
             }
@@ -284,75 +287,75 @@ void AboutWindow::DrawAboutTab() {
     ImGui::TextUnformatted("Ymir");
     ImGui::PopFont();
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.xlarge);
-    ImGui::TextUnformatted("Version " Ymir_VERSION);
+    ImGui::Text("%s%s", _("Version "), Ymir_VERSION);
     ImGui::PopFont();
 #if Ymir_DEV_BUILD
     ImGui::PushFont(imguiData->fonts.sansSerif.regular, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("(development build)");
+    ImGui::TextUnformatted(_("(development build)"));
     ImGui::PopFont();
 #endif
 
     ImGui::PushFont(imguiData->fonts.sansSerif.regular, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("A Sega Saturn emulator");
+    ImGui::TextUnformatted(_("A Sega Saturn emulator"));
     ImGui::PopFont();
 
-    if (ImGui::Button("Copy version")) {
+    if (ImGui::Button(_("Copy version"))) {
         SDL_SetClipboardText(Ymir_VERSION);
     }
 
     ImGui::NewLine();
-    ImGui::Text("Compiled with %s %s.", compiler::name, compiler::version::string.c_str());
+    ImGui::Text(_("Compiled with %s %s."), compiler::name, compiler::version::string.c_str());
 #ifdef Ymir_BUILD_TIMESTAMP
     if (auto buildTimestamp = util::parse8601(Ymir_BUILD_TIMESTAMP)) {
         auto localBuildTime = util::to_local_time(std::chrono::system_clock::time_point(*buildTimestamp));
-        ImGui::TextUnformatted(fmt::format("Built at {}", localBuildTime).c_str());
+        ImGui::TextUnformatted(fmt::format(fmt::runtime(_("Built at {}")), localBuildTime).c_str());
     }
 #endif
     if constexpr (ymir::version::is_nightly_build) {
-        ImGui::TextUnformatted("Nightly release channel.");
+        ImGui::TextUnformatted(_("Nightly release channel."));
     } else if constexpr (ymir::version::is_stable_build) {
-        ImGui::TextUnformatted("Stable release channel.");
+        ImGui::TextUnformatted(_("Stable release channel."));
     } else if constexpr (ymir::version::is_local_build) {
-        ImGui::TextUnformatted("Local development build.");
+        ImGui::TextUnformatted(_("Local development build."));
     }
 
 #if defined(__x86_64__) || defined(_M_X64)
     #ifdef Ymir_AVX2
-    ImGui::Text("Using AVX2 instruction set.");
+    ImGui::TextUnformatted(_("Using AVX2 instruction set."));
     #else
-    ImGui::Text("Using SSE2 instruction set.");
+    ImGui::TextUnformatted(_("Using SSE2 instruction set."));
     #endif
 #elif defined(__aarch64__) || defined(__arm64__)
-    ImGui::Text("Using NEON instruction set.");
+    ImGui::TextUnformatted(_("Using NEON instruction set."));
 #endif
 
     const char *graphicsBackendName = gfx::GraphicsBackendName(graphicsService.GetGraphicsContextBackend());
-    ImGui::Text("Using %s graphics backend for GUI rendering.", graphicsBackendName);
+    ImGui::Text(_("Using %s graphics backend for GUI rendering."), graphicsBackendName);
     const auto &vdp = m_context.saturn.GetVDP();
     {
         std::unique_lock lock{m_context.locks.renderer};
-        ImGui::Text("Using %s VDP1/VDP2 renderer.", vdp.GetRenderer().GetName().data());
+        ImGui::Text(_("Using %s VDP1/VDP2 renderer."), vdp.GetRenderer().GetName().data());
     }
 
     const char *audioDriver = SDL_GetCurrentAudioDriver();
-    ImGui::Text("Using %s audio driver.", AudioDriverToHumanReadableString(audioDriver));
-    ImGui::Text("Using %s MIDI API.", RtMidi::getApiDisplayName(midiService.GetInput()->getCurrentApi()).c_str());
+    ImGui::Text(_("Using %s audio driver."), AudioDriverToHumanReadableString(audioDriver));
+    ImGui::Text(_("Using %s MIDI API."), RtMidi::getApiDisplayName(midiService.GetInput()->getCurrentApi()).c_str());
 
     ImGui::NewLine();
-    ImGui::TextUnformatted("Licensed under ");
+    ImGui::TextUnformatted(_("Licensed under "));
     ImGui::SameLine(0, 0);
     ImGui::TextLinkOpenURL("GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html");
 
-    ImGui::TextUnformatted("The source code can be found at ");
+    ImGui::TextUnformatted(_("The source code can be found at "));
     ImGui::SameLine(0, 0);
     ImGui::TextLinkOpenURL("https://github.com/ymir-emu/Ymir");
 
     ImGui::NewLine();
-    ImGui::TextUnformatted("Join the official ");
+    ImGui::TextUnformatted(_("Join the official "));
     ImGui::SameLine(0, 0);
-    ImGui::TextLinkOpenURL("Discord server", "https://discord.gg/NN3A7n5dzn");
+    ImGui::TextLinkOpenURL(_("Discord server"), "https://discord.gg/NN3A7n5dzn");
 
-    ImGui::TextUnformatted("Consider supporting my work on ");
+    ImGui::TextUnformatted(_("Consider supporting my work on "));
     ImGui::SameLine(0, 0);
     ImGui::TextLinkOpenURL("Patreon", "https://www.patreon.com/StrikerX3");
 
@@ -477,7 +480,7 @@ void AboutWindow::DrawAcknowledgementsTab() {
     ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x);
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("Ymir was made possible by");
+    ImGui::TextUnformatted(_("Ymir was made possible by"));
     ImGui::PopFont();
 
     auto ack = [&](const char *name, const char *url) {
@@ -494,7 +497,7 @@ void AboutWindow::DrawAcknowledgementsTab() {
         ImGui::SameLine();
 
         ImGui::PushFont(imguiData->fonts.sansSerif.regular, imguiData->fontSizes.medium);
-        ImGui::Text("by %s", author);
+        ImGui::Text(_("by %s"), author);
         ImGui::PopFont();
     };
 
@@ -527,7 +530,7 @@ void AboutWindow::DrawAcknowledgementsTab() {
         ImGui::Unindent();
     }
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.medium);
-    ImGui::TextUnformatted("CD block research");
+    ImGui::TextUnformatted(_("CD block research"));
     ImGui::PopFont();
     {
         ImGui::Indent();
@@ -553,7 +556,7 @@ void AboutWindow::DrawAcknowledgementsTab() {
     ImGui::NewLine();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("Helpful tools and test suites");
+    ImGui::TextUnformatted(_("Helpful tools and test suites"));
     ImGui::PopFont();
 
     ackWithAuthor("libyaul", "mrkotfw and contributors", "https://github.com/yaul-org/libyaul");
@@ -571,7 +574,7 @@ void AboutWindow::DrawAcknowledgementsTab() {
     ImGui::NewLine();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("Other emulators that inspired Ymir");
+    ImGui::TextUnformatted(_("Other emulators that inspired Ymir"));
     ImGui::PopFont();
 
     ackWithAuthor("Saturn MiSTer", "Sergiy Dvodnenko (srg320)", "https://github.com/MiSTer-devel/Saturn_MiSTer");
@@ -623,30 +626,30 @@ void AboutWindow::DrawAcknowledgementsTab() {
     ImGui::NewLine();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("Special thanks");
+    ImGui::TextUnformatted(_("Special thanks"));
     ImGui::PopFont();
 
-    ImGui::TextUnformatted("To the ");
+    ImGui::TextUnformatted(_("To the "));
     ImGui::SameLine(0, 0);
     ImGui::TextLinkOpenURL("/r/EmuDev community", "https://www.reddit.com/r/EmuDev/");
     ImGui::SameLine(0, 0);
-    ImGui::TextUnformatted(" and their ");
+    ImGui::TextUnformatted(_(" and their "));
     ImGui::SameLine(0, 0);
-    ImGui::TextLinkOpenURL("Discord server", "https://discord.gg/dkmJAes");
+    ImGui::TextLinkOpenURL(_("Discord server"), "https://discord.gg/dkmJAes");
     ImGui::SameLine(0, 0);
     ImGui::TextUnformatted(".");
 
     std::string contribs = getList("about/contributors.txt");
 
-    ImGui::TextUnformatted("To the ");
+    ImGui::TextUnformatted(_("To the "));
     ImGui::SameLine(0, 0);
-    ImGui::TextLinkOpenURL("project contributors", "https://github.com/ymir-emu/Ymir/graphs/contributors");
+    ImGui::TextLinkOpenURL(_("project contributors"), "https://github.com/ymir-emu/Ymir/graphs/contributors");
     ImGui::SameLine(0, 0);
-    ImGui::TextUnformatted(" and users ");
+    ImGui::TextUnformatted(_(" and users "));
     ImGui::SameLine(0, 0);
-    ImGui::TextLinkOpenURL("reporting issues and feature requests", "https://github.com/ymir-emu/Ymir/issues");
+    ImGui::TextLinkOpenURL(_("reporting issues and feature requests"), "https://github.com/ymir-emu/Ymir/issues");
     ImGui::SameLine(0, 0);
-    ImGui::TextUnformatted(", including:");
+    ImGui::TextUnformatted(_(", including:"));
     ImGui::Indent();
     ImGui::TextUnformatted(contribs.c_str());
     ImGui::Unindent();
@@ -655,9 +658,9 @@ void AboutWindow::DrawAcknowledgementsTab() {
 
     ImGui::TextUnformatted("To the friends in the ");
     ImGui::SameLine(0, 0);
-    ImGui::TextLinkOpenURL("official Ymir Discord server", "https://discord.gg/NN3A7n5dzn");
+    ImGui::TextLinkOpenURL(_("official Ymir Discord server"), "https://discord.gg/NN3A7n5dzn");
     ImGui::SameLine(0, 0);
-    ImGui::TextUnformatted(", especially:");
+    ImGui::TextUnformatted(_(", especially:"));
     ImGui::Indent();
     ImGui::TextUnformatted(friends.c_str());
     ImGui::Unindent();
@@ -666,15 +669,15 @@ void AboutWindow::DrawAcknowledgementsTab() {
 
     ImGui::TextUnformatted("To the current and former ");
     ImGui::SameLine(0, 0);
-    ImGui::TextLinkOpenURL("Patreon supporters", "https://www.patreon.com/StrikerX3");
+    ImGui::TextLinkOpenURL(_("Patreon supporters"), "https://www.patreon.com/StrikerX3");
     ImGui::SameLine(0, 0);
-    ImGui::TextUnformatted(":");
+    ImGui::TextUnformatted(_(":"));
     ImGui::Indent();
     ImGui::TextUnformatted(patreonSupporters.c_str());
     ImGui::Unindent();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::TextUnformatted("And YOU!");
+    ImGui::TextUnformatted(_("And YOU!"));
     ImGui::PopFont();
 
     ImGui::PopTextWrapPos();

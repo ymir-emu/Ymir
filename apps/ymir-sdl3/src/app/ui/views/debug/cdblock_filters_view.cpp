@@ -1,6 +1,7 @@
 #include "cdblock_filters_view.hpp"
 
 #include <app/imgui_data.hpp>
+#include <app/ui/i18n.hpp>
 
 #include <app/ui/fonts/IconsMaterialSymbols.h>
 
@@ -9,6 +10,7 @@
 using namespace ymir;
 
 namespace app::ui {
+
 
 CDBlockFiltersView::CDBlockFiltersView(ymir::cdblock::CDBlock &cdblock)
     : m_cdblock(cdblock) {}
@@ -27,18 +29,18 @@ void CDBlockFiltersView::Display() {
 
     if (ImGui::BeginTable("cdblock_filters", 10, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY)) {
         ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
-        ImGui::TableSetupColumn("CD connection", ImGuiTableColumnFlags_WidthFixed, msCharWidth + paddingWidth * 2);
-        ImGui::TableSetupColumn("File number", ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Channel number", ImGuiTableColumnFlags_WidthFixed,
+        ImGui::TableSetupColumn(_("CD connection"), ImGuiTableColumnFlags_WidthFixed, msCharWidth + paddingWidth * 2);
+        ImGui::TableSetupColumn(_("File number"), ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
+        ImGui::TableSetupColumn(_("Channel number"), ImGuiTableColumnFlags_WidthFixed,
                                 hexCharWidth * 2 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Submode", ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 8 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Coding info", ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 8 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Invert subheader conditions", ImGuiTableColumnFlags_WidthFixed,
+        ImGui::TableSetupColumn(_("Submode"), ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 8 + paddingWidth * 2);
+        ImGui::TableSetupColumn(_("Coding info"), ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 8 + paddingWidth * 2);
+        ImGui::TableSetupColumn(_("Invert subheader conditions"), ImGuiTableColumnFlags_WidthFixed,
                                 hexCharWidth * 3 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Frame address", ImGuiTableColumnFlags_WidthFixed,
+        ImGui::TableSetupColumn(_("Frame address"), ImGuiTableColumnFlags_WidthFixed,
                                 hexCharWidth * 13 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Pass", ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
-        ImGui::TableSetupColumn("Fail", ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
+        ImGui::TableSetupColumn(_("Pass"), ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
+        ImGui::TableSetupColumn(_("Fail"), ImGuiTableColumnFlags_WidthFixed, hexCharWidth * 2 + paddingWidth * 2);
         ImGui::TableSetupScrollFreeze(1, 1);
         ImGui::TableHeadersRow();
 
@@ -113,9 +115,9 @@ void CDBlockFiltersView::Display() {
                 ImGui::PushFont(imguiData->fonts.monospace.regular, imguiData->fontSizes.medium);
                 if (bit::extract<0, 3>(filter.mode) != 0) {
                     if (bit::test<4>(filter.mode)) {
-                        ImGui::TextUnformatted("yes");
+                        ImGui::TextUnformatted(_("yes"));
                     } else {
-                        ImGui::TextUnformatted("no");
+                        ImGui::TextUnformatted(_("no"));
                     }
                 } else {
                     ImGui::TextDisabled("-");

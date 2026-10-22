@@ -2,6 +2,7 @@
 
 #include <app/events/gui_event_factory.hpp>
 
+#include <app/ui/i18n.hpp>
 #include <app/ui/widgets/settings_widgets.hpp>
 
 #include <app/imgui_data.hpp>
@@ -15,6 +16,7 @@
 using namespace ymir;
 
 namespace app::ui {
+
 
 CDBlockSettingsView::CDBlockSettingsView(SharedContext &context)
     : SettingsViewBase(context) {}
@@ -30,7 +32,7 @@ void CDBlockSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Accuracy");
+    ImGui::SeparatorText(_("Accuracy"));
     ImGui::PopFont();
 
     ImGui::TextUnformatted("NOTE: Changing any of these options will cause a hard reset");
@@ -45,11 +47,11 @@ void CDBlockSettingsView::Display() {
     ImGui::Text("CD block ROMs in %s", fmt::format("{}", cdbRomsPaths).c_str());
     ImGui::PopTextWrapPos();
 
-    if (ImGui::Button("Open directory")) {
+    if (ImGui::Button(_("Open directory"))) {
         SDL_OpenURL(fmt::format("file:///{}", cdbRomsPaths).c_str());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Rescan")) {
+    if (ImGui::Button(_("Rescan"))) {
         {
             std::unique_lock lock{m_context.locks.romManager};
             m_context.romManager.ScanCDBlockROMs(cdbRomsPaths);
@@ -66,8 +68,8 @@ void CDBlockSettingsView::Display() {
                           ImGuiTableFlags_ScrollY | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti |
                               ImGuiTableFlags_SortTristate,
                           ImVec2(0, 150 * imguiData->displayScale))) {
-        ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, 0.0f);
-        ImGui::TableSetupColumn("Version", ImGuiTableColumnFlags_WidthFixed, 60 * imguiData->displayScale);
+        ImGui::TableSetupColumn(_("Path"), ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, 0.0f);
+        ImGui::TableSetupColumn(_("Version"), ImGuiTableColumnFlags_WidthFixed, 60 * imguiData->displayScale);
         ImGui::TableSetupColumn("##use", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoSort,
                                 useButtonWidth);
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -132,7 +134,7 @@ void CDBlockSettingsView::Display() {
                 }
             }
             if (ImGui::TableNextColumn()) {
-                if (ImGui::Button(fmt::format("Use##{}", index).c_str())) {
+                if (ImGui::Button(fmt::format("{}##{}", _("Use"), index).c_str())) {
                     settings.overrideROM = true;
                     settings.romPath = cdbROM.path;
                     if (!settings.romPath.empty()) {
@@ -149,7 +151,7 @@ void CDBlockSettingsView::Display() {
 
     ImGui::Separator();
 
-    if (MakeDirty(ImGui::Checkbox("Override CD block ROM", &settings.overrideROM))) {
+    if (MakeDirty(ImGui::Checkbox(_("Override CD block ROM"), &settings.overrideROM))) {
         if (settings.overrideROM && !settings.romPath.empty()) {
             m_context.EnqueueEvent(events::gui::ReloadCDBlockROM());
             MakeDirty();
@@ -160,7 +162,7 @@ void CDBlockSettingsView::Display() {
         ImGui::BeginDisabled();
     }
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("CD block ROM path");
+    ImGui::TextUnformatted(_("CD block ROM path"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-(fileSelectorButtonWidth + reloadButtonWidth + itemSpacingWidth * 2));
     std::string cdbPath = fmt::format("{}", settings.romPath);

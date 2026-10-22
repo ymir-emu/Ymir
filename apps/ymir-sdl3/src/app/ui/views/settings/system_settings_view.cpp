@@ -5,6 +5,7 @@
 #include <app/events/emu_event_factory.hpp>
 #include <app/events/gui_event_factory.hpp>
 
+#include <app/ui/i18n.hpp>
 #include <app/ui/widgets/common_widgets.hpp>
 #include <app/ui/widgets/datetime_widgets.hpp>
 #include <app/ui/widgets/settings_widgets.hpp>
@@ -30,6 +31,7 @@ using namespace ymir;
 
 namespace app::ui {
 
+
 SystemSettingsView::SystemSettingsView(SharedContext &context)
     : SettingsViewBase(context) {}
 
@@ -44,7 +46,7 @@ void SystemSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Region");
+    ImGui::SeparatorText(_("Region"));
     ImGui::PopFont();
 
     if (ImGui::BeginTable("sys_region", 2, ImGuiTableFlags_SizingFixedFit)) {
@@ -54,7 +56,7 @@ void SystemSettingsView::Display() {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Video standard");
+            ImGui::TextUnformatted(_("Video standard"));
         }
         if (ImGui::TableNextColumn()) {
             MakeDirty(ui::widgets::VideoStandardSelector(m_context));
@@ -63,8 +65,8 @@ void SystemSettingsView::Display() {
         ImGui::TableNextRow();
         if (ImGui::TableNextColumn()) {
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Region");
-            widgets::ExplanationTooltip("Changing this option will cause a hard reset");
+            ImGui::TextUnformatted(_("Region"));
+            widgets::ExplanationTooltip(_("Changing this option will cause a hard reset"));
         }
         if (ImGui::TableNextColumn()) {
             ui::widgets::RegionSelector(m_context);
@@ -74,17 +76,14 @@ void SystemSettingsView::Display() {
     }
 
     bool autodetectRegion = settings.autodetectRegion.Get();
-    if (MakeDirty(ImGui::Checkbox("Autodetect region from loaded discs", &autodetectRegion))) {
+    if (MakeDirty(ImGui::Checkbox(_("Autodetect region from loaded discs"), &autodetectRegion))) {
         settings.autodetectRegion = autodetectRegion;
     }
-    widgets::ExplanationTooltip(
-        "Whenever a game disc is loaded, the emulator will automatically switch the system region to match one of the "
-        "game's supported regions. The list below allows you to choose the preferred region order. If none of the "
-        "preferred regions is supported by the game, the emulator will pick the first region listed on the disc.");
+    widgets::ExplanationTooltip(_("Whenever a game disc is loaded, the emulator will automatically switch the system region to match one of the game's supported regions. The list below allows you to choose the preferred region order. If none of the preferred regions is supported by the game, the emulator will pick the first region listed on the disc."));
 
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Preferred region order:");
-    widgets::ExplanationTooltip("Drag items to reorder");
+    ImGui::TextUnformatted(_("Preferred region order:"));
+    widgets::ExplanationTooltip(_("Drag items to reorder"));
 
     std::vector<core::config::sys::Region> prefRgnOrder{};
     {
@@ -134,7 +133,7 @@ void SystemSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("SH-2");
+    ImGui::SeparatorText(_("SH-2"));
     ImGui::PopFont();
 
     widgets::settings::system::EmulateSH2Cache(m_context);
@@ -146,25 +145,25 @@ void SystemSettingsView::Display() {
     auto &rtc = smpc.GetRTC();
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Real-Time Clock");
+    ImGui::SeparatorText(_("Real-Time Clock"));
     ImGui::PopFont();
 
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Mode:");
+    ImGui::TextUnformatted(_("Mode:"));
     widgets::ExplanationTooltip("- Host: Syncs the emulated RTC to your system's clock.\n"
                                 "- Virtual: Runs a virtual RTC synced to emulation speed.\n\n"
                                 "For deterministic behavior, use a virtual RTC synced to a fixed time point on reset.");
     ImGui::SameLine();
-    if (MakeDirty(ImGui::RadioButton("Host##rtc", settings.rtc.mode == core::config::rtc::Mode::Host))) {
+    if (MakeDirty(ImGui::RadioButton(TR_ID("Host", "rtc"), settings.rtc.mode == core::config::rtc::Mode::Host))) {
         settings.rtc.mode = core::config::rtc::Mode::Host;
     }
     ImGui::SameLine();
-    if (MakeDirty(ImGui::RadioButton("Virtual##rtc", settings.rtc.mode == core::config::rtc::Mode::Virtual))) {
+    if (MakeDirty(ImGui::RadioButton(TR_ID("Virtual", "rtc"), settings.rtc.mode == core::config::rtc::Mode::Virtual))) {
         settings.rtc.mode = core::config::rtc::Mode::Virtual;
     }
 
     ImGui::AlignTextToFramePadding();
-    ImGui::Text("Current date/time:");
+    ImGui::TextUnformatted(_("Current date/time:"));
     ImGui::SameLine();
     auto dateTime = rtc.GetDateTime();
     if (widgets::DateTimeSelector("rtc_curr", dateTime)) {
@@ -174,30 +173,29 @@ void SystemSettingsView::Display() {
 
     if (settings.rtc.mode == core::config::rtc::Mode::Host) {
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Host time offset:");
+        ImGui::TextUnformatted(_("Host time offset:"));
         ImGui::SameLine();
         ImGui::SetNextItemWidth(150.0f * imguiData->displayScale);
         if (ImGui::DragScalar("##rtc_host_offset", ImGuiDataType_S64, &rtc.HostTimeOffset())) {
             smpc.PersistData();
         }
         ImGui::SameLine();
-        ImGui::TextUnformatted("seconds");
+        ImGui::TextUnformatted(_("seconds"));
         ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
+        if (ImGui::Button(_("Reset"))) {
             rtc.HostTimeOffset() = 0;
             smpc.PersistData();
         }
     } else if (settings.rtc.mode == core::config::rtc::Mode::Virtual) {
         // TODO: request emulator to update date/time so that it is updated in real time
-        widgets::ExplanationTooltip(
-            "This may occasionally stop updating because the virtual RTC is only updated when the game reads from it.");
+        widgets::ExplanationTooltip(_("This may occasionally stop updating because the virtual RTC is only updated when the game reads from it."));
 
-        if (ImGui::Button("Set to host time##curr_time")) {
+        if (ImGui::Button(TR_ID("Set to host time", "curr_time"))) {
             rtc.SetDateTime(util::datetime::host());
             smpc.PersistData();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Set to starting point##curr_time")) {
+        if (ImGui::Button(TR_ID("Set to starting point", "curr_time"))) {
             rtc.SetDateTime(util::datetime::from_timestamp(settings.rtc.virtHardResetTimestamp));
             smpc.PersistData();
         }
@@ -213,17 +211,17 @@ void SystemSettingsView::Display() {
         };
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Hard reset behavior:");
-        widgets::ExplanationTooltip("Specifies how the virtual RTC behaves on a hard reset.");
+        ImGui::TextUnformatted(_("Hard reset behavior:"));
+        widgets::ExplanationTooltip(_("Specifies how the virtual RTC behaves on a hard reset."));
 
-        hardResetOption("Preserve current time", HardResetStrategy::Preserve,
+        hardResetOption(_("Preserve current time"), HardResetStrategy::Preserve,
                         "The virtual RTC will continue counting from the time point prior to the reset.\n"
                         "The date/time persists between executions of the emulator.");
 
-        hardResetOption("Sync to host time", HardResetStrategy::SyncToHost,
+        hardResetOption(_("Sync to host time"), HardResetStrategy::SyncToHost,
                         "The virtual RTC will reset to the current host RTC time.");
 
-        hardResetOption("Reset to starting point", HardResetStrategy::ResetToFixedTime,
+        hardResetOption(_("Reset to starting point"), HardResetStrategy::ResetToFixedTime,
                         "The virtual RTC will reset to the specified starting point.");
 
         ImGui::Indent();
@@ -232,7 +230,7 @@ void SystemSettingsView::Display() {
             if (MakeDirty(widgets::DateTimeSelector("virt_base_time", dateTime))) {
                 settings.rtc.virtHardResetTimestamp = util::datetime::to_timestamp(dateTime);
             }
-            if (MakeDirty(ImGui::Button("Set to host time##virt_base_time"))) {
+            if (MakeDirty(ImGui::Button(TR_ID("Set to host time", "virt_base_time")))) {
                 settings.rtc.virtHardResetTimestamp = util::datetime::to_timestamp(util::datetime::host());
             }
         }
@@ -242,11 +240,11 @@ void SystemSettingsView::Display() {
     // -----------------------------------------------------------------------------------------------------------------
 
     ImGui::PushFont(imguiData->fonts.sansSerif.bold, imguiData->fontSizes.large);
-    ImGui::SeparatorText("Internal backup memory");
+    ImGui::SeparatorText(_("Internal backup memory"));
     ImGui::PopFont();
 
     if (MakeDirty(
-            ImGui::Checkbox("Create internal backup memory images per game", &settings.internalBackupRAMPerGame))) {
+            ImGui::Checkbox(_("Create internal backup memory images per game"), &settings.internalBackupRAMPerGame))) {
         m_context.EnqueueEvent(events::emu::LoadInternalBackupMemory());
     }
     widgets::ExplanationTooltip(
@@ -258,7 +256,7 @@ void SystemSettingsView::Display() {
         ImGui::BeginDisabled();
     }
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Image path");
+    ImGui::TextUnformatted(_("Image path"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(-(fileSelectorButtonWidth + itemSpacingWidth));
     std::string imagePath = fmt::format("{}", settings.internalBackupRAMImagePath);
@@ -269,11 +267,11 @@ void SystemSettingsView::Display() {
     ImGui::SameLine();
     if (ImGui::Button("...##bup_image_path")) {
         m_context.EnqueueEvent(events::gui::OpenFile({
-            .dialogTitle = "Load backup memory image",
+            .dialogTitle = _("Load backup memory image"),
             .defaultPath = settings.internalBackupRAMImagePath.empty()
                                ? m_context.profile.GetPath(ProfilePath::PersistentState) / "bup-int.bin"
                                : settings.internalBackupRAMImagePath,
-            .filters = {{"Backup memory image files (*.bin, *.sav)", "bin;sav"}, {"All files (*.*)", "*"}},
+            .filters = {{_("Backup memory image files (*.bin, *.sav)"), "bin;sav"}, {_("All files (*.*)"), "*"}},
             .userdata = this,
             .callback = util::WrapSingleSelectionCallback<&SystemSettingsView::ProcessLoadBackupImage,
                                                           &util::NoopCancelFileDialogCallback,
@@ -288,7 +286,7 @@ void SystemSettingsView::Display() {
     if (!dirty) {
         ImGui::BeginDisabled();
     }
-    if (ImGui::Button("Load")) {
+    if (ImGui::Button(_("Load"))) {
         m_context.EnqueueEvent(events::emu::LoadInternalBackupMemory());
         m_bupSettingsDirty = false;
     }
@@ -296,16 +294,16 @@ void SystemSettingsView::Display() {
         ImGui::EndDisabled();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Open backup memory manager")) {
+    if (ImGui::Button(_("Open backup memory manager"))) {
         m_context.EnqueueEvent(events::gui::OpenBackupMemoryManager());
     }
 
     if (settings.internalBackupRAMPerGame) {
         const std::filesystem::path intBupPath = m_context.GetInternalBackupRAMPath();
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x);
-        ImGui::Text("Currently using internal backup memory image from %s", fmt::format("{}", intBupPath).c_str());
+        ImGui::Text(_("Currently using internal backup memory image from %s"), fmt::format("{}", intBupPath).c_str());
         ImGui::PopTextWrapPos();
-        if (ImGui::Button("Open containing directory##int_bup")) {
+        if (ImGui::Button(TR_ID("Open containing directory", "int_bup"))) {
             SDL_OpenURL(fmt::format("file:///{}", intBupPath.parent_path()).c_str());
         }
     }
