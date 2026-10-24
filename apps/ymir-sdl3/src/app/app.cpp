@@ -2722,6 +2722,7 @@ void App::RunEmulator() {
                         ImGui::TextUnformatted("VDP1");
                         ImGui::EndDisabled();
                         ImGui::MenuItem("Registers##vdp1", nullptr, &windowSet.vdp1Regs.Open);
+                        ImGui::MenuItem("Command trace##vdp1", nullptr, &windowSet.vdp1CommandTrace.Open);
 
                         ImGui::Separator();
                         ImGui::BeginDisabled();
@@ -2735,6 +2736,7 @@ void App::RunEmulator() {
                         ImGui::MenuItem("Debug overlay", nullptr, &windowSet.vdp2DebugOverlay.Open);
                         ImGui::MenuItem("VRAM access patterns", nullptr, &windowSet.vdp2VRAMAccessPatterns.Open);
                         ImGui::MenuItem("Color RAM palette", nullptr, &windowSet.vdp2CRAM.Open);
+                        ImGui::MenuItem("Memory write trace", nullptr, &windowSet.vdp2MemoryTrace.Open);
 
                         ImGui::EndMenu();
                     }

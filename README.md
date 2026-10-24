@@ -88,9 +88,21 @@ Use `-p <profile-path>` to point to a separate set of configuration and state fi
 
 The `-u` option forces usage of the OS's user profile folder (e.g. `C:\Users\<username>\AppData\Roaming\StrikerX3\Ymir` on Windows or `/home/<username>/.local/share/Ymir` on Linux).
 
+For VDP2 graphics reverse engineering, start with `--debug`, open **Debug > VDP > Memory write trace**, select VRAM and/or CRAM, and enable capture. The address interval is start-inclusive and end-exclusive. **Export synchronized bundle** writes the bounded trace, VDP2 VRAM, CRAM, registers, and a receipt into the profile's `dumps` directory from one emulator-thread callback. Each row records the VDP1 frame index, mapped VDP2 destination address, write width, and value. A 32-bit bus store that is split into two 16-bit accesses appears as two rows. Writes before the first VDP1 frame have an `unknown` frame index. Resetting the VDP clears the buffered trace so frame indices from before and after reset are not mixed. The address filter includes writes that overlap the selected interval. The capture retains the newest 250,000 matching writes and reports how many older entries were discarded. The trace does not identify the SH-2 or DMA source of a write.
+
 `-f` forces the emulator to start in fullscreen mode, ignoring the preference in Ymir.toml.
 
 `-D` starts the emulator with debug tracing enabled.
+
+For a frame-aligned VDP1 capture, enable **Debug > VDP > Command trace** and
+then use **Debug > Dump all memory**. The dump now writes
+`vdp1-command-trace.csv` and `vdp1-capture-bundle.txt` beside the VDP1/VDP2
+VRAM and register files. Their frame cursor, command cursor, local coordinates,
+trace row count and dropped-row count are sampled in the same emulation-thread
+callback as the memory images. A nonzero `trace_dropped_total` means the
+bounded trace buffer discarded earlier commands; `trace_file_complete=0`
+means the CSV could not be fully written. This bundle provides frame
+provenance for reverse engineering and does not assert game-specific meaning.
 
 `-F` starts the emulator in fast-forward mode.
 

@@ -46,6 +46,10 @@ void VDP::Reset(bool hard) {
     m_exclusiveMonitor = false;
 
     m_state.Reset(hard);
+    m_vdp1FrameCounter = 0;
+    if (m_vdp2MemoryTracer != nullptr) {
+        m_vdp2MemoryTracer->Reset();
+    }
     m_renderer->Reset(hard);
 
     m_VDP1TimingPenaltyCycles = 0;
@@ -312,12 +316,28 @@ void VDP::DumpVDP1VRAM(std::ostream &out) const {
     out.write((const char *)m_state.mem1.VRAM.data(), m_state.mem1.VRAM.size());
 }
 
+void VDP::DumpVDP1Registers(std::ostream &out) const {
+    for (uint32 address = 0; address < 0x20; address += sizeof(uint16)) {
+        const uint16 value = m_state.regs1.Read<true>(address);
+        out.put(static_cast<char>(value >> 8));
+        out.put(static_cast<char>(value & 0xFF));
+    }
+}
+
 void VDP::DumpVDP2VRAM(std::ostream &out) const {
     out.write((const char *)m_state.mem2.VRAM.data(), m_state.mem2.VRAM.size());
 }
 
 void VDP::DumpVDP2CRAM(std::ostream &out) const {
     out.write((const char *)m_state.mem2.CRAM.data(), m_state.mem2.CRAM.size());
+}
+
+void VDP::DumpVDP2Registers(std::ostream &out) const {
+    for (uint32 address = 0; address < 0x200; address += sizeof(uint16)) {
+        const uint16 value = m_state.regs2.Read<true>(address);
+        out.put(static_cast<char>(value >> 8));
+        out.put(static_cast<char>(value & 0xFF));
+    }
 }
 
 void VDP::DumpVDP1Framebuffers(std::ostream &out) const {
@@ -419,8 +439,15 @@ FORCE_INLINE T VDP::VDP2ReadVRAM(uint32 address) const {
 
 template <mem_primitive_16 T>
 FORCE_INLINE void VDP::VDP2WriteVRAM(uint32 address, T value) {
-    m_state.mem2.WriteVRAM<T>(address, value,
-                              [&](uint32 address, T value) { m_renderer->VDP2WriteVRAM(address, value); });
+    m_state.mem2.WriteVRAM<T>(address, value, [&](uint32 mappedAddress, T mappedValue) {
+        m_renderer->VDP2WriteVRAM(mappedAddress, mappedValue);
+        if (m_vdp2MemoryTracer != nullptr && m_vdp2MemoryTracer->IsEnabled()) {
+            const uint64 frame = m_vdp1FrameCounter == 0
+                                     ? debug::IVDP2MemoryTracer::kUnknownVdp1FrameIndex
+                                     : m_vdp1FrameCounter - 1;
+            m_vdp2MemoryTracer->Write(frame, debug::VDP2MemoryType::VRAM, mappedAddress, sizeof(T), mappedValue);
+        }
+    });
 }
 
 template <mem_primitive_16 T, bool peek>
@@ -436,6 +463,12 @@ template <mem_primitive_16 T, bool poke>
 FORCE_INLINE void VDP::VDP2WriteCRAM(uint32 address, T value) {
     m_state.mem2.WriteCRAM<T>(address, value, [&](uint32 address, T value) {
         m_renderer->VDP2WriteCRAM(address, value);
+        if (m_vdp2MemoryTracer != nullptr && m_vdp2MemoryTracer->IsEnabled()) {
+            const uint64 frame = m_vdp1FrameCounter == 0
+                                     ? debug::IVDP2MemoryTracer::kUnknownVdp1FrameIndex
+                                     : m_vdp1FrameCounter - 1;
+            m_vdp2MemoryTracer->Write(frame, debug::VDP2MemoryType::CRAM, address, sizeof(T), value);
+        }
         if constexpr (!poke) {
             devlog::trace<grp::vdp2_regs>("{}-bit VDP2 CRAM write to {:05X} = {:X}", sizeof(T) * 8, address, value);
         }
@@ -972,7 +1005,13 @@ void VDP::VDP1BeginFrame() {
 
     m_state.regs1.returnAddress = kVDP1NoReturn;
     m_state.regs1.nextCommandAddress = 0;
+    m_vdp1CommandRootAddress = m_state.regs1.nextCommandAddress;
     m_state.regs1.currFrameEnded = false;
+    m_vdp1CommandIndex = 0;
+    const uint64 frame = m_vdp1FrameCounter++;
+    if (m_tracer != nullptr && m_tracer->IsEnabled()) {
+        m_tracer->BeginFrame(frame);
+    }
 
     bool valid = !m_skipEmptyVDP1Table;
     if (!valid) {
@@ -1022,6 +1061,17 @@ uint64 VDP::VDP1ProcessCommand() {
     const uint32 cmdAddress = m_state.regs1.nextCommandAddress;
     const VDP1Command::Control control{.u16 = VDP1ReadVRAM<uint16>(cmdAddress)};
     m_state.regs1.currCommandAddress = cmdAddress;
+
+    const uint32 commandIndex = m_vdp1CommandIndex++;
+    if (m_tracer != nullptr && m_tracer->IsEnabled()) {
+        std::array<uint16, 16> words{};
+        for (size_t i = 0; i < words.size(); ++i) {
+            words[i] = VDP1ReadVRAM<uint16>(cmdAddress + static_cast<uint32>(i * sizeof(uint16)));
+        }
+        m_tracer->Command(m_vdp1FrameCounter == 0 ? 0 : m_vdp1FrameCounter - 1, commandIndex,
+                          m_vdp1CommandRootAddress, cmdAddress, m_state.state1.localCoordX,
+                          m_state.state1.localCoordY, words);
+    }
 
     devlog::trace<grp::vdp1_cmd>("Processing command {:04X} @ {:05X}", control.u16, cmdAddress);
     if (control.end) [[unlikely]] {

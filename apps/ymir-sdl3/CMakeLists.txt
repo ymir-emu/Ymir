@@ -39,6 +39,8 @@ add_executable(ymir-sdl3
     src/app/debug/sh2_tracer.hpp
     src/app/debug/ygr_tracer.cpp
     src/app/debug/ygr_tracer.hpp
+    src/app/debug/vdp_tracer.hpp
+    src/app/debug/vdp2_memory_tracer.hpp
 
     src/app/events/emu_debug_event_factory.cpp
     src/app/events/emu_debug_event_factory.hpp
@@ -378,12 +380,16 @@ add_executable(ymir-sdl3
     src/app/ui/windows/debug/vdp_window_set.hpp
     src/app/ui/windows/debug/vdp1_registers_window.cpp
     src/app/ui/windows/debug/vdp1_registers_window.hpp
+    src/app/ui/windows/debug/vdp1_command_trace_window.cpp
+    src/app/ui/windows/debug/vdp1_command_trace_window.hpp
     src/app/ui/windows/debug/vdp2_bg_layer_params_window.cpp
     src/app/ui/windows/debug/vdp2_bg_layer_params_window.hpp
     src/app/ui/windows/debug/vdp2_color_calc_params_window.cpp
     src/app/ui/windows/debug/vdp2_color_calc_params_window.hpp
     src/app/ui/windows/debug/vdp2_cram_window.cpp
     src/app/ui/windows/debug/vdp2_cram_window.hpp
+    src/app/ui/windows/debug/vdp2_memory_trace_window.cpp
+    src/app/ui/windows/debug/vdp2_memory_trace_window.hpp
     src/app/ui/windows/debug/vdp2_debug_overlay_window.cpp
     src/app/ui/windows/debug/vdp2_debug_overlay_window.hpp
     src/app/ui/windows/debug/vdp2_layer_visibility_window.cpp

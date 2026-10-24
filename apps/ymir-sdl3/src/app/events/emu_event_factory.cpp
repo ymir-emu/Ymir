@@ -20,6 +20,8 @@
 
 #include <fstream>
 #include <memory>
+#include <vector>
+#include <string_view>
 
 using namespace ymir;
 
@@ -146,13 +148,154 @@ EmuEvent SetDebugTrace(bool enable) {
             ctx.saturn.instance->CDBlock.UseTracer(&ctx.tracers.CDBlock);
             ctx.saturn.instance->CDDrive.UseTracer(&ctx.tracers.CDDrive);
             ctx.saturn.instance->YGR.UseTracer(&ctx.tracers.YGR);
+            ctx.saturn.instance->VDP.UseTracer(&ctx.tracers.VDP);
         }
+        ctx.saturn.instance->VDP.UseVDP2MemoryTracer(
+            ctx.tracers.VDP2Memory.enabled.load(std::memory_order_relaxed) ? &ctx.tracers.VDP2Memory : nullptr);
         ctx.DisplayMessage(fmt::format("Debug tracing {}", (enable ? "enabled" : "disabled")));
+    });
+}
+
+EmuEvent SetVDPTrace(bool enable) {
+    return RunFunction([=](SharedContext &ctx) {
+        ctx.saturn.instance->VDP.UseTracer(enable ? &ctx.tracers.VDP : nullptr);
+    });
+}
+
+EmuEvent SetVDP2MemoryTrace(bool enable) {
+    return RunFunction([=](SharedContext &ctx) {
+        auto &saturn = *ctx.saturn.instance;
+        if (enable) {
+            saturn.EnableDebugTracing(true);
+            saturn.VDP.UseVDP2MemoryTracer(&ctx.tracers.VDP2Memory);
+            ctx.DisplayMessage("VDP2 memory write tracing enabled");
+        } else {
+            saturn.VDP.UseVDP2MemoryTracer(nullptr);
+            ctx.DisplayMessage("VDP2 memory write tracing disabled");
+        }
+    });
+}
+
+EmuEvent ExportVDP2MemoryTrace() {
+    return RunFunction([](SharedContext &ctx) {
+        auto &saturn = *ctx.saturn.instance;
+        auto &tracer = ctx.tracers.VDP2Memory;
+        const uint64 captureFrame = saturn.VDP.GetVDP2MemoryTraceFrameIndex();
+        std::vector<VDP2MemoryTracer::Entry> traceSnapshot;
+        uint64 dropped = 0;
+        {
+            std::lock_guard lock(tracer.mutex);
+            traceSnapshot.assign(tracer.entries.begin(), tracer.entries.end());
+            dropped = tracer.dropped;
+        }
+
+        const auto dumpPath = ctx.profile.GetPath(ProfilePath::Dumps);
+        std::error_code error{};
+        std::filesystem::create_directories(dumpPath, error);
+        if (error) {
+            devlog::warn<grp::base>("Could not create dump directory {}: {}", dumpPath, error.message());
+            return;
+        }
+
+        auto writeFile = [&](const std::filesystem::path &path, auto dump) {
+            std::ofstream out(path, std::ios::binary);
+            if (!out) {
+                return false;
+            }
+            dump(out);
+            out.close();
+            return static_cast<bool>(out);
+        };
+        const bool vramWritten = writeFile(dumpPath / "vdp2-vram.bin", [&](auto &out) {
+            saturn.VDP.DumpVDP2VRAM(out);
+        });
+        const bool cramWritten = writeFile(dumpPath / "vdp2-cram.bin", [&](auto &out) {
+            saturn.VDP.DumpVDP2CRAM(out);
+        });
+        const bool registersWritten = writeFile(dumpPath / "vdp2-registers.bin", [&](auto &out) {
+            saturn.VDP.DumpVDP2Registers(out);
+        });
+        const bool traceWritten = writeFile(dumpPath / "vdp2-memory-write-trace.csv", [&](auto &out) {
+            out << "vdp1_frame,memory,address,width,value\n";
+            for (const auto &entry : traceSnapshot) {
+                if (entry.vdp1Frame == ymir::debug::IVDP2MemoryTracer::kUnknownVdp1FrameIndex) {
+                    out << "unknown";
+                } else {
+                    out << entry.vdp1Frame;
+                }
+                out << ',' << (entry.type == ymir::debug::VDP2MemoryType::VRAM ? "VRAM" : "CRAM") << ",0x"
+                    << std::hex << entry.address << std::dec << ',' << static_cast<unsigned>(entry.width) << ",0x"
+                    << std::hex << entry.value << std::dec << '\n';
+            }
+        });
+
+        std::ofstream manifest(dumpPath / "vdp2-memory-write-bundle.txt");
+        if (!manifest) {
+            devlog::warn<grp::base>("Could not write VDP2 memory trace receipt in {}", dumpPath);
+            return;
+        }
+        manifest << "format=ymir-vdp2-memory-write-bundle-v1\n"
+                 << "current_vdp1_frame_index=";
+        if (captureFrame == ymir::debug::IVDP2MemoryTracer::kUnknownVdp1FrameIndex) {
+            manifest << "unknown\n";
+        } else {
+            manifest << captureFrame << '\n';
+        }
+        manifest << "address_begin=0x" << std::hex << tracer.addressBegin.load(std::memory_order_relaxed) << '\n'
+                 << "address_end_exclusive=0x" << tracer.addressEnd.load(std::memory_order_relaxed) << '\n'
+                 << std::dec << "trace_vram=" << (tracer.traceVRAM.load(std::memory_order_relaxed) ? 1 : 0) << '\n'
+                 << "trace_cram=" << (tracer.traceCRAM.load(std::memory_order_relaxed) ? 1 : 0) << '\n'
+                 << "vdp2_vram_file_complete=" << (vramWritten ? 1 : 0) << '\n'
+                 << "vdp2_cram_file_complete=" << (cramWritten ? 1 : 0) << '\n'
+                 << "trace_file_complete=" << (traceWritten ? 1 : 0) << '\n'
+                 << "trace_rows=" << traceSnapshot.size() << '\n'
+                 << "trace_dropped_total=" << dropped << '\n';
+        if (!traceSnapshot.empty()) {
+            const auto writeFrame = [&](std::string_view key, uint64 frame) {
+                manifest << key << '=';
+                if (frame == ymir::debug::IVDP2MemoryTracer::kUnknownVdp1FrameIndex) {
+                    manifest << "unknown\n";
+                } else {
+                    manifest << frame << '\n';
+                }
+            };
+            writeFrame("first_vdp1_frame_index", traceSnapshot.front().vdp1Frame);
+            writeFrame("last_vdp1_frame_index", traceSnapshot.back().vdp1Frame);
+        }
+        manifest << "bundle_complete=" << (vramWritten && cramWritten && registersWritten && traceWritten ? 1 : 0)
+                 << '\n';
+        manifest.close();
+        if (!vramWritten || !cramWritten || !registersWritten || !traceWritten || !manifest) {
+            devlog::warn<grp::base>("VDP2 memory trace bundle is incomplete in {}", dumpPath);
+        } else {
+            ctx.DisplayMessage("Exported synchronized VDP2 memory trace bundle");
+        }
     });
 }
 
 EmuEvent DumpMemory() {
     return RunFunction([](SharedContext &ctx) {
+        // Take the VDP cursor and command history together on the emulation
+        // thread. The rest of this callback dumps memory without advancing
+        // Saturn, so the bundle can join a traced frame to the same VRAM.
+        const auto &vdp = ctx.saturn.instance->VDP;
+        const auto &vdp1Regs = vdp.GetProbe().GetVDP1Regs();
+        const auto &vdp1State = vdp.GetProbe().GetVDP1State();
+        const uint64 captureFrame = vdp.GetVDP1FrameIndex();
+        const uint32 captureCommandIndex = vdp.GetVDP1CommandIndex();
+        const uint32 captureCommandAddress = vdp1Regs.currCommandAddress;
+        const sint32 captureLocalX = vdp1State.localCoordX;
+        const sint32 captureLocalY = vdp1State.localCoordY;
+        const auto &tracer = ctx.tracers.VDP;
+        std::vector<VDPTracer::Entry> traceSnapshot;
+        uint64 traceDropped = 0;
+        const bool traceEnabled = tracer.enabled.load(std::memory_order_relaxed);
+        {
+            std::lock_guard lock(tracer.mutex);
+            traceSnapshot.assign(tracer.entries.begin(), tracer.entries.end());
+            traceDropped = tracer.dropped;
+        }
+
         auto dumpPath = ctx.profile.GetPath(ProfilePath::Dumps);
         std::error_code error{};
         std::filesystem::create_directories(dumpPath, error);
@@ -191,6 +334,10 @@ EmuEvent DumpMemory() {
             ctx.saturn.instance->VDP.DumpVDP1VRAM(out);
         }
         {
+            std::ofstream out{dumpPath / "vdp1-registers.bin", std::ios::binary};
+            ctx.saturn.instance->VDP.DumpVDP1Registers(out);
+        }
+        {
             std::ofstream out{dumpPath / "vdp1-fbs.bin", std::ios::binary};
             ctx.saturn.instance->VDP.DumpVDP1Framebuffers(out);
         }
@@ -201,6 +348,69 @@ EmuEvent DumpMemory() {
         {
             std::ofstream out{dumpPath / "vdp2-cram.bin", std::ios::binary};
             ctx.saturn.instance->VDP.DumpVDP2CRAM(out);
+        }
+        {
+            std::ofstream out{dumpPath / "vdp2-registers.bin", std::ios::binary};
+            ctx.saturn.instance->VDP.DumpVDP2Registers(out);
+        }
+        {
+            std::ofstream out{dumpPath / "vdp-register-snapshot.txt"};
+            out << "format=ymir-vdp-register-snapshot-v1\n"
+                << "register_byte_order=big_endian\n"
+                << "register_word_bytes=2\n"
+                << "vdp1_register_address_base=0x00000000\n"
+                << "vdp1_register_bytes=32\n"
+                << "vdp2_register_address_base=0x00000000\n"
+                << "vdp2_register_bytes=512\n"
+                << "vdp1_frame_index=" << captureFrame << '\n'
+                << "vdp1_next_command_index=" << captureCommandIndex << '\n'
+                << "vdp1_current_command_address=" << captureCommandAddress << '\n'
+                << "vdp1_local_x=" << captureLocalX << '\n'
+                << "vdp1_local_y=" << captureLocalY << '\n';
+        }
+        {
+            std::ofstream out{dumpPath / "vdp1-command-trace.csv"};
+            bool traceWritten = false;
+            size_t traceRowsForCaptureFrame = 0;
+            if (!out) {
+                devlog::warn<grp::base>("Could not write VDP1 command trace in {}", dumpPath);
+            } else {
+                out << "frame,index,address";
+                for (size_t i = 0; i < 16; ++i) {
+                    out << ",word" << i;
+                }
+                out << ",frame_root,local_x,local_y\n";
+                for (const auto &entry : traceSnapshot) {
+                    if (entry.frame == captureFrame) {
+                        ++traceRowsForCaptureFrame;
+                    }
+                    out << entry.frame << ',' << entry.index << ",0x" << std::hex << entry.address << std::dec;
+                    for (uint16 word : entry.words) {
+                        out << ",0x" << std::hex << word << std::dec;
+                    }
+                    out << ",0x" << std::hex << entry.rootAddress << std::dec << ',' << entry.localX << ','
+                        << entry.localY << '\n';
+                }
+                out.close();
+                traceWritten = static_cast<bool>(out);
+            }
+            std::ofstream manifest{dumpPath / "vdp1-capture-bundle.txt"};
+            manifest << "format=ymir-vdp1-capture-bundle-v1\n"
+                    << "capture_frame_index=" << captureFrame << '\n'
+                    << "capture_next_command_index=" << captureCommandIndex << '\n'
+                    << "capture_current_command_address=" << captureCommandAddress << '\n'
+                    << "capture_local_x=" << captureLocalX << '\n'
+                    << "capture_local_y=" << captureLocalY << '\n'
+                    << "trace_enabled=" << (traceEnabled ? 1 : 0) << '\n'
+                    << "trace_file=vdp1-command-trace.csv\n"
+                    << "trace_file_complete=" << (traceWritten ? 1 : 0) << '\n'
+                    << "trace_rows=" << traceSnapshot.size() << '\n'
+                    << "trace_rows_for_capture_frame=" << traceRowsForCaptureFrame << '\n'
+                    << "trace_dropped_total=" << traceDropped << '\n';
+            if (!traceSnapshot.empty()) {
+                manifest << "trace_first_frame=" << traceSnapshot.front().frame << '\n'
+                         << "trace_last_frame=" << traceSnapshot.back().frame << '\n';
+            }
         }
         {
             std::ofstream out{dumpPath / "scu-dsp-prog.bin", std::ios::binary};

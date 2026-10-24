@@ -15,6 +15,8 @@
 
 #include "vdp_devlog.hpp"
 
+#include <ymir/debug/vdp_tracer_base.hpp>
+#include <ymir/debug/vdp2_memory_tracer_base.hpp>
 #include <ymir/core/configuration.hpp>
 #include <ymir/core/scheduler.hpp>
 #include <ymir/sys/bus.hpp>
@@ -221,6 +223,11 @@ public:
         return m_skipEmptyVDP1Table;
     }
 
+    /// Attach a VDP1 command tracer. Passing nullptr detaches the current tracer.
+    void UseTracer(debug::IVDPTracer *tracer) {
+        m_tracer = tracer;
+    }
+
     // Introduce a small amount of jitter to latched Virtua Gun coordinates.
     //
     // Death Crimson is the only known game that detects perfectly stable shots as reloads. Enabling this option
@@ -233,12 +240,35 @@ public:
         return m_virtuaGunJitter;
     }
 
+    // Returns the active VDP1 frame and the next command dispatch index.
+    // These values are intended for debugger snapshots on the emulation thread.
+    uint64 GetVDP1FrameIndex() const {
+        return m_vdp1FrameCounter == 0 ? 0 : m_vdp1FrameCounter - 1;
+    }
+
+    uint32 GetVDP1CommandIndex() const {
+        return m_vdp1CommandIndex;
+    }
+
+    /// Attach a VDP2 memory write tracer. Passing nullptr detaches the tracer.
+    void UseVDP2MemoryTracer(debug::IVDP2MemoryTracer *tracer) {
+        m_vdp2MemoryTracer = tracer;
+    }
+
+    /// Returns the current VDP1 frame index used to timestamp VDP2 memory writes.
+    uint64 GetVDP2MemoryTraceFrameIndex() const {
+        return m_vdp1FrameCounter == 0 ? debug::IVDP2MemoryTracer::kUnknownVdp1FrameIndex
+                                      : m_vdp1FrameCounter - 1;
+    }
+
     // -------------------------------------------------------------------------
     // Memory dumps
 
     void DumpVDP1VRAM(std::ostream &out) const;
+    void DumpVDP1Registers(std::ostream &out) const;
     void DumpVDP2VRAM(std::ostream &out) const;
     void DumpVDP2CRAM(std::ostream &out) const;
+    void DumpVDP2Registers(std::ostream &out) const;
 
     // Dumps draw framebuffer followed by display framebuffer.
     // If transparent mesh rendering is enabled, also dumps the transparent mesh framebuffer in the same order.
@@ -264,6 +294,11 @@ public:
 
 private:
     VDPState m_state;
+    debug::IVDPTracer *m_tracer = nullptr;
+    uint64 m_vdp1FrameCounter = 0;
+    uint32 m_vdp1CommandIndex = 0;
+    uint32 m_vdp1CommandRootAddress = 0;
+    debug::IVDP2MemoryTracer *m_vdp2MemoryTracer = nullptr;
 
     core::Configuration &m_config;
 
