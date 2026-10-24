@@ -92,6 +92,25 @@ The `-u` option forces usage of the OS's user profile folder (e.g. `C:\Users\<us
 
 `-D` starts the emulator with debug tracing enabled.
 
+With `-D`/`--debug`, Ymir records resolved SMPC peripheral reports and SH-2
+instruction history. **Debug > Dump all memory** writes
+`ymir-debug-trace-bundle.txt`, `smpc-input-trace.csv`, and the MSH2/SSH2
+instruction CSVs beside the memory dumps. Input rows contain the emulation
+frame, port, peripheral type, and a monotonic poll ordinal so repeated reads in
+one frame remain distinct. `vdp1_frame` is reported as `unknown` because this
+feature targets `main`, which does not expose a VDP1 frame cursor. Both SH-2
+traces retain up to 16,777,216 instructions each (about 512 MiB across both
+rings). Rows stream directly from the bounded rings during a dump without a
+second full-ring allocation. Instruction tracing uses substantial runtime, so
+enable it only for focused debug captures.
+The bounded SMPC trace retains 65,536 reports. Bundle receipts report file
+completeness, dropped rows and the payload schema for Control Pad, Analog Pad,
+Arcade Racer, Mission Stick, Virtua Gun and Shuttle Mouse. Controller button
+bits use 1 for released and 0 for pressed. Boolean fields encode false as 0 and
+true as 1. For a standard Control Pad, `value0` is the active-low mask defined
+in `ymir/hw/smpc/peripheral/peripheral_state_common.hpp`. Failed CSV or receipt
+writes are reported as incomplete bundles.
+
 `-F` starts the emulator in fast-forward mode.
 
 `-E` captures all unhandled exceptions, which can be useful to troubleshoot crashes or failure to start the emulator.

@@ -6,12 +6,17 @@
 
 #include <util/ring_buffer.hpp>
 
+#include <memory>
+#include <vector>
+
 namespace app {
 
 struct SH2Tracer final : ymir::debug::ISH2Tracer {
     void ResetInterruptCounter();
     void ResetDivisionCounter();
     void ResetDMACounter(uint32 channel);
+
+    static constexpr size_t kInstructionTraceCapacity = 16'777'216;
 
     bool traceInstructions = false;
     bool traceInterrupts = false;
@@ -20,9 +25,18 @@ struct SH2Tracer final : ymir::debug::ISH2Tracer {
     bool traceDMA = false;
 
     struct InstructionInfo {
+        uint64 emulationFrame;
         uint32 pc;
         uint16 opcode;
         bool delaySlot;
+    };
+
+    struct InstructionTraceInfo {
+        uint64 rows = 0;
+        uint64 total = 0;
+        uint64 dropped = 0;
+        uint64 firstFrame = 0;
+        uint64 lastFrame = 0;
     };
 
     struct InterruptInfo {
@@ -72,7 +86,10 @@ struct SH2Tracer final : ymir::debug::ISH2Tracer {
         std::vector<XferUnit> units;*/
     };
 
-    util::RingBuffer<InstructionInfo, 16384> instructions;
+    using InstructionBuffer = util::RingBuffer<InstructionInfo, kInstructionTraceCapacity>;
+    std::unique_ptr<InstructionBuffer> instructions;
+    uint64 currentEmulationFrame = 0;
+    uint64 totalInstructions = 0;
     util::RingBuffer<InterruptInfo, 1024> interrupts;
     util::RingBuffer<ExceptionInfo, 1024> exceptions;
     util::RingBuffer<DivisionInfo, 1024> divisions;
@@ -107,6 +124,30 @@ struct SH2Tracer final : ymir::debug::ISH2Tracer {
     std::array<DMAStatistics, 2> dmaStats;
 
     SH2ExecAnalyst execAnalyst;
+
+    void SetInstructionTraceEnabled(bool enable);
+    void SetEmulationFrameIndex(uint64 frameIndex) {
+        currentEmulationFrame = frameIndex;
+    }
+    [[nodiscard]] InstructionTraceInfo GetInstructionTraceInfo() const;
+
+    template <typename TCallback>
+    InstructionTraceInfo VisitInstructionTrace(TCallback &&callback) const {
+        auto info = GetInstructionTraceInfo();
+        if (!instructions) {
+            return info;
+        }
+
+        for (size_t index = 0; index < info.rows; ++index) {
+            const auto entry = instructions->Read(index);
+            if (index == 0) {
+                info.firstFrame = entry.emulationFrame;
+            }
+            info.lastFrame = entry.emulationFrame;
+            callback(entry);
+        }
+        return info;
+    }
 
 private:
     uint32 m_interruptCounter = 0;

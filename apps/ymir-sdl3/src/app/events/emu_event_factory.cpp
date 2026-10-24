@@ -19,7 +19,9 @@
 #include <fmt/format.h>
 
 #include <fstream>
+#include <iomanip>
 #include <memory>
+#include <vector>
 
 using namespace ymir;
 
@@ -138,6 +140,9 @@ EmuEvent SwitchVDPRenderer(bool verbose) {
 EmuEvent SetDebugTrace(bool enable) {
     return RunFunction([=](SharedContext &ctx) {
         ctx.saturn.instance->EnableDebugTracing(enable);
+        ctx.tracers.masterSH2.SetInstructionTraceEnabled(enable);
+        ctx.tracers.slaveSH2.SetInstructionTraceEnabled(enable);
+        ctx.tracers.SMPCInput.enabled.store(enable, std::memory_order_relaxed);
         if (enable) {
             ctx.saturn.instance->masterSH2.UseTracer(&ctx.tracers.masterSH2);
             ctx.saturn.instance->slaveSH2.UseTracer(&ctx.tracers.slaveSH2);
@@ -160,6 +165,14 @@ EmuEvent DumpMemory() {
             devlog::warn<grp::base>("Could not create dump directory {}: {}", dumpPath, error.message());
             return;
         }
+
+        const uint64 captureEmulationFrame = ctx.tracers.emulationFrameIndex;
+        const auto smpcTraceSnapshot = ctx.tracers.SMPCInput.GetSnapshot();
+        auto msh2InstructionInfo = ctx.tracers.masterSH2.GetInstructionTraceInfo();
+        auto ssh2InstructionInfo = ctx.tracers.slaveSH2.GetInstructionTraceInfo();
+        const bool smpcTraceEnabled = ctx.tracers.SMPCInput.enabled.load(std::memory_order_relaxed);
+        const bool msh2InstructionTraceEnabled = ctx.tracers.masterSH2.traceInstructions;
+        const bool ssh2InstructionTraceEnabled = ctx.tracers.slaveSH2.traceInstructions;
 
         devlog::info<grp::base>("Dumping all memory to {}...", dumpPath);
         {
@@ -262,7 +275,112 @@ EmuEvent DumpMemory() {
             std::ofstream out{dumpPath / "cdb-dram.bin", std::ios::binary};
             ctx.saturn.instance->DumpCDBlockDRAM(out);
         }
-        devlog::info<grp::base>("Dump complete");
+
+        bool smpcTraceWritten = false;
+        {
+            std::ofstream out{dumpPath / "smpc-input-trace.csv"};
+            if (out) {
+                out << "emulation_frame,vdp1_frame,poll_ordinal,port,peripheral_type,value_count";
+                for (size_t i = 0; i < 8; ++i) {
+                    out << ",value" << i;
+                }
+                out << '\n';
+                for (const auto &entry : smpcTraceSnapshot.entries) {
+                    out << entry.emulationFrame << ',';
+                    if (entry.vdp1Frame == SMPCInputTracer::kUnknownVDP1Frame) {
+                        out << "unknown";
+                    } else {
+                        out << entry.vdp1Frame;
+                    }
+                    out << ',' << entry.pollOrdinal << ',' << static_cast<unsigned>(entry.port) << ','
+                        << SMPCInputTracer::TypeName(entry.type) << ',' << static_cast<unsigned>(entry.valueCount);
+                    for (size_t i = 0; i < entry.values.size(); ++i) {
+                        out << ',';
+                        if (i < entry.valueCount) {
+                            out << entry.values[i];
+                        }
+                    }
+                    out << '\n';
+                }
+                out.close();
+                smpcTraceWritten = static_cast<bool>(out);
+            }
+        }
+
+        auto writeInstructionTrace = [&](const std::filesystem::path &path, const SH2Tracer &tracer,
+                                         SH2Tracer::InstructionTraceInfo &info) {
+            std::ofstream out{path};
+            if (!out) {
+                return false;
+            }
+            out << "emulation_frame,pc,opcode,delay_slot\n";
+            info = tracer.VisitInstructionTrace([&](const SH2Tracer::InstructionInfo &entry) {
+                out << entry.emulationFrame << ",0x" << std::hex << std::setw(8) << std::setfill('0') << entry.pc
+                    << ",0x" << std::setw(4) << entry.opcode << std::dec << ',' << (entry.delaySlot ? 1 : 0) << '\n';
+            });
+            out.close();
+            return static_cast<bool>(out);
+        };
+        const bool msh2TraceWritten = writeInstructionTrace(
+            dumpPath / "msh2-instruction-trace.csv", ctx.tracers.masterSH2, msh2InstructionInfo);
+        const bool ssh2TraceWritten = writeInstructionTrace(
+            dumpPath / "ssh2-instruction-trace.csv", ctx.tracers.slaveSH2, ssh2InstructionInfo);
+
+        std::ofstream manifest{dumpPath / "ymir-debug-trace-bundle.txt"};
+        bool manifestWritten = false;
+        if (manifest) {
+            manifest << "format=ymir-debug-trace-bundle-v1\n"
+                     << "capture_emulation_frame=" << captureEmulationFrame << '\n'
+                     << "smpc_trace_enabled=" << (smpcTraceEnabled ? 1 : 0) << '\n'
+                     << "smpc_trace_file=smpc-input-trace.csv\n"
+                     << "smpc_trace_file_complete=" << (smpcTraceWritten ? 1 : 0) << '\n'
+                     << "smpc_trace_rows=" << smpcTraceSnapshot.entries.size() << '\n'
+                     << "smpc_trace_total=" << smpcTraceSnapshot.total << '\n'
+                     << "smpc_trace_dropped_total=" << smpcTraceSnapshot.dropped << '\n'
+                     << "smpc_trace_capacity=" << SMPCInputTracer::kCapacity << '\n'
+                     << "smpc_button_bits=1_released_0_pressed\n"
+                     << "smpc_payload_schema=control_pad:buttons_u16_active_low;analog_pad:buttons_u16_active_low,analog_bool,x_u8,y_u8,l_u8,r_u8;arcade_racer:buttons_u16_active_low,wheel_u8;mission_stick:buttons_u16_active_low,six_axis_bool,x1_u8,y1_u8,z1_u8,x2_u8,y2_u8,z2_u8;virtua_gun:start_bool_pressed,trigger_bool_pressed,reload_bool_pressed,x_u16,y_u16;shuttle_mouse:start_bool_pressed,left_bool_pressed,middle_bool_pressed,right_bool_pressed,x_s16,y_s16\n"
+                     << "smpc_bool_encoding=0_false_1_true\n"
+                     << "smpc_control_pad_button_mask=right:0x8000;left:0x4000;down:0x2000;up:0x1000;"
+                        "start:0x0800;a:0x0400;c:0x0200;b:0x0100;r:0x0080;x:0x0040;y:0x0020;z:0x0010;l:0x0008\n"
+                     << "msh2_instruction_trace_enabled=" << (msh2InstructionTraceEnabled ? 1 : 0) << '\n'
+                     << "msh2_instruction_trace_file=msh2-instruction-trace.csv\n"
+                     << "msh2_instruction_trace_file_complete=" << (msh2TraceWritten ? 1 : 0) << '\n'
+                     << "msh2_instruction_trace_rows=" << msh2InstructionInfo.rows << '\n'
+                     << "msh2_instruction_trace_total=" << msh2InstructionInfo.total << '\n'
+                     << "msh2_instruction_trace_dropped_total=" << msh2InstructionInfo.dropped << '\n'
+                     << "msh2_instruction_trace_capacity=" << SH2Tracer::kInstructionTraceCapacity << '\n'
+                     << "ssh2_instruction_trace_enabled=" << (ssh2InstructionTraceEnabled ? 1 : 0) << '\n'
+                     << "ssh2_instruction_trace_file=ssh2-instruction-trace.csv\n"
+                     << "ssh2_instruction_trace_file_complete=" << (ssh2TraceWritten ? 1 : 0) << '\n'
+                     << "ssh2_instruction_trace_rows=" << ssh2InstructionInfo.rows << '\n'
+                     << "ssh2_instruction_trace_total=" << ssh2InstructionInfo.total << '\n'
+                     << "ssh2_instruction_trace_dropped_total=" << ssh2InstructionInfo.dropped << '\n'
+                     << "ssh2_instruction_trace_capacity=" << SH2Tracer::kInstructionTraceCapacity << '\n';
+            if (!smpcTraceSnapshot.entries.empty()) {
+                manifest << "smpc_trace_first_emulation_frame=" << smpcTraceSnapshot.entries.front().emulationFrame
+                         << '\n'
+                         << "smpc_trace_last_emulation_frame=" << smpcTraceSnapshot.entries.back().emulationFrame
+                         << '\n';
+            }
+            if (msh2InstructionInfo.rows != 0) {
+                manifest << "msh2_instruction_trace_first_frame="
+                         << msh2InstructionInfo.firstFrame << '\n'
+                         << "msh2_instruction_trace_last_frame=" << msh2InstructionInfo.lastFrame << '\n';
+            }
+            if (ssh2InstructionInfo.rows != 0) {
+                manifest << "ssh2_instruction_trace_first_frame="
+                         << ssh2InstructionInfo.firstFrame << '\n'
+                         << "ssh2_instruction_trace_last_frame=" << ssh2InstructionInfo.lastFrame << '\n';
+            }
+            manifest.close();
+            manifestWritten = static_cast<bool>(manifest);
+        }
+        if (!smpcTraceWritten || !msh2TraceWritten || !ssh2TraceWritten || !manifestWritten) {
+            devlog::warn<grp::base>("Memory dump finished, but one or more debug trace files or the manifest could not be completed");
+        } else {
+            devlog::info<grp::base>("Dump complete");
+        }
     });
 }
 

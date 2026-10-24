@@ -18,6 +18,7 @@
 #include <app/debug/scsp_tracer.hpp>
 #include <app/debug/scu_tracer.hpp>
 #include <app/debug/sh2_tracer.hpp>
+#include <app/debug/smpc_input_tracer.hpp>
 #include <app/debug/ygr_tracer.hpp>
 
 #include <app/events/emu_event.hpp>
@@ -723,8 +724,10 @@ struct SharedContext {
     } state;
 
     struct Tracers {
+        uint64 emulationFrameIndex = 0;
         SH2Tracer masterSH2;
         SH2Tracer slaveSH2;
+        SMPCInputTracer SMPCInput;
         SCUTracer SCU;
         SCSPTracer SCSP;
         CDBlockTracer CDBlock;

@@ -16,6 +16,23 @@ void SH2Tracer::ResetDMACounter(uint32 channel) {
     m_dmaCounter[channel] = 0;
 }
 
+void SH2Tracer::SetInstructionTraceEnabled(bool enable) {
+    traceInstructions = enable;
+    if (enable && !instructions) {
+        instructions = std::make_unique<InstructionBuffer>();
+        totalInstructions = 0;
+    }
+}
+
+SH2Tracer::InstructionTraceInfo SH2Tracer::GetInstructionTraceInfo() const {
+    const uint64 count = instructions ? instructions->Count() : 0;
+    return {
+        .rows = count,
+        .total = totalInstructions,
+        .dropped = totalInstructions > count ? totalInstructions - count : 0,
+    };
+}
+
 void SH2Tracer::Attached() {
     execAnalyst.Clear();
 }
@@ -29,11 +46,12 @@ void SH2Tracer::Reset(uint32 pc, uint32 sp, bool watchdogInitiated) {
 }
 
 void SH2Tracer::ExecuteInstruction(uint32 pc, uint16 opcode, bool delaySlot) {
-    if (!traceInstructions) {
+    if (!traceInstructions || !instructions) {
         return;
     }
 
-    instructions.Write({pc, opcode, delaySlot});
+    instructions->Write({currentEmulationFrame, pc, opcode, delaySlot});
+    ++totalInstructions;
 }
 
 void SH2Tracer::DelaySlot(uint32 pc, uint32 target) {

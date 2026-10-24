@@ -1025,6 +1025,10 @@ void InputService::ReadPeripheral(ymir::peripheral::PeripheralReport &report) {
     }
     default: break;
     }
+
+    if (m_context.tracers.SMPCInput.enabled.load(std::memory_order_relaxed)) {
+        m_context.tracers.SMPCInput.Record(m_context.tracers.emulationFrameIndex, static_cast<uint8>(port), report);
+    }
 }
 
 // Explicit instantiations of templates for ports 1 and 2

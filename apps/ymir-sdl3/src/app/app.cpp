@@ -3631,6 +3631,9 @@ void App::EmulatorThread() {
             }
 
             if (doRunFrame) [[likely]] {
+                const uint64 frameIndex = ++m_context.tracers.emulationFrameIndex;
+                m_context.tracers.masterSH2.SetEmulationFrameIndex(frameIndex);
+                m_context.tracers.slaveSH2.SetEmulationFrameIndex(frameIndex);
                 m_context.saturn.instance->RunFrame();
             }
 
