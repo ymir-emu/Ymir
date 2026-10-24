@@ -522,9 +522,7 @@ static const char *ToTOML(const gfx::Backend value) {
     case gfx::Backend::Metal: return "Metal";
 #endif
 #if YMIR_PLATFORM_HAS_VULKAN
-    #ifdef YMIR_ENABLE_UNIMPL_GFX_BACKENDS // TODO: remove this guard when implemented
     case gfx::Backend::Vulkan: return "Vulkan";
-    #endif
 #endif
     case gfx::Backend::SDLRenderer: return "SDLRenderer";
     }

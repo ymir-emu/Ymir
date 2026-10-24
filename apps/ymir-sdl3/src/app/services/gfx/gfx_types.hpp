@@ -36,9 +36,7 @@ inline constexpr Backend kGraphicsBackends[] = {
     Backend::Metal,
 #endif
 #if YMIR_PLATFORM_HAS_VULKAN
-    #ifdef YMIR_ENABLE_UNIMPL_GFX_BACKENDS // TODO: remove this guard when implemented
     Backend::Vulkan,
-    #endif
 #endif
     Backend::SDLRenderer,
 };

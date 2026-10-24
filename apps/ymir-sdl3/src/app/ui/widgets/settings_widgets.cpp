@@ -165,8 +165,10 @@ namespace settings::video {
         auto &settings = ctx.serviceLocator.GetRequired<Settings>();
         auto &videoSettings = settings.video;
         const bool isSDLRenderer = videoSettings.graphicsBackend == gfx::Backend::SDLRenderer;
+        const bool isVulkanRenderer = videoSettings.graphicsBackend == gfx::Backend::Vulkan;
+        const bool isHardwareAccelerationSupported = isSDLRenderer || isVulkanRenderer;
         bool hwAccel = videoSettings.useHardwareAcceleration;
-        if (isSDLRenderer) {
+        if (isHardwareAccelerationSupported) {
             ImGui::BeginDisabled();
         }
         if (settings.MakeDirty(ImGui::Checkbox("Use hardware-accelerated VDP1/VDP2 rendering", &hwAccel))) {
@@ -178,8 +180,8 @@ namespace settings::video {
                                     "\n"
                                     "NOTE: Support for hardware acceleration is currently EXPERIMENTAL. You may "
                                     "encounter bugs, stability and performance issues.");
-        if (isSDLRenderer) {
-            widgets::ExplanationTooltip("Not supported with SDL Renderer");
+        if (isHardwareAccelerationSupported) {
+            widgets::ExplanationTooltip("Not supported with current graphics backend");
             ImGui::EndDisabled();
         }
     }
