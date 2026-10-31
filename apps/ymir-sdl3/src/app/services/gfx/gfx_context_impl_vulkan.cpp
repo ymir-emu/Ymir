@@ -372,7 +372,7 @@ struct VulkanGraphicsContext::Impl {
         if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, presentQueue, surface,
                                                         kFrameCount, presentMode == PresentMode::VSync);
             createResult.HasValue()) {
-            swapchain = std::make_unique<VulkanSwapchain>(std::move(createResult.Value()));
+            swapchain = std::move(createResult.Value());
         } else {
             return createResult.Error();
         }

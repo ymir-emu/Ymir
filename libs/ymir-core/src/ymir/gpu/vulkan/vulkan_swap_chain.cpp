@@ -445,19 +445,19 @@ bool VulkanSwapchain::Present() {
     return true;
 }
 
-util::ValueResult<VulkanSwapchain> VulkanSwapchain::Create(vk::Device device, vk::PhysicalDevice physicalDevice,
-                                                           uint32 presentQueueFamily, vk::Queue presentQueue,
-                                                           const vk::SurfaceKHR &surface, uint8 swapchainCount,
-                                                           bool vsync, const VulkanSwapchain *oldSwapchain) {
-    VulkanSwapchain newSwapchain(device, physicalDevice, presentQueueFamily, presentQueue);
+util::ObjectResult<VulkanSwapchain> VulkanSwapchain::Create(vk::Device device, vk::PhysicalDevice physicalDevice,
+                                                            uint32 presentQueueFamily, vk::Queue presentQueue,
+                                                            const vk::SurfaceKHR &surface, uint8 swapchainCount,
+                                                            bool vsync, const VulkanSwapchain *oldSwapchain) {
+    std::unique_ptr<VulkanSwapchain> newSwapchain(new VulkanSwapchain(device, physicalDevice, presentQueueFamily, presentQueue));
 
-    newSwapchain.m_surface = surface;
-    newSwapchain.m_vsync = vsync;
+    newSwapchain->m_surface = surface;
+    newSwapchain->m_vsync = vsync;
 
     const vk::SwapchainKHR OldSwapchainHandle =
         oldSwapchain != nullptr ? oldSwapchain->m_swapchainInstance.get() : vk::SwapchainKHR();
 
-    newSwapchain.RecreateSwapchain(swapchainCount, {}, OldSwapchainHandle);
+    newSwapchain->RecreateSwapchain(swapchainCount, {}, OldSwapchainHandle);
 
     return newSwapchain;
 }

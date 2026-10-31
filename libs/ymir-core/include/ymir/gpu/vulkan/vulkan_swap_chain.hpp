@@ -138,9 +138,9 @@ public:
     // Returns false otherwise(swapchain was invalidated)
     bool Present();
 
-    static util::ValueResult<VulkanSwapchain> Create(vk::Device device, vk::PhysicalDevice physicalDevice,
-                                                     uint32 presentQueueFamily, vk::Queue presentQueue,
-                                                     const vk::SurfaceKHR &surface, uint8 swapchainCount, bool vsync,
-                                                     const VulkanSwapchain *oldSwapchain = nullptr);
+    static util::ObjectResult<VulkanSwapchain> Create(vk::Device device, vk::PhysicalDevice physicalDevice,
+                                                      uint32 presentQueueFamily, vk::Queue presentQueue,
+                                                      const vk::SurfaceKHR &surface, uint8 swapchainCount, bool vsync,
+                                                      const VulkanSwapchain *oldSwapchain = nullptr);
 };
 } // namespace ymir::gpu::vulkan
