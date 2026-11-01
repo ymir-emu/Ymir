@@ -135,8 +135,8 @@ cmake --build build --parallel
 Install required packages:
 
 ```sh
-pkg install cmake evdev-proto git gmake libX11 libXcursor libXext libXfixes libXi \
-    libXrandr libXrender libXScrnSaver libXtst libglvnd libinotify ninja patchelf \
+pkg install cmake-core evdev-proto git gmake libX11 libXcursor libXext libXfixes \
+    libXi libXrandr libXrender libXScrnSaver libXtst libglvnd libinotify ninja patchelf \
     pkgconf python3 vulkan-loader zip
 ```
 
