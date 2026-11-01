@@ -157,7 +157,7 @@ struct VulkanGraphicsContext::Impl {
     vk::UniqueBuffer quadVertexBuffer;
     vk::UniqueDeviceMemory quadVertexBufferMemory;
 
-    DrawTextureConstants drawTextureConstants;
+    DrawTextureConstants drawTextureConstants = {};
 
     vk::UniquePipelineLayout renderTargetPipelineLayout;
 
@@ -814,38 +814,42 @@ struct VulkanGraphicsContext::Impl {
             // Swapchain invalid, skip drawing this frame
             return {};
         }
-
         const FrameContext &currFrame = GetCurrentFrameContext();
 
-        currFrame.mainCommandBuffer->endRenderPass();
+        // If BeginFrame was called and has us within a render-pass, end the render-pass
+        if ((drawTextureConstants.renderTargetSize.x * drawTextureConstants.renderTargetSize.y) != 0.0f) {
+            currFrame.mainCommandBuffer->endRenderPass();
 
-        // Transition present-image to be present-ready
-        const vk::ImageMemoryBarrier presentBarrier{
-            .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
-            .dstAccessMask = {},
-            .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
-            .newLayout = vk::ImageLayout::ePresentSrcKHR,
-            .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-            .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-            .image = swapchain->GetNextSwapImage(),
-            .subresourceRange =
-                vk::ImageSubresourceRange{
-                    .aspectMask = vk::ImageAspectFlagBits::eColor,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = vk::RemainingArrayLayers,
-                },
-        };
+            // Transition present-image to be present-ready
+            const vk::ImageMemoryBarrier presentBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+                .dstAccessMask = {},
+                .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+                .newLayout = vk::ImageLayout::ePresentSrcKHR,
+                .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+                .image = swapchain->GetNextSwapImage(),
+                .subresourceRange =
+                    vk::ImageSubresourceRange{
+                        .aspectMask = vk::ImageAspectFlagBits::eColor,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                        .baseArrayLayer = 0,
+                        .layerCount = vk::RemainingArrayLayers,
+                    },
+            };
+            currFrame.mainCommandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                                                         vk::PipelineStageFlagBits::eBottomOfPipe,
+                                                         vk::DependencyFlagBits::eByRegion, {}, {}, {presentBarrier});
 
-        currFrame.mainCommandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
-                                                     vk::PipelineStageFlagBits::eBottomOfPipe,
-                                                     vk::DependencyFlagBits::eByRegion, {}, {}, {presentBarrier});
-
-        if (const auto endResult = currFrame.mainCommandBuffer->end(); endResult != vk::Result::eSuccess) {
-            return util::ErrorMessage{fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
+            // End the command buffer
+            if (const auto endResult = currFrame.mainCommandBuffer->end(); endResult != vk::Result::eSuccess) {
+                return util::ErrorMessage{
+                    fmt::format("Could not end frame command buffer: {}", vk::to_string(endResult))};
+            }
         }
 
+        drawTextureConstants.renderTargetSize = {};
         descriptorUpdateBatch->Flush();
         return {};
     }
