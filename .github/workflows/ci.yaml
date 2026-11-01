@@ -278,8 +278,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo pkg upgrade -y
-          sudo pkg install -y cmake evdev-proto git gmake libX11 libXcursor libXext \
-            libXfixes libXi libXrandr libXrender libXScrnSaver libXtst libglvnd \
+          sudo pkg install -y cmake-core evdev-proto git gmake libX11 libXcursor \
+            libXext libXfixes libXi libXrandr libXrender libXScrnSaver libXtst libglvnd \
             libinotify ninja patchelf pkgconf python3 unzip vulkan-loader zip
 
       - name: Cache vcpkg
