@@ -810,6 +810,8 @@ void App::RunEmulator() {
     // ---------------------------------
     // Create graphics backend
 
+    ScopeGuard sgDeinitVideo{[&] { m_graphicsService.DestroyGraphicsContext(); }};
+
     gfx::PresentMode presentMode = gfx::PresentMode::VSync;
     {
         const gfx::Backend backend = settings.video.graphicsBackend;
