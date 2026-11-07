@@ -111,7 +111,7 @@ struct VDP2Memory {
     VDP2Memory(const VDP2Regs &regs)
         : regs(regs) {}
 
-    VDP2Memory operator=(const VDP2Memory &rhs) {
+    VDP2Memory &operator=(const VDP2Memory &rhs) {
         VRAM = rhs.VRAM;
         CRAM = rhs.CRAM;
         return *this;
