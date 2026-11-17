@@ -459,17 +459,18 @@ bool VulkanSwapchain::Present() {
 util::ObjectResult<VulkanSwapchain> VulkanSwapchain::Create(vk::Device device, vk::PhysicalDevice physicalDevice,
                                                             uint32 presentQueueFamily, vk::Queue presentQueue,
                                                             const vk::SurfaceKHR &surface, uint8 swapchainCount,
-                                                            bool vsync, const VulkanSwapchain *oldSwapchain) {
+                                                            std::optional<vk::Extent2D> surfaceExtent, bool vsync,
+                                                            const VulkanSwapchain *oldSwapchain) {
     std::unique_ptr<VulkanSwapchain> newSwapchain(
         new VulkanSwapchain(device, physicalDevice, presentQueueFamily, presentQueue));
 
     newSwapchain->m_surface = surface;
     newSwapchain->m_vsync = vsync;
 
-    const vk::SwapchainKHR OldSwapchainHandle =
+    const vk::SwapchainKHR oldSwapchainHandle =
         oldSwapchain != nullptr ? oldSwapchain->m_swapchainInstance.get() : vk::SwapchainKHR();
 
-    newSwapchain->RecreateSwapchain(swapchainCount, {}, OldSwapchainHandle);
+    newSwapchain->RecreateSwapchain(swapchainCount, surfaceExtent, oldSwapchainHandle);
 
     return newSwapchain;
 }

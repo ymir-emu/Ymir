@@ -140,7 +140,8 @@ public:
 
     static util::ObjectResult<VulkanSwapchain> Create(vk::Device device, vk::PhysicalDevice physicalDevice,
                                                       uint32 presentQueueFamily, vk::Queue presentQueue,
-                                                      const vk::SurfaceKHR &surface, uint8 swapchainCount, bool vsync,
+                                                      const vk::SurfaceKHR &surface, uint8 swapchainCount,
+                                                      std::optional<vk::Extent2D> surfaceExtent, bool vsync,
                                                       const VulkanSwapchain *oldSwapchain = nullptr);
 };
 } // namespace ymir::gpu::vulkan

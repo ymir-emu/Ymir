@@ -368,9 +368,18 @@ struct VulkanGraphicsContext::Impl {
             return createResult.Error();
         }
 
+        // Surface extents
+        int ww, wh;
+        SDL_GetWindowSizeInPixels(spec.window, &ww, &wh);
+        const vk::Extent2D swapchainExtents{
+            .width = static_cast<uint32>(ww),
+            .height = static_cast<uint32>(wh),
+        };
+
         // Swapchain
-        if (auto createResult = VulkanSwapchain::Create(device.get(), physicalDevice, 0, presentQueue, surface,
-                                                        kFrameCount, presentMode == PresentMode::VSync);
+        if (auto createResult =
+                VulkanSwapchain::Create(device.get(), physicalDevice, 0, presentQueue, surface, kFrameCount,
+                                        swapchainExtents, presentMode == PresentMode::VSync);
             createResult.HasValue()) {
             swapchain = std::move(createResult.Value());
         } else {
