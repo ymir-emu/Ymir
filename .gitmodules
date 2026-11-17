@@ -32,3 +32,7 @@
 [submodule "vendor/wil"]
 	path = vendor/wil
 	url = https://github.com/microsoft/wil.git
+[submodule "vendor/SDL3/SDL"]
+	path = vendor/SDL3/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = tags/release-3.4.20

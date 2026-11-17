@@ -537,7 +537,6 @@ find_package(date CONFIG REQUIRED)
 find_package(OpenSSL CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 find_package(rtmidi CONFIG REQUIRED)
-find_package(SDL3 CONFIG REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
 
 target_include_directories(ymir-sdl3
