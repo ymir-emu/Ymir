@@ -15,10 +15,16 @@ vk::SurfaceFormatKHR FindSurfaceFormat(const vk::PhysicalDevice &physicalDevice,
         surfaceFormats = std::move(enumerateResult.value);
     }
 
-    // Prefer an sRGB presentation color-space
+    // Prefer an sRGB presentation color-space with manual gamma correction (Unorm values)
     std::ranges::stable_partition(surfaceFormats, [](const vk::SurfaceFormatKHR &surfaceFormat) -> bool {
-        return surfaceFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+        return surfaceFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear &&
+               surfaceFormat.format == vk::Format::eB8G8R8A8Unorm;
     });
+
+    // Can't proceed if no formats match
+    if (surfaceFormats.empty()) {
+        return util::ErrorMessage{"Could not find valid surface format"};
+    }
 
     // After the stable partitions, the top of the list is the best candidate
     // surface format/color-space
@@ -99,8 +105,12 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
         return util::ErrorMessage{"Error waiting on present queue to idle:" + vk::to_string(waitResult)};
     }
 
-    /// Swapchain surface format
-    m_surfaceFormat = FindSurfaceFormat(m_physicalDevice, m_surface);
+    // Swapchain surface format
+    auto surfaceFormatResult = FindSurfaceFormat(m_physicalDevice, m_surface);
+    if (!surfaceFormatResult) {
+        return surfaceFormatResult.Error();
+    }
+    m_surfaceFormat = surfaceFormatResult.Value();
 
     // Get present mode
     const vk::PresentModeKHR presetMode = FindPresentMode(m_physicalDevice, m_surface, m_vsync);
