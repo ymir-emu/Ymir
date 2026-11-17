@@ -29,7 +29,8 @@
       "features": [
         "dbus",
         "ibus",
-        "wayland"
+        "wayland",
+        "libdecor"
       ],
       "platform": "linux"
     },
