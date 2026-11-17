@@ -7,7 +7,8 @@
 
 namespace {
 
-vk::SurfaceFormatKHR FindSurfaceFormat(const vk::PhysicalDevice &physicalDevice, const vk::SurfaceKHR &surface) {
+util::ValueResult<vk::SurfaceFormatKHR> FindSurfaceFormat(const vk::PhysicalDevice &physicalDevice,
+                                                          const vk::SurfaceKHR &surface) {
     // Determine surface format and color-space
     std::vector<vk::SurfaceFormatKHR> surfaceFormats;
     if (auto enumerateResult = physicalDevice.getSurfaceFormatsKHR(surface);
@@ -85,24 +86,22 @@ VulkanSwapchain::VulkanSwapchain(vk::Device device, vk::PhysicalDevice physicalD
     , m_presentQueue(presentQueue) {}
 
 VulkanSwapchain::~VulkanSwapchain() {
-    // Unfortunately this is the best way to ensure that any currently in-flight
-    // frames are done.
-    // TODO: VK_{KHR,EXT}_swapchain_maintenance1 has better swapchain
-    // waiting/cleanup mechanisms that should be used here
+    // Unfortunately this is the best way to ensure that any currently in-flight frames are done.
+    // TODO: VK_{KHR,EXT}_swapchain_maintenance1 has better swapchain waiting/cleanup mechanisms that should be used
+    // here
     if (const vk::Result waitResult = m_presentQueue.waitIdle(); waitResult != vk::Result::eSuccess) {
-        // return util::ErrorMessage{"Error waiting on present queue to idle:" + vk::to_string(waitResult)};
+        // return util::ErrorMessage{"Error waiting on present queue to idle: " + vk::to_string(waitResult)};
     }
 }
 
 util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std::optional<vk::Extent2D> newExtent,
                                                       std::optional<vk::SwapchainKHR> oldSwapchain,
                                                       uint8 *nextSwapIndex, vk::Fence nextSwapSignalFence) {
-    // Unfortunately this is the best way to ensure that any currently in-flight
-    // frames are done.
-    // TODO: VK_{KHR,EXT}_swapchain_maintenance1 has better swapchain
-    // waiting/cleanup mechanisms that should be used here
+    // Unfortunately this is the best way to ensure that any currently in-flight frames are done.
+    // TODO: VK_{KHR,EXT}_swapchain_maintenance1 has better swapchain waiting/cleanup mechanisms that should be used
+    // here
     if (const vk::Result waitResult = m_presentQueue.waitIdle(); waitResult != vk::Result::eSuccess) {
-        return util::ErrorMessage{"Error waiting on present queue to idle:" + vk::to_string(waitResult)};
+        return util::ErrorMessage{"Error waiting on present queue to idle: " + vk::to_string(waitResult)};
     }
 
     // Swapchain surface format
@@ -121,7 +120,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
         surfaceCapabilities = getResult.value;
     } else {
         // Error getting surface capabilities
-        return util::ErrorMessage{"Error getting surface capabilities:" + vk::to_string(getResult.result)};
+        return util::ErrorMessage{"Error getting surface capabilities: " + vk::to_string(getResult.result)};
     }
 
     /// Swapchain image count
@@ -216,7 +215,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
 
         m_swapchainInstance = std::move(createResult.value);
     } else {
-        return util::ErrorMessage{"Error creating swapchain:" + vk::to_string(createResult.result)};
+        return util::ErrorMessage{"Error creating swapchain: " + vk::to_string(createResult.result)};
     }
 
     /// Get swapchain images
@@ -225,7 +224,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
         getResult.result == vk::Result::eSuccess) {
         m_swapImages = std::move(getResult.value);
     } else {
-        return util::ErrorMessage{"Error getting swapchain images:" + vk::to_string(getResult.result)};
+        return util::ErrorMessage{"Error getting swapchain images: " + vk::to_string(getResult.result)};
     }
 
     /// Create swapchain image-views
@@ -251,7 +250,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
             m_swapImageViews[swapIndex] = std::move(createResult.value);
             SetObjectName(m_device, m_swapImageViews[swapIndex].get(), "Swapchain: ImageView #{}", swapIndex);
         } else {
-            return util::ErrorMessage{"Error creating swapchain image view:" + vk::to_string(createResult.result)};
+            return util::ErrorMessage{"Error creating swapchain image view: " + vk::to_string(createResult.result)};
         }
     }
 
@@ -335,7 +334,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
             m_swapFramebuffers[swapIndex] = std::move(createResult.value);
             SetObjectName(m_device, m_swapFramebuffers[swapIndex].get(), "Swapchain: Framebuffer #{}", swapIndex);
         } else {
-            return util::ErrorMessage{"Error creating swapchain framebuffer:" + vk::to_string(createResult.result)};
+            return util::ErrorMessage{"Error creating swapchain framebuffer: " + vk::to_string(createResult.result)};
         }
     }
 
@@ -353,7 +352,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
 
             m_swapSemaphoreImageAcquired[semaphoreIndex] = std::move(createResult.value);
         } else {
-            return util::ErrorMessage{"Error creating swapchain semaphore:" + vk::to_string(createResult.result)};
+            return util::ErrorMessage{"Error creating swapchain semaphore: " + vk::to_string(createResult.result)};
         }
 
         if (auto createResult = m_device.createSemaphoreUnique(semaphoreInfo);
@@ -362,7 +361,7 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
 
             m_swapSemaphorePresentReady[semaphoreIndex] = std::move(createResult.value);
         } else {
-            return util::ErrorMessage{"Error creating present-ready semaphore:" + vk::to_string(createResult.result)};
+            return util::ErrorMessage{"Error creating present-ready semaphore: " + vk::to_string(createResult.result)};
         }
     }
 
@@ -459,7 +458,8 @@ util::ObjectResult<VulkanSwapchain> VulkanSwapchain::Create(vk::Device device, v
                                                             uint32 presentQueueFamily, vk::Queue presentQueue,
                                                             const vk::SurfaceKHR &surface, uint8 swapchainCount,
                                                             bool vsync, const VulkanSwapchain *oldSwapchain) {
-    std::unique_ptr<VulkanSwapchain> newSwapchain(new VulkanSwapchain(device, physicalDevice, presentQueueFamily, presentQueue));
+    std::unique_ptr<VulkanSwapchain> newSwapchain(
+        new VulkanSwapchain(device, physicalDevice, presentQueueFamily, presentQueue));
 
     newSwapchain->m_surface = surface;
     newSwapchain->m_vsync = vsync;
@@ -471,4 +471,5 @@ util::ObjectResult<VulkanSwapchain> VulkanSwapchain::Create(vk::Device device, v
 
     return newSwapchain;
 }
+
 } // namespace ymir::gpu::vulkan
