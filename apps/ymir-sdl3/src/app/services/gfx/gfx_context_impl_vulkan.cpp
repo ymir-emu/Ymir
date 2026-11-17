@@ -467,7 +467,7 @@ struct VulkanGraphicsContext::Impl {
                 .borderColor = vk::BorderColor::eFloatTransparentBlack,
                 .unnormalizedCoordinates = false,
             };
-            if (auto createResult = device->createSamplerUnique(nearestSamplerInfo);
+            if (auto createResult = device->createSamplerUnique(linearSamplerInfo);
                 createResult.result == vk::Result::eSuccess) {
                 samplerLinear = std::move(createResult.value);
             } else {
