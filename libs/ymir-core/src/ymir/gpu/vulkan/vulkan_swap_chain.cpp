@@ -365,7 +365,9 @@ util::VoidResult<> VulkanSwapchain::RecreateSwapchain(uint8 swapchainCount, std:
         }
     }
 
-    void(AcquireNextImage(nextSwapIndex, nextSwapSignalFence));
+    if (auto result = AcquireNextImage(nextSwapIndex, nextSwapSignalFence); !result) {
+        return util::ErrorMessage{"Error acquiring initial swapchain image: " + result.Error().message};
+    }
 
     return {};
 }
