@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.28)
 project(Ymir VERSION 0.4.2)
 
+# Workaround for a CMake issue involving Objective-C code: https://gitlab.kitware.com/cmake/cmake/-/work_items/24104
+if (APPLE)
+    enable_language(OBJC OBJCXX)
+endif ()
+
 # Check for Vulkan support before including CompileShaders as it depends on knowing if Vulkan
 # is available to determine whether to make SPIR-V compilation required or optional.
 # Vulkan support is excluded from macOS as the system doesn't support it natively.
