@@ -26,6 +26,13 @@ using namespace ymir::gpu::vulkan;
 
 namespace app::gfx {
 
+#ifdef __linux__
+static bool IsWayland() {
+    const char *driver = SDL_GetCurrentVideoDriver(); // null if video isn't initialized
+    return driver != nullptr && std::strcmp(driver, "wayland") == 0;
+}
+#endif
+
 static vk::Format ToVulkanFormat(PixelFormat format) {
     switch (format) {
     case PixelFormat::Unknown: return vk::Format::eUndefined;
@@ -660,6 +667,17 @@ struct VulkanGraphicsContext::Impl {
 
             currFrame.waitTick = mainSemaphoreTick++;
         }
+
+#ifdef __linux__
+        // HACK: horrible workaround for window contents no longer updating under Wayland when switching from any other
+        // backend to Vulkan. Introduces a single black frame flash.
+        const bool isSoftware = physicalDevice.getProperties().deviceType == vk::PhysicalDeviceType::eCpu;
+        if (IsWayland() && isSoftware) {
+            ResizeFramebuffer(ww + 1, wh);
+            Present();
+            ResizeFramebuffer(ww, wh);
+        }
+#endif
 
         return {};
     }
