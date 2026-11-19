@@ -4127,6 +4127,10 @@ struct Direct3D12VDPRenderer::Impl {
     }
 
     void VDP2DrawLineColorBackScreens(uint32 y) {
+        if (y >= kMaxNormalResV) {
+            return;
+        }
+
         const VDP2Regs &regs = vdpState.regs2;
 
         if (regs.displayEnabledLatch) {
