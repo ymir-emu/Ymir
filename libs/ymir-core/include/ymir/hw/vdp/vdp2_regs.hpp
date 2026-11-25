@@ -427,14 +427,14 @@ struct VDP2Regs {
 
     template <bool peek>
     FORCE_INLINE uint16 ReadTVSTAT() const {
-        uint16 value = TVSTAT.u16;
+        RegTVSTAT value = TVSTAT;
         if (TVMD.IsInterlaced()) {
-            value ^= 0x2; // for some reason ODD is read inverted
+            value.ODD ^= 1; // for some reason ODD is read inverted
         }
         if constexpr (!peek) {
             TVSTAT.EXLTFG = 0;
         }
-        return value;
+        return value.u16;
     }
 
     FORCE_INLINE void WriteTVSTAT(uint16 value) {

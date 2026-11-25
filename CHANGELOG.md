@@ -12,6 +12,8 @@ Uses save state file version 17.
 
 ### Fixes
 
+- VDP2: Force assert TVSTAT.VBLANK signal when TVMD.DISP is not asserted. Fixes Clockwork Knight 2 freezes before playing FMVs.
+
 
 ## Version 0.4.1
 
