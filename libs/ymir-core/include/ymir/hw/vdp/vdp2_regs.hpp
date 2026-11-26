@@ -432,6 +432,9 @@ struct VDP2Regs {
             value.ODD ^= 1; // for some reason ODD is read inverted
         }
         if constexpr (!peek) {
+            if (!TVMD.DISP) {
+                value.VBLANK = 1;
+            }
             TVSTAT.EXLTFG = 0;
         }
         return value.u16;
