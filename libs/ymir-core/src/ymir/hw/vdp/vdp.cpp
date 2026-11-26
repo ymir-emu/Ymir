@@ -1034,11 +1034,7 @@ uint64 VDP::VDP1ProcessCommand() {
         }
         m_renderer->VDP1ExecuteCommand(cmdAddress, control);
         cycles += VDP1CalcCommandTiming(cmdAddress, control);
-        if (cycles >= 500000) {
-            __debugbreak();
-            VDP1CalcCommandTiming(cmdAddress, control);
-        }
-        devlog::debug<grp::vdp1_cmd>("Command {:04X} @ {:05X} costs {} cycles", control.u16, cmdAddress, cycles);
+        devlog::trace<grp::vdp1_cmd>("Command {:04X} @ {:05X} costs {} cycles", control.u16, cmdAddress, cycles);
     }
 
     // Go to the next command
