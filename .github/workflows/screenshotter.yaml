@@ -78,8 +78,8 @@ jobs:
                 exit 0
               fi
 
-              # If the job is queued, we're probably good
-              if [ "$STATE" = "queued" ]; then
+              # If the job is queued or running, we're probably good
+              if [ "$STATE" = "queued" -o "$STATE" = "running" ]; then
                 echo "[+] Job is queued"
                 exit 0
               fi
