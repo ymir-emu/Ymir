@@ -4283,10 +4283,10 @@ struct Direct3D12VDPRenderer::Impl {
             resChangedToInterlaced = false;
         }
 
-        VDP2UpdateState(0);
         for (int i = 0; i < 4; ++i) {
             vdp2.cpuLayerRenderParams.nbg[i].scrollYIncBase = 0;
         }
+        VDP2UpdateState(0);
 
         // VDP2 consumes VDP1 FBRAM, so it needs to be synced here
         if (auto result = VDP1FlushFBRAM(); !result) {

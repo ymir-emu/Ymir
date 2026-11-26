@@ -15,7 +15,7 @@ Uses save state file version 17.
 - VDP1: Limit distorted quad timing calculations to system clipping area. Fixes VDP1 performance drops the Aborigine Forest in Shining the Holy Ark. (#922)
 - VDP1: Limit simple quad timing calculations to system clipping area. Fixes missing graphics during final Astal boss fight. (#976)
 - VDP2: Force assert TVSTAT.VBLANK signal when TVMD.DISP is not asserted. Fixes Clockwork Knight 2 freezes before playing FMVs. (#729, #762)
-
+- VDP2-D3D12: Sync NBG2-3 vertical scroll base offset properly at the start of the frame. Fixes missing graphics on Mr. Bones' title screen.
 
 ## Version 0.4.1
 
