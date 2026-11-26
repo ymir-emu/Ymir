@@ -1041,6 +1041,11 @@ uint64 VDP::VDP1ProcessCommand() {
         }
         m_renderer->VDP1ExecuteCommand(cmdAddress, control);
         cycles += VDP1CalcCommandTiming(cmdAddress, control);
+        if (cycles >= 500000) {
+            __debugbreak();
+            VDP1CalcCommandTiming(cmdAddress, control);
+        }
+        devlog::debug<grp::vdp1_cmd>("Command {:04X} @ {:05X} costs {} cycles", control.u16, cmdAddress, cycles);
     }
 
     // Go to the next command
@@ -1106,12 +1111,14 @@ uint64 VDP::VDP1ProcessCommand() {
 FORCE_INLINE uint64 VDP::VDP1CalcCommandTiming(uint32 cmdAddress, VDP1Command::Control control) {
     uint64 cycles = 0;
 
+    const VDP1State state = m_state.state1;
+
     // HACK: rough cost estimates
 
     auto lineTiming = [&](CoordS32 coordA, CoordS32 coordB) -> uint32 {
-        const uint32 width = abs(coordB.x() - coordA.x());
-        const uint32 height = abs(coordB.y() - coordA.y());
-        return std::max(width, height);
+        LineStepper line{coordA, coordB};
+        line.SystemClip(state.sysClipH, state.sysClipV);
+        return line.Length();
     };
 
     auto quadTiming = [&](CoordS32 coordA, CoordS32 coordB, CoordS32 coordC, CoordS32 coordD) -> uint32 {
@@ -1126,7 +1133,7 @@ FORCE_INLINE uint64 VDP::VDP1CalcCommandTiming(uint32 cmdAddress, VDP1Command::C
     };
 
     auto simpleQuadTiming = [&](uint32 width, uint32 height) -> uint32 {
-        return std::min<uint32>(width, m_state.state1.sysClipH) * std::min<uint32>(height, m_state.state1.sysClipV);
+        return std::min<uint32>(width, state.sysClipH) * std::min<uint32>(height, state.sysClipV);
     };
 
     using enum VDP1Command::CommandType;
