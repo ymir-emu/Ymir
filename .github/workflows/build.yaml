@@ -97,13 +97,13 @@ jobs:
         arch:
           - name: "x86_64-SSE2"
             enable_avx2_option: "OFF"
-            runner: windows-latest
+            runner: windows-2025
             target: x64
             vcpkg_triplet: x64-win-llvm-static-md
             dxc_arch: x64
           - name: "x86_64-AVX2"
             enable_avx2_option: "ON"
-            runner: windows-latest
+            runner: windows-2025
             target: x64
             vcpkg_triplet: x64-win-llvm-avx2-static-md
             dxc_arch: x64
@@ -121,6 +121,13 @@ jobs:
       # Set up MASM for lzma
       - name: Set up MASM
         uses: glslang/setup-masm@bd171b9b0a619ff6237c164fab5fb920cc579889 # v1.4
+
+      # Fix incompatibility between MSVC STL and LLVM-provided Clang.
+      # The yvals_core.h header enforces a strict STL1000 static assertion requiring
+      # a newer Clang version (22+) than what comes pre-installed on the image (20).
+      - name: Install newer LLVM/Clang
+        if: ${{ matrix.arch.runner == 'windows-2025' }}
+        run: choco install llvm --version=23.1.6 -y
 
       - name: Set up Vulkan SDK
         uses: jakoch/install-vulkan-sdk-action@d17de7e2f5e50efb5d2123efed18497d3c58c533 # v1.7.0
