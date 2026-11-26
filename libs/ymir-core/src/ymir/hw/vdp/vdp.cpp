@@ -1125,7 +1125,9 @@ FORCE_INLINE uint64 VDP::VDP1CalcCommandTiming(uint32 cmdAddress, VDP1Command::C
         return quadCycles;
     };
 
-    auto simpleQuadTiming = [&](uint32 width, uint32 height) -> uint32 { return width * height; };
+    auto simpleQuadTiming = [&](uint32 width, uint32 height) -> uint32 {
+        return std::min<uint32>(width, m_state.state1.sysClipH) * std::min<uint32>(height, m_state.state1.sysClipV);
+    };
 
     using enum VDP1Command::CommandType;
 

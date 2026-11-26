@@ -12,7 +12,8 @@ Uses save state file version 17.
 
 ### Fixes
 
-- VDP2: Force assert TVSTAT.VBLANK signal when TVMD.DISP is not asserted. Fixes Clockwork Knight 2 freezes before playing FMVs.
+- VDP1: Limit simple quad timing calculations to system clipping area. Fixes missing graphics during final Astal boss fight. (#976)
+- VDP2: Force assert TVSTAT.VBLANK signal when TVMD.DISP is not asserted. Fixes Clockwork Knight 2 freezes before playing FMVs. (#729, #762)
 
 
 ## Version 0.4.1
